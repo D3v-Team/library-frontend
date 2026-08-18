@@ -4,6 +4,7 @@ import { ChevronDown, Menu, X, Globe } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+
 const navigation = [
   {
     label: "header.about",
@@ -64,6 +65,7 @@ const simpleLinks = [
     path: "/contact",
   },
 ];
+import logo from '../../../../Images/logo.png'
 
 export default function Header({ onMessageOpen }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -170,7 +172,7 @@ export default function Header({ onMessageOpen }) {
           aria-label={t("header.home")}
         >
           <img
-            src="/src/Images/logo.png"
+            src={logo}
             alt="Chinaz kutubxonasi"
             className="h-16 w-auto object-contain"
           />
