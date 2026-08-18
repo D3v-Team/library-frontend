@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { ChevronLeft, LogOut, X } from "lucide-react";
-import Logo from "../../../Images/Logo.png";
+import Logo from "/src/Images/logo.png";
 import { ADMIN_MENU } from "../../../app/navigation/adminMenu.config";
 import { useAppDispatch } from "../../../store/hooks";
 import { logout as logoutAction } from "../../../store/slices/auth.slice";
