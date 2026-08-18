@@ -1,5 +1,4 @@
-// AdminAnnouncements.jsx - 1 qism
-
+// AdminAnnouncements.jsx
 import { useState } from "react";
 import toast from "react-hot-toast";
 import {
@@ -15,7 +14,6 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
 import ImageUploadField from "./components/ImageUploadField";
 import Pagination from "./components/Pagination";
-
 import { SearchInput } from "./components/ListControls";
 
 import {
@@ -32,48 +30,27 @@ const emptyForm = {
   title_latin: "",
   title_cyril: "",
   title_ru: "",
-
-  description_latin: "",
-  description_cyril: "",
-  description_ru: "",
-
+  content_latin: "",   // <- TO'G'RI (content, description emas)
+  content_cyril: "",   // <- TO'G'RI
+  content_ru: "",      // <- TO'G'RI
   cover_image: null,
-
   is_public: true,
 };
 
 const LANGS = [
-  {
-    key: "latin",
-    label: "Lotin",
-  },
-  {
-    key: "cyril",
-    label: "Kirill",
-  },
-  {
-    key: "ru",
-    label: "Rus",
-  },
+  { key: "latin", label: "Lotin" },
+  { key: "cyril", label: "Kirill" },
+  { key: "ru", label: "Rus" },
 ];
 
 export default function Announcements() {
   const [page, setPage] = useState(1);
-
   const [search, setSearch] = useState("");
-
   const [modalOpen, setModalOpen] = useState(false);
-
   const [editing, setEditing] = useState(null);
-
-  const [form, setForm] = useState({
-    ...emptyForm,
-  });
-
+  const [form, setForm] = useState({ ...emptyForm });
   const [file, setFile] = useState(null);
-
   const [deleteTarget, setDeleteTarget] = useState(null);
-
   const [activeLang, setActiveLang] = useState("latin");
 
   const { data, isLoading, isFetching, error } = useGetAnnouncementsQuery({
@@ -84,53 +61,34 @@ export default function Announcements() {
 
   const [createAnnouncement, { isLoading: isCreating }] =
     useCreateAnnouncementMutation();
-
   const [updateAnnouncement, { isLoading: isUpdating }] =
     useUpdateAnnouncementMutation();
-
   const [deleteAnnouncement, { isLoading: isDeleting }] =
     useDeleteAnnouncementMutation();
-
   const [togglePublish] = useToggleAnnouncementPublishMutation();
 
   const items = data?.data ?? [];
-
   const totalPages = data?.meta?.totalPages ?? 1;
-
   const isSaving = isCreating || isUpdating;
 
   const openCreate = () => {
     setEditing(null);
-
-    setForm({
-      ...emptyForm,
-    });
-
+    setForm({ ...emptyForm });
     setFile(null);
-
     setActiveLang("latin");
-
     setModalOpen(true);
   };
 
   const openEdit = (item) => {
     setEditing(item);
-
-    setForm({
-      ...emptyForm,
-      ...item,
-    });
-
+    setForm({ ...emptyForm, ...item });
     setFile(null);
-
     setActiveLang("latin");
-
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
-
     setEditing(null);
   };
 
@@ -156,14 +114,11 @@ export default function Announcements() {
           id: editing.id,
           ...payload,
         }).unwrap();
-
         toast.success("E'lon yangilandi");
       } else {
         await createAnnouncement(payload).unwrap();
-
         toast.success("E'lon qo'shildi");
       }
-
       closeModal();
     } catch (err) {
       toast.error(err?.data?.message || "Saqlashda xatolik");
@@ -175,9 +130,7 @@ export default function Announcements() {
 
     try {
       await deleteAnnouncement(deleteTarget.id).unwrap();
-
       toast.success("E'lon o'chirildi");
-
       setDeleteTarget(null);
     } catch (err) {
       toast.error(err?.data?.message || "O'chirishda xatolik");
@@ -216,193 +169,68 @@ export default function Announcements() {
       </div>
 
       {isLoading ? (
-        <div
-          className="
-          grid
-          gap-5
-          md:grid-cols-2
-          xl:grid-cols-3
-        "
-        >
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="
-                h-72
-                rounded-2xl
-                bg-slate-100
-                animate-pulse
-              "
-            />
+            <div key={i} className="h-52 rounded-2xl bg-blue-700 animate-pulse" />
           ))}
         </div>
       ) : error ? (
-        <div
-          className="
-          rounded-xl
-          bg-red-50
-          px-6
-          py-10
-          text-center
-          text-red-600
-        "
-        >
+        <div className="rounded-xl bg-red-50 px-6 py-10 text-center text-red-600">
           E'lonlarni yuklashda xatolik.
         </div>
       ) : (
-        <div
-          className={`
-            grid
-            gap-5
-            md:grid-cols-2
-            xl:grid-cols-3
-            ${isFetching ? "opacity-60" : ""}
-          `}
-        >
+        <div className={`grid gap-5 md:grid-cols-2 xl:grid-cols-3 ${isFetching ? "opacity-60" : ""}`}>
           {items.map((item) => (
-            <article
-              key={item.id}
-              className="
-                overflow-hidden
-                rounded-2xl
-                border
-                border-slate-200
-                bg-white
-                shadow-sm
-              "
-            >
-              <div
-                className="
-                h-44
-                bg-slate-100
-              "
-              >
+            <article key={item.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="h-44 bg-slate-100">
                 {item.cover_image ? (
                   <img
-                    src={
-                      item.cover_image.startsWith("http")
-                        ? item.cover_image
-                        : `${BASE_URL}${item.cover_image}`
-                    }
+                    src={item.cover_image.startsWith("http") ? item.cover_image : `${BASE_URL}${item.cover_image}`}
                     alt={item.title_latin}
-                    className="
-                      h-full
-                      w-full
-                      object-cover
-                    "
+                    className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div
-                    className="
-                    flex
-                    h-full
-                    items-center
-                    justify-center
-                    text-slate-400
-                  "
-                  >
+                  <div className="flex h-full items-center justify-center text-slate-400">
                     <ImageIcon />
                   </div>
                 )}
               </div>
-            
+
               <div className="p-5">
-                <div
-                  className="
-                  flex
-                  items-start
-                  justify-between
-                  gap-3
-                "
-                >
-                  <h3
-                    className="
-                    line-clamp-2
-                    text-lg
-                    font-semibold
-                    text-slate-900
-                  "
-                  >
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="line-clamp-2 text-lg font-semibold text-slate-900">
                     {item.title_latin}
                   </h3>
 
                   <button
                     type="button"
                     onClick={() => handleToggle(item)}
-                    className={`
-                      shrink-0
-                      rounded-full
-                      px-3
-                      py-1
-                      text-xs
-                      font-medium
-
-                      ${
-                        item.is_public === true
-                          ? "bg-green-100 text-green-700"
-                          : "bg-slate-100 text-slate-500"
-                      }
-                    `}
+                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+                      item.is_public === true
+                        ? "bg-green-100 text-green-700"
+                        : "bg-slate-100 text-slate-500"
+                    }`}
                   >
                     {item.is_public === true ? "Faol" : "Yopiq"}
                   </button>
                 </div>
 
-                <p
-                  className="
-                  mt-3
-                  line-clamp-3
-                  text-sm
-                  leading-6
-                  text-slate-500
-                "
-                >
-                  {item.description_latin}
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-500">
+                  {item.content_latin}
                 </p>
 
-                <div
-                  className="
-                  mt-4
-                  flex
-                  items-center
-                  gap-2
-                  text-xs
-                  text-slate-400
-                "
-                >
+                <div className="mt-4 flex items-center gap-2 text-xs text-slate-400">
                   <CalendarDays size={14} />
-
                   {item.created_at
                     ? new Date(item.created_at).toLocaleDateString("uz-UZ")
                     : "-"}
                 </div>
 
-                <div
-                  className="
-                  mt-5
-                  flex
-                  justify-end
-                  gap-2
-                  border-t
-                  border-slate-100
-                  pt-4
-                "
-                >
+                <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-4">
                   <button
                     type="button"
                     onClick={() => openEdit(item)}
-                    className="
-                      flex
-                      h-9
-                      w-9
-                      items-center
-                      justify-center
-                      rounded-lg
-                      border
-                      border-slate-200
-                      text-slate-500
-                      hover:bg-slate-50
-                    "
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
                   >
                     <Pencil size={16} />
                   </button>
@@ -410,18 +238,7 @@ export default function Announcements() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(item)}
-                    className="
-                      flex
-                      h-9
-                      w-9
-                      items-center
-                      justify-center
-                      rounded-lg
-                      border
-                      border-red-200
-                      text-red-500
-                      hover:bg-red-50
-                    "
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -443,33 +260,17 @@ export default function Announcements() {
         size="lg"
       >
         <form onSubmit={submitHandler} className="space-y-6">
-          <div
-            className="
-            flex
-            gap-1
-            rounded-lg
-            bg-slate-100
-            p-1
-          "
-          >
+          <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
             {LANGS.map((lang) => (
               <button
                 key={lang.key}
                 type="button"
                 onClick={() => setActiveLang(lang.key)}
-                className={`
-                    flex-1
-                    rounded-md
-                    py-2
-                    text-sm
-                    font-medium
-
-                    ${
-                      activeLang === lang.key
-                        ? "bg-white text-slate-900 shadow"
-                        : "text-slate-500"
-                    }
-                  `}
+                className={`flex-1 rounded-md py-2 text-sm font-medium ${
+                  activeLang === lang.key
+                    ? "bg-white text-slate-900 shadow"
+                    : "text-slate-500"
+                }`}
               >
                 {lang.label}
               </button>
@@ -477,26 +278,19 @@ export default function Announcements() {
           </div>
 
           {LANGS.map((lang) => (
-            <div
-              key={lang.key}
-              className={activeLang === lang.key ? "space-y-4" : "hidden"}
-            >
+            <div key={lang.key} className={activeLang === lang.key ? "space-y-4" : "hidden"}>
               <FormField
                 label={`Sarlavha (${lang.label})`}
                 value={form[`title_${lang.key}`]}
-                onChange={(e) =>
-                  changeField(`title_${lang.key}`, e.target.value)
-                }
+                onChange={(e) => changeField(`title_${lang.key}`, e.target.value)}
               />
 
               <FormField
                 as="textarea"
                 rows={4}
                 label={`Tavsif (${lang.label})`}
-                value={form[`description_${lang.key}`]}
-                onChange={(e) =>
-                  changeField(`description_${lang.key}`, e.target.value)
-                }
+                value={form[`content_${lang.key}`]}
+                onChange={(e) => changeField(`content_${lang.key}`, e.target.value)}
               />
             </div>
           ))}
@@ -509,52 +303,22 @@ export default function Announcements() {
             maxSizeMb={5}
           />
 
-          <label
-            className="
-            flex
-            items-center
-            gap-3
-            text-sm
-            font-medium
-            text-slate-700
-          "
-          >
+          <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
             <input
               type="checkbox"
               checked={form.is_public}
               onChange={(e) => changeField("is_public", e.target.checked)}
-              className="
-                h-4
-                w-4
-                rounded
-              "
+              className="h-4 w-4 rounded"
             />
-            Saytda ko‘rsatish
+            Saytda ko'rsatish
           </label>
 
-          <div
-            className="
-            flex
-            justify-end
-            gap-3
-            border-t
-            border-slate-100
-            pt-5
-          "
-          >
+          <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
             <button
               type="button"
               onClick={closeModal}
               disabled={isSaving}
-              className="
-                rounded-lg
-                border
-                border-slate-200
-                px-5
-                py-2.5
-                text-sm
-                text-slate-600
-              "
+              className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm text-slate-600"
             >
               Bekor qilish
             </button>
@@ -562,17 +326,7 @@ export default function Announcements() {
             <button
               type="submit"
               disabled={isSaving}
-              className="
-                rounded-lg
-                bg-slate-900
-                px-5
-                py-2.5
-                text-sm
-                font-medium
-                text-black
-                hover:bg-slate-800
-                disabled:opacity-50
-              "
+              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-800 disabled:opacity-50"
             >
               {isSaving ? "Saqlanmoqda..." : "Saqlash"}
             </button>
@@ -585,11 +339,8 @@ export default function Announcements() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         isLoading={isDeleting}
-        title="E'lonni o‘chirish"
-        description={`
-          "${deleteTarget?.title_latin || ""}"
-          e'lonini o‘chirmoqchimisiz?
-        `}
+        title="E'lonni o'chirish"
+        description={`"${deleteTarget?.title_latin || ""}" e'lonini o'chirmoqchimisiz?`}
       />
     </div>
   );

@@ -20,35 +20,36 @@ export const ROUTES = [
     roles: null,
   },
   {
+    path: "/faq",
+    component: lazy(() => import("../../Pages/Services/FAQ.jsx")),
+    roles: null,
+  },
+  {
+    path: "/privacy-policy",
+    component: lazy(() => import("../../Pages/Services/Policy.jsx")),
+    roles: null,
+  },
+  {
     path: "/about/history",
-    component: lazy(() => import("../../Pages/About/History.jsx")),
+    component: lazy(() => import("../../Pages/About/About.jsx")),
+    roles: null,
+  },
+ 
+  {
+    path: "/authors",
+    component: lazy(() => import("../../Pages/Home/Author.jsx")),
     roles: null,
   },
   {
-    path: "/about/regulations",
-    component: lazy(() => import("../../Pages/About/Regulations.jsx")),
+    path: "/authors/:id",
+    component: lazy(() => import("../../Pages/Home/AuthorDetail.jsx")),
     roles: null,
   },
-  {
-    path: "/about/management",
-    component: lazy(() => import("../../Pages/About/Management.jsx")),
-    roles: null,
-  },
-  {
-    path: "/about/structure",
-    component: lazy(() => import("../../Pages/About/Structure.jsx")),
-    roles: null,
-  },
-  {
-    path: "/about/departments",
-    component: lazy(() => import("../../Pages/About/Departments.jsx")),
-    roles: null,
-  },
-  {
-    path: "/about/staff",
-    component: lazy(() => import("../../Pages/About/Staff.jsx")),
-    roles: null,
-  },
+
+  
+  
+  
+  
 
   // --- Books ---
   {
@@ -92,78 +93,27 @@ export const ROUTES = [
   },
 
   // --- Catalog ---
-  {
-    path: "/catalog",
-    component: lazy(() => import("../../Pages/Catalog/Catalog.jsx")),
-    roles: null,
-  },
-  {
-    path: "/catalog/:id",
-    component: lazy(() => import("../../Pages/Catalog/CatalogDetail.jsx")),
-    roles: null,
-  },
+
+
 
   // --- Library ---
-  {
-    path: "/library",
-    component: lazy(() => import("../../Pages/Library/Library.jsx")),
-    roles: null,
-  },
  
-  { 
-    path: "/library/:id",
-    component: lazy(() => import("../../Pages/Library/LibraryDetail.jsx")),
-    roles: null,
-  },
+
 
   // --- Services ---
-  {
-    path: "/services",
-    component: lazy(() => import("../../Pages/Services/Services.jsx")),
-    roles: null,
-  },
-  {
-    path: "/services/order",
-    component: lazy(() => import("../../Pages/Services/Order.jsx")),
-    roles: null,
-  },
-  {
-    path: "/services/appeal",
-    component: lazy(() => import("../../Pages/Services/Appeal.jsx")),
-    roles: null,
-  },
+ 
+
+
   {
     path: "/services/faq",
     component: lazy(() => import("../../Pages/Services/FAQ.jsx")),
     roles: null,
   },
-  {
-    path: "/services/reference",
-    component: lazy(() => import("../../Pages/Services/Reference.jsx")),
-    roles: null,
-  },
-
+  
   // --- Media ---
-  {
-    path: "/media",
-    component: lazy(() => import("../../Pages/Media/Media.jsx")),
-    roles: null,
-  },
-  {
-    path: "/media/photos",
-    component: lazy(() => import("../../Pages/Media/Photos.jsx")),
-    roles: null,
-  },
-  {
-    path: "/media/videos",
-    component: lazy(() => import("../../Pages/Media/Videos.jsx")),
-    roles: null,
-  },
-  {
-    path: "/media/presentations",
-    component: lazy(() => import("../../Pages/Media/Presentations.jsx")),
-    roles: null,
-  },
+
+ 
+
 
   // --- Documents ---
   {
@@ -171,26 +121,10 @@ export const ROUTES = [
     component: lazy(() => import("../../Pages/Documents/Documents.jsx")),
     roles: null,
   },
-  {
-    path: "/documents/laws",
-    component: lazy(() => import("../../Pages/Documents/Laws.jsx")),
-    roles: null,
-  },
-  {
-    path: "/documents/decisions",
-    component: lazy(() => import("../../Pages/Documents/Decisions.jsx")),
-    roles: null,
-  },
-  {
-    path: "/documents/orders",
-    component: lazy(() => import("../../Pages/Documents/Orders.jsx")),
-    roles: null,
-  },
-  {
-    path: "/documents/reports",
-    component: lazy(() => import("../../Pages/Documents/Reports.jsx")),
-    roles: null,
-  },
+
+
+ 
+ 
 
   // --- Contact ---
   {
@@ -230,12 +164,8 @@ export const ADMIN_ROUTES = [
     component: lazy(() => import("../../Pages/Admin/Dashboard.jsx")),
     roles: ADMIN_ROLES,
   },
-  
-  {
-    path: "/admin/news",
-    component: lazy(() => import("../../Pages/Admin/News.jsx")),
-    roles: ADMIN_ROLES,
-  },
+
+ 
   {
     path: "/admin/books",
     component: lazy(() => import("../../Pages/Admin/Books.jsx")),
@@ -256,7 +186,7 @@ export const ADMIN_ROUTES = [
     component: lazy(() => import("../../Pages/Admin/Events.jsx")),
     roles: ADMIN_ROLES,
   },
-   {
+  {
     path: "/admin/management",
     component: lazy(() => import("../../Pages/Admin/Departament.jsx")),
     roles: ADMIN_ROLES,
@@ -297,8 +227,18 @@ export const ADMIN_ROUTES = [
     roles: ADMIN_ROLES,
   },
   {
+    path: "/admin/pages",
+    component: lazy(() => import("../../Pages/Admin/Pages.jsx")),
+    roles: ADMIN_ROLES,
+  },
+  {
     path: "/admin/message",
     component: lazy(() => import("../../Pages/Admin/Message.jsx")),
+    roles: ADMIN_ROLES,
+  },
+  {
+    path: "/admin/request",
+    component: lazy(() => import("../../Pages/Admin/Requests.jsx")),
     roles: ADMIN_ROLES,
   },
   {
@@ -307,4 +247,3 @@ export const ADMIN_ROUTES = [
     roles: ADMIN_ROLES,
   },
 ];
-

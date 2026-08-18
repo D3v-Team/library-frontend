@@ -1,8 +1,12 @@
 import { Link } from "react-router-dom";
 
+import SEO from "../../seo/SEO";
+import { SEO_CONFIG } from "../../seo/seoConfig";
+
 export default function Forbidden() {
   return (
     <section className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center px-4 py-20 text-center sm:px-6 lg:px-8">
+      <SEO {...SEO_CONFIG.forbidden} noIndex />
       <span className="text-sm font-semibold tracking-[0.12em] text-slate-400">
         XATOLIK 403
       </span>

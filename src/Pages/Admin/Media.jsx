@@ -429,7 +429,7 @@ const handleUploadSubmit = useCallback(async () => {
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="h-72 animate-pulse rounded-2xl bg-slate-100"
+              className="h-52 animate-pulse rounded-2xl bg-blue-700"
             />
           ))}
         </div>
@@ -460,7 +460,7 @@ const handleUploadSubmit = useCallback(async () => {
               >
                 <div className="relative h-44 bg-slate-100">
                   {imageUrl ? (
-                  <img
+                    <img
                       src={imageUrl}
                       alt={item.title_latin}
                       className="h-full w-full object-cover"

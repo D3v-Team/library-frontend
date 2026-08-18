@@ -14,20 +14,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useGetContactInfoQuery } from "../../../../store/services/contact.info";
-
-const navigationLinks = [
-  { label: "footer.nav.home", path: "/" },
-  { label: "footer.nav.about", path: "/about" },
-  { label: "footer.nav.books", path: "/books" },
-  { label: "footer.nav.news", path: "/news" },
-  { label: "footer.nav.events", path: "/events" },
-];
-
-const serviceLinks = [
-  { label: "footer.services.catalog", path: "/catalog" },
-  { label: "footer.services.library", path: "/library" },
-  { label: "footer.services.online", path: "/services" },
-];
+import logo from "../../../../Images/logo.png";
 
 const getSocialIcon = (platform) => {
   switch (platform) {
@@ -69,7 +56,7 @@ export default function Footer() {
           <div>
             <Link to="/" className="inline-flex items-center">
               <img
-                src="/src/Images/logo.png"
+                src={logo}
                 alt="Chinoz axborot-kutubxona markazi"
                 className="h-16 w-auto object-contain"
               />
@@ -106,16 +93,41 @@ export default function Footer() {
             </h3>
 
             <ul className="mt-5 space-y-3">
-              {navigationLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className="text-sm text-slate-500 transition hover:text-blue-600"
-                  >
-                    {t(link.label)}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link to="/" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.nav.home")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.nav.about")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/authors" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.nav.authors")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/books" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.nav.books")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/news" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.nav.news")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/events" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.nav.events")}
+                </Link>
+              </li>
+              {/* <li>
+                <Link to="/media" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.nav.media")}
+                </Link>
+              </li> */}
             </ul>
           </div>
 
@@ -126,16 +138,26 @@ export default function Footer() {
             </h3>
 
             <ul className="mt-5 space-y-3">
-              {serviceLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className="text-sm text-slate-500 transition hover:text-blue-600"
-                  >
-                    {t(link.label)}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link to="/services/faq" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.services.faq")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.services.contact")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/about/documents" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.services.documents")}
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy-policy" className="text-sm text-slate-500 transition hover:text-blue-600">
+                  {t("footer.services.privacy")}
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -172,18 +194,14 @@ export default function Footer() {
                   {contactInfo.email}
                 </a>
               )}
-            </div>
 
-            <Link
-              to="/contact"
-              className="group mt-5 inline-flex items-center gap-2 text-sm font-medium text-slate-900 transition hover:text-blue-600"
-            >
-              {t("footer.contactPage")}
-              <ArrowUpRight
-                size={16}
-                className="text-blue-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-              />
-            </Link>
+              <Link
+                to="/contact"
+                className="block text-sm text-slate-500 transition hover:text-blue-600"
+              >
+                {t("footer.contactPage")}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -196,18 +214,11 @@ export default function Footer() {
           </p>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <Link
-              to="/documents"
-              className="text-xs text-slate-500 transition hover:text-blue-600"
-            >
+            <Link to="/privacy-policy" className="text-xs text-slate-500 transition hover:text-blue-600">
               {t("footer.privacy")}
             </Link>
-
-            <Link
-              to="/documents"
-              className="text-xs text-slate-500 transition hover:text-blue-600"
-            >
-              {t("footer.terms")}
+            <Link to="/about/documents" className="text-xs text-slate-500 transition hover:text-blue-600">
+              {t("footer.documents")}
             </Link>
           </div>
         </div>

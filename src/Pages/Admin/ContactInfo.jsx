@@ -302,7 +302,7 @@ export default function ContactInfo() {
               className="
               h-32
               rounded-2xl
-              bg-slate-100
+              bg-blue-700
               animate-pulse
               "
             />

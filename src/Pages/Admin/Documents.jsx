@@ -295,10 +295,10 @@ export default function Documents() {
             <div
               key={index}
               className="
-                h-72
+                h-52
                 animate-pulse
                 rounded-2xl
-                bg-slate-100
+                bg-blue-700
               "
             />
           ))}

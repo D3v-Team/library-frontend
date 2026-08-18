@@ -176,7 +176,7 @@ export default function Banners() {
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="h-14 animate-pulse rounded-lg bg-slate-100"
+                className="h-14 animate-pulse rounded-lg bg-blue-700"
               />
             ))}
           </div>
@@ -304,7 +304,7 @@ ${
 
 `}
                         >
-                          {item.is_active ? "Faol" : "Yopiq"}
+                          {item.is_active ? "Faol" : "Nofaol"}
                         </button>
                       </div>
 

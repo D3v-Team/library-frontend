@@ -1,13 +1,13 @@
-// src/pages/Home/FAQ.jsx
+// src/pages/Home/Policy.jsx
 import { useTranslation } from "react-i18next";
 import { useGetPageBySlugQuery } from "../../store/services/pages";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
 
-export default function FAQ() {
+export default function Policy() {
   const { t, i18n } = useTranslation();
 
-  const { data: page, isLoading, error } = useGetPageBySlugQuery("FAQ");
+  const { data: page, isLoading, error } = useGetPageBySlugQuery("PRIVACY_POLICY");
 
   // Tilga qarab sarlavha va kontentni tanlash
   const getTitle = () => {
@@ -16,7 +16,7 @@ export default function FAQ() {
     if (lang === "uz") return page.title_latin;
     if (lang === "ru") return page.title_ru;
     if (lang === "cyrl") return page.title_cyril;
-    return page.title_latin || "Ko'p so'raladigan savollar";
+    return page.title_latin || "Maxfiylik siyosati";
   };
 
   const getContent = () => {
@@ -34,7 +34,7 @@ export default function FAQ() {
   if (isLoading) {
     return (
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <SEO {...SEO_CONFIG.faq} />
+        <SEO {...SEO_CONFIG.privacy} />
         <div className="animate-pulse space-y-6">
           <div className="h-8 w-48 rounded bg-blue-700" />
           <div className="h-12 w-3/4 rounded bg-blue-700" />
@@ -47,10 +47,10 @@ export default function FAQ() {
   if (error || !page) {
     return (
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <SEO {...SEO_CONFIG.faq} noIndex />
+        <SEO {...SEO_CONFIG.privacy} noIndex />
         <div className="rounded-xl border border-dashed border-red-200 bg-red-50 px-6 py-16 text-center">
           <p className="text-sm text-red-600">
-            {t("faq.error") || "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."}
+            {t("policy.error") || "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."}
           </p>
         </div>
       </section>
@@ -60,15 +60,15 @@ export default function FAQ() {
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
       <SEO
-        {...SEO_CONFIG.faq}
+        {...SEO_CONFIG.privacy}
         title={title}
-        description={content?.slice(0, 160) || "Ko'p so'raladigan savollar"}
+        description={content?.slice(0, 160) || "Maxfiylik siyosati haqida ma'lumot"}
       />
 
       <div className="mb-4 flex items-center gap-3">
         <span className="h-7 w-1 rounded-full bg-slate-900" />
         <span className="text-sm font-semibold tracking-[0.12em] text-slate-900">
-          {t("faq.badge") || "KO'P SO'RALADIGAN SAVOLLAR"}
+          {t("policy.badge") || "MAXFIYLIK SIYOSATI"}
         </span>
       </div>
 
@@ -77,7 +77,7 @@ export default function FAQ() {
       </h1>
 
       <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-        {t("faq.description") || "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar."}
+        {t("policy.description") || "Shaxsiy ma'lumotlarni himoya qilish siyosati."}
       </p>
 
       <div className="mt-10 prose prose-slate max-w-none">
@@ -89,7 +89,7 @@ export default function FAQ() {
         ) : (
           <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
             <p className="text-sm text-slate-500">
-              {t("faq.noContent") || "Hozircha ma'lumot mavjud emas."}
+              {t("policy.noContent") || "Hozircha ma'lumot mavjud emas."}
             </p>
           </div>
         )}

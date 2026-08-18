@@ -1,7 +1,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-export const BASE_URL = "http://167.86.110.132:3001";
+export const BASE_URL = "https://book.udsgroup.uz";
 
 export const $api = axios.create({
   baseURL: `${BASE_URL}/api`,

@@ -51,8 +51,8 @@ export default function Contact() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <SEO {...SEO_CONFIG.contact} />
         <div className="animate-pulse space-y-5">
-          <div className="h-10 w-64 rounded-lg bg-slate-200" />
-          <div className="h-40 rounded-2xl bg-slate-200" />
+          <div className="h-10 w-64 rounded-lg bg-blue-700" />
+          <div className="h-40 rounded-2xl bg-blue-700" />
         </div>
       </section>
     );

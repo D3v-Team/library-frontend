@@ -160,4 +160,71 @@ export const SEO_CONFIG = {
     keywords: ["media", "fotogalereya", "videogalereya", "taqdimotlar"],
     path: "/media",
   },
+
+  faq: {
+    title: "Ko'p so'raladigan savollar",
+    description:
+      "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar. Xizmatlar, kitob fondi va kutubxona faoliyati bo'yicha ma'lumot oling.",
+    keywords: [
+      "FAQ",
+      "ko'p so'raladigan savollar",
+      "kutubxona savollari",
+      "Chinoz kutubxonasi",
+    ],
+    path: "/faq",
+  },
+
+  privacy: {
+    title: "Maxfiylik siyosati",
+    description:
+      "Chinoz axborot-kutubxona markazining shaxsiy ma'lumotlarni himoya qilish siyosati. Foydalanuvchi ma'lumotlari qanday to'planishi va ishlatilishi haqida.",
+    keywords: [
+      "maxfiylik siyosati",
+      "shaxsiy ma'lumotlar",
+      "ma'lumotlarni himoya qilish",
+      "kutubxona maxfiyligi",
+    ],
+    path: "/privacy-policy",
+  },
+
+  authors: {
+    title: "Mualliflar",
+    description:
+      "Kutubxona fondida mavjud bo'lgan barcha mualliflar ro'yxati. Mualliflar haqida biografiya va asarlari bilan tanishing.",
+    keywords: [
+      "mualliflar",
+      "yozuvchilar",
+      "kutubxona mualliflari",
+      "adabiyot mualliflari",
+      "Chinoz kutubxonasi",
+    ],
+    path: "/authors",
+  },
+
+  authorDetail: {
+    title: "Muallif",
+    description: "Kutubxona fondidagi muallif haqida batafsil ma'lumot.",
+    keywords: ["muallif", "biografiya", "kutubxona fondi"],
+  },
+
+  notFound: {
+    title: "Sahifa topilmadi",
+    description:
+      "Siz izlagan sahifa topilmadi yoki ko'chirilgan. Chinoz axborot-kutubxona markazi bosh sahifasiga qayting.",
+    path: "/404",
+  },
+
+  forbidden: {
+    title: "Kirish taqiqlangan",
+    description:
+      "Ushbu sahifani ko'rish uchun yetarli huquq yo'q. Chinoz axborot-kutubxona markazi bosh sahifasiga qayting.",
+    path: "/403",
+  },
+
+  login: {
+    title: "Kirish",
+    description:
+      "Chinoz axborot-kutubxona markazi admin paneliga kirish sahifasi.",
+    path: "/login",
+  },
 };

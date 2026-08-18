@@ -166,7 +166,7 @@ export default function Books() {
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[3/4] animate-pulse rounded-xl bg-slate-100"
+                className="aspect-[3/4] animate-pulse rounded-xl bg-blue-700"
               />
             ))}
           </div>

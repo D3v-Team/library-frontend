@@ -14,7 +14,10 @@
     "events": "Tadbirlar",
     "contact": "Aloqa",
     "openMenu": "Menyuni ochish",
-    "closeMenu": "Menyuni yopish"
+    "closeMenu": "Menyuni yopish",
+    "faq": "Ko'p so'raladigan savollar",
+  "privacy": "Maxfiylik siyosati",
+  "authors": "Mualliflar"
   },
   "hero": {
     "eyebrow": "CHINOZ AXBOROT-KUTUBXONA MARKAZI",
@@ -138,27 +141,32 @@
   "noVideos": "Videolar mavjud emas",
   "noPhotos": "Fotolar mavjud emas"
 },
-"footer": {
-  "brand": "Chinoz axborot-kutubxona markazi — kitobxonlar uchun axborot, ta'lim va madaniy xizmatlarni taqdim etuvchi zamonaviy markaz.",
-  "navigation": "Sayt bo'limlari",
-  "servicesTitle": "Xizmatlar",
-  "contact": "Bog'lanish",
-  "contactPage": "Aloqa sahifasi",
-  "copyright": "© 2026 Chinoz axborot-kutubxona markazi. Barcha huquqlar himoyalangan.",
-  "privacy": "Maxfiylik siyosati",
-  "terms": "Foydalanish shartlari",
-  "nav": {
-    "home": "Bosh sahifa",
-    "about": "Kutubxona haqida",
-    "books": "Kitoblar",
-    "news": "Yangiliklar",
-    "events": "Tadbirlar"
-  },
-  "services": {
-    "catalog": "Elektron katalog",
-    "library": "Elektron kutubxona",
-    "online": "Online xizmatlar"
-  }
+
+  "footer": {
+    "brand": "Chinoz axborot-kutubxona markazi — kitobxonlar uchun axborot, ta'lim va madaniy xizmatlarni taqdim etuvchi zamonaviy markaz.",
+    "navigation": "Sayt bo'limlari",
+    "servicesTitle": "Xizmatlar",
+    "contact": "Bog'lanish",
+    "contactPage": "Aloqa sahifasi",
+    "copyright": "© 2026 Chinoz axborot-kutubxona markazi. Barcha huquqlar himoyalangan.",
+    "privacy": "Maxfiylik siyosati",
+    "documents": "Hujjatlar",
+    "nav": {
+      "home": "Bosh sahifa",
+      "about": "Kutubxona haqida",
+      "authors": "Mualliflar",
+      "books": "Kitoblar",
+      "news": "Yangiliklar",
+      "events": "Tadbirlar",
+      "media": "Media"
+    },
+    "services": {
+      "faq": "Ko'p so'raladigan savollar",
+      "contact": "Aloqa",
+      "documents": "Hujjatlar",
+      "privacy": "Maxfiylik siyosati"
+    }
+  
 },
 "contact": {
   "badge": "ALOQA",
@@ -215,5 +223,50 @@
   "description": "Kutubxona rahbariyati va mas'ul xodimlar haqida ma'lumot.",
   "error": "Ma'lumotlarni yuklashda xatolik yuz berdi.",
   "empty": "Ma'lumot mavjud emas."
+},
+"authorDetail": {
+  "back": "Mualliflarga qaytish",
+  "pageTitle": "Muallif haqida",
+  "defaultDesc": "haqida ma'lumot",
+  "biography": "Tarjimai hol",
+  "birth": "Tug'ilgan",
+  "death": "Vafot",
+  "booksCount": "Kitoblari soni",
+  "notFound": "Muallif topilmadi yoki yuklashda xatolik yuz berdi.",
+  "clickToZoom": "Rasmni kattalashtirish uchun bosing"
+},
+
+  "about": {
+    "badge": "KUTUBXONA HAQIDA",
+    "description": "Kutubxona haqida umumiy ma'lumot.",
+    "noContent": "Hozircha ma'lumot mavjud emas.",
+    "error": "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."
+},
+
+  "faq": {
+    "badge": "KO'P SO'RALADIGAN SAVOLLAR",
+    "description": "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar.",
+    "noContent": "Hozircha ma'lumot mavjud emas.",
+    "error": "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."
+  
+},
+
+  "policy": {
+    "badge": "MAXFIYLIK SIYOSATI",
+    "description": "Shaxsiy ma'lumotlarni himoya qilish siyosati.",
+    "noContent": "Hozircha ma'lumot mavjud emas.",
+    "error": "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."
+  
+},
+
+  "author": {
+    "badge": "KUTUBXONA MUALLIFLARI",
+    "pageTitle": "Mualliflar",
+    "description": "Kutubxona fondida mavjud bo'lgan barcha mualliflar ro'yxati.",
+    "empty": "Hozircha mualliflar mavjud emas.",
+    "error": "Mualliflarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+    "details": "Batafsil",
+    "unknownName": "Nomsiz"
+  
 }
 }

@@ -100,7 +100,7 @@ export default function Media() {
   // Tilga qarab description ni olish
   const getDescription = (album) => {
     const lang = i18n.language;
-    if (lang === "uz") return album.title_ru || "";
+    if (lang === "uz") return album.title_uz || "";
     if (lang === "ru") return album.title_ru || "";
     if (lang === "cyrl") return album.title_cyril || "";
     return album.title_ru || album.title_cyril || "";
@@ -234,12 +234,12 @@ export default function Media() {
         {/* CONTENT */}
         {isLoading ? (
           <div className="grid gap-5 lg:grid-cols-[1.65fr_1fr]">
-            <div className="min-h-[360px] animate-pulse rounded-2xl bg-slate-200 sm:min-h-[460px]" />
+            <div className="min-h-[360px] animate-pulse rounded-2xl bg-blue-700 sm:min-h-[460px]" />
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="min-h-[170px] animate-pulse rounded-xl bg-slate-200"
+                  className="min-h-[170px] animate-pulse rounded-xl bg-blue-700"
                 />
               ))}
             </div>

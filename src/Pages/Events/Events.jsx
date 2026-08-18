@@ -71,7 +71,7 @@ export default function Events() {
         <SEO {...SEO_CONFIG.events} />
         <div className="grid gap-5 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-[380px] animate-pulse rounded-xl bg-slate-100" />
+            <div key={i} className="h-[280px] animate-pulse rounded-xl bg-blue-700" />
           ))}
         </div>
       </section>

@@ -207,10 +207,10 @@ export default function Links() {
             <div
               key={i}
               className="
-                  h-64
+                  h-44
                   animate-pulse
                   rounded-2xl
-                  bg-slate-100
+                  bg-blue-700
                 "
             />
           ))}

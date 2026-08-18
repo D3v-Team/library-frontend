@@ -21,6 +21,8 @@ import {
   Link,
   Phone,
   MessageCircleCodeIcon,
+  Book,
+  Package,
 } from 'lucide-react';
 
 export const ADMIN_MENU = [
@@ -88,9 +90,19 @@ export const ADMIN_MENU = [
     icon: Phone,
   },
   {
+    label: 'Sahifalar',
+    path: '/admin/pages',
+    icon: Package,
+  },
+  {
     label: 'Xabarlar',
     path: '/admin/message',
     icon: MessageCircleCodeIcon,
+  },
+  {
+    label: 'Buyurtmalar',
+    path: '/admin/request',
+    icon: Book,
   },
   {
     label: 'Adminlar',

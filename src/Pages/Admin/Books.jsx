@@ -362,10 +362,10 @@ lg:grid-cols-4
               <div
                 key={i}
                 className="
-h-72
+h-42
 animate-pulse
 rounded-xl
-bg-slate-100
+bg-blue-700
 "
               />
             ))}
