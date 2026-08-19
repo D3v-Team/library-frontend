@@ -38,7 +38,7 @@ export const eventsApi = createApi({
         page = 1,
         limit = 10,
         search = "",
-        sortBy = "created_at",
+        sortBy = "",
         sortOrder = "desc",
       } = {}) => ({
         url: "/events",

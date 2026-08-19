@@ -72,17 +72,50 @@ export default function News() {
     setPage(1);
   }, [i18n.language]);
 
+  // ===== SKELETON LOADING =====
   if (isLoading) {
     return (
-      <section className="px-4 py-10 sm:px-6 lg:px-8">
-        <SEO {...SEO_CONFIG.news} />
-        <div className="mx-auto max-w-7xl grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-[360px] rounded-2xl bg-slate-100 animate-pulse"
-            />
-          ))}
+      <section className="bg-slate-50 py-10 sm:py-12 lg:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* HEADER SKELETON */}
+          <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <div className="mb-3 flex items-center gap-3">
+                <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+                <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
+                  <Megaphone size={17} className="text-blue-700/40 animate-pulse" />
+                  <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+                </div>
+              </div>
+              <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
+              <div className="mt-2 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+            </div>
+            <div className="h-8 w-32 animate-pulse rounded bg-blue-700/40" />
+          </div>
+
+          {/* CARDS SKELETON */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+              >
+                <div className="h-52 animate-pulse bg-blue-700" />
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="h-6 w-20 animate-pulse rounded-full bg-blue-700" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-blue-700" />
+                  </div>
+                  <div className="h-6 w-3/4 animate-pulse rounded bg-blue-700" />
+                  <div className="h-4 w-full animate-pulse rounded bg-blue-700" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-blue-700" />
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <div className="h-8 w-28 animate-pulse rounded bg-blue-700" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     );

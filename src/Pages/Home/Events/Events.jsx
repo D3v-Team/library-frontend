@@ -69,16 +69,49 @@ export default function Events() {
     return new Date(date).getDate();
   };
 
+  // ===== SKELETON LOADING =====
   if (isLoading) {
     return (
       <section className="bg-slate-50 py-16 sm:py-12 lg:py-12">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* HEADER SKELETON */}
+          <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+                <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
+                  <CalendarDays size={17} className="text-blue-700/40 animate-pulse" />
+                  <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+                </div>
+              </div>
+              <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
+              <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+            </div>
+            <div className="h-8 w-32 animate-pulse rounded bg-blue-700/40" />
+          </div>
+
+          {/* CARDS SKELETON */}
           <div className="grid gap-5 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="h-80 animate-pulse rounded-xl bg-slate-100"
-              />
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+              >
+                <div className="relative aspect-[16/9] animate-pulse bg-blue-700" />
+                <div className="p-6 space-y-4">
+                  <div className="h-7 w-3/4 animate-pulse rounded bg-blue-700/60" />
+                  <div className="h-4 w-full animate-pulse rounded bg-blue-700/50" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-blue-700/50" />
+                  <div className="mt-5 space-y-2 border-t border-slate-100 pt-5">
+                    <div className="h-4 w-32 animate-pulse rounded bg-blue-700/40" />
+                    <div className="h-4 w-40 animate-pulse rounded bg-blue-700/40" />
+                  </div>
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="h-6 w-24 animate-pulse rounded bg-blue-700/40" />
+                    <div className="h-8 w-8 animate-pulse rounded-full bg-blue-700/40" />
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>

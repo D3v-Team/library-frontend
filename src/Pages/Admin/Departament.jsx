@@ -63,7 +63,7 @@ export default function Departament() {
 
     search,
 
-    sortBy: "created_at",
+
 
     sortOrder: "desc",
   });

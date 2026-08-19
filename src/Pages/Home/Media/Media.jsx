@@ -82,9 +82,9 @@ export default function Media() {
     refetch,
   } = useGetMediaAlbumsQuery({
     page: 1,
-    limit: 100,
+    limit: 10,
     type: activeTab,
-    sortBy: "created_at",
+    sortBy: "",
     sortOrder: "desc",
   });
 
@@ -170,7 +170,7 @@ export default function Media() {
 
   // ================= EFFECTS =================
   useEffect(() => {
-    refetch();
+
   }, [activeTab, refetch]);
 
   // Til o'zgarganda slaydni yangilash
@@ -184,62 +184,86 @@ export default function Media() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* HEADER */}
         <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="mb-4 flex items-center gap-3">
-              <span className="h-7 w-1 rounded-full bg-blue-700" />
-              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
-                <Images size={17} />
-                <span>{t("media.badge")}</span>
+          {isLoading ? (
+            // HEADER SKELETON
+            <>
+              <div>
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+                  <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
+                    <Images size={17} className="text-blue-700/40 animate-pulse" />
+                    <span className="h-6 w-20 animate-pulse rounded bg-blue-700/50" />
+                  </div>
+                </div>
+                <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
+                <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
               </div>
-            </div>
+              <div className="flex w-fit rounded-lg border border-slate-200 bg-white p-1">
+                <div className="h-10 w-24 animate-pulse rounded-md bg-blue-700/40" />
+                <div className="h-10 w-24 animate-pulse rounded-md bg-blue-700/30 ml-1" />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="h-7 w-1 rounded-full bg-blue-700" />
+                  <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
+                    <Images size={17} />
+                    <span>{t("media.badge")}</span>
+                  </div>
+                </div>
 
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-              {t("media.heading")}
-            </h2>
+                <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                  {t("media.heading")}
+                </h2>
 
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-              {t("media.description")}
-            </p>
-          </div>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                  {t("media.description")}
+                </p>
+              </div>
 
-          <div className="flex w-fit rounded-lg border border-slate-200 bg-white p-1">
-            <button
-              type="button"
-              onClick={() => changeTab("VIDEO")}
-              className={`flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
-                activeTab === "VIDEO"
-                  ? "bg-blue-700 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Play size={15} />
-              {t("media.videos")}
-            </button>
+              <div className="flex w-fit rounded-lg border border-slate-200 bg-white p-1">
+                <button
+                  type="button"
+                  onClick={() => changeTab("VIDEO")}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
+                    activeTab === "VIDEO"
+                      ? "bg-blue-700 text-white shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Play size={15} />
+                  {t("media.videos")}
+                </button>
 
-            <button
-              type="button"
-              onClick={() => changeTab("PHOTO")}
-              className={`flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
-                activeTab === "PHOTO"
-                  ? "bg-blue-700 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Images size={15} />
-              {t("media.photos")}
-            </button>
-          </div>
+                <button
+                  type="button"
+                  onClick={() => changeTab("PHOTO")}
+                  className={`flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
+                    activeTab === "PHOTO"
+                      ? "bg-blue-700 text-white shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Images size={15} />
+                  {t("media.photos")}
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* CONTENT */}
         {isLoading ? (
+          // CONTENT SKELETON (bg-blue-700)
           <div className="grid gap-5 lg:grid-cols-[1.65fr_1fr]">
-            <div className="min-h-[360px] animate-pulse rounded-2xl bg-blue-700 sm:min-h-[460px]" />
+            <div className="min-h-[360px] rounded-2xl bg-blue-700 sm:min-h-[460px] animate-pulse" />
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="min-h-[170px] animate-pulse rounded-xl bg-blue-700"
+                  className="min-h-[170px] rounded-xl bg-blue-700 animate-pulse"
                 />
               ))}
             </div>

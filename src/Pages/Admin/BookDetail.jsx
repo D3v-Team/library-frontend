@@ -1,49 +1,38 @@
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { ArrowLeft, BookOpen, Eye, Trash2 } from "lucide-react";
-
 import ImageUploadField from "./components/ImageUploadField";
 import FileUploadField, { FileListItem } from "./components/FileUploadField";
 import { BASE_URL } from "../../store/api";
-
 import {
   useGetBookByIdQuery,
-  useGetBookImagesQuery,
   useUploadBookImageMutation,
   useDeleteBookImageMutation,
   useSetMainBookImageMutation,
-  useGetBookFilesQuery,
   useUploadBookFileMutation,
   useDeleteBookFileMutation,
   downloadBookFile,
 } from "../../store/services/books.api";
+import { formatBookDate, formatBookYear } from "../../Pages/Books/bookHelpers";
 
 export default function BookDetail() {
   const { id } = useParams();
 
-  const { data: book, isLoading, error } = useGetBookByIdQuery(id);
-  const { data: imagesData } = useGetBookImagesQuery(id);
-  const { data: filesData } = useGetBookFilesQuery(id);
+  const { data: book, isLoading, error, refetch } = useGetBookByIdQuery(id);
 
   const [uploadImage] = useUploadBookImageMutation();
-  const [deleteImage, { isLoading: isDeletingImage }] =
-    useDeleteBookImageMutation();
-  const [setMainImage, { isLoading: isSettingMainImage }] =
-    useSetMainBookImageMutation();
+  const [deleteImage] = useDeleteBookImageMutation();
+  const [setMainImage] = useSetMainBookImageMutation();
 
   const [uploadFile] = useUploadBookFileMutation();
-  const [deleteFile, { isLoading: isDeletingFile }] =
-    useDeleteBookFileMutation();
+  const [deleteFile] = useDeleteBookFileMutation();
 
-  const images = imagesData?.data ?? [];
-  const files = filesData?.data ?? [];
+  const images = book?.images ?? [];
+  const files = book?.files ?? [];
+
   const getImageUrl = (url) => {
     if (!url) return "";
-
-    if (url.startsWith("http")) {
-      return url;
-    }
-
+    if (url.startsWith("http")) return url;
     return `${BASE_URL}${url}`;
   };
 
@@ -52,6 +41,7 @@ export default function BookDetail() {
     try {
       await uploadImage({ bookId: id, file }).unwrap();
       toast.success("Rasm yuklandi");
+      refetch();
     } catch (err) {
       toast.error(err?.data?.message || "Rasm yuklashda xatolik");
     }
@@ -61,6 +51,7 @@ export default function BookDetail() {
     try {
       await deleteImage({ bookId: id, imageId }).unwrap();
       toast.success("Rasm o‘chirildi");
+      refetch();
     } catch (err) {
       toast.error(err?.data?.message || "Rasmni o‘chirishda xatolik");
     }
@@ -70,6 +61,7 @@ export default function BookDetail() {
     try {
       await setMainImage({ bookId: id, imageId }).unwrap();
       toast.success("Asosiy rasm belgilandi");
+      refetch();
     } catch (err) {
       toast.error(err?.data?.message || "Amalni bajarib bo‘lmadi");
     }
@@ -79,6 +71,7 @@ export default function BookDetail() {
     try {
       await uploadFile({ bookId: id, file }).unwrap();
       toast.success("Fayl yuklandi");
+      refetch();
     } catch (err) {
       toast.error(err?.data?.message || "Fayl yuklashda xatolik");
       throw err;
@@ -89,6 +82,7 @@ export default function BookDetail() {
     try {
       await deleteFile({ bookId: id, fileId }).unwrap();
       toast.success("Fayl o‘chirildi");
+      refetch();
     } catch (err) {
       toast.error(err?.data?.message || "Faylni o‘chirishda xatolik");
     }
@@ -119,7 +113,7 @@ export default function BookDetail() {
     );
   }
 
-  const mainImage = book.images?.find((img) => img.is_main);
+  const mainImage = images.find((img) => img.is_main);
 
   return (
     <div>
@@ -173,7 +167,13 @@ export default function BookDetail() {
               <div>
                 <dt className="text-xs text-slate-400">Nashr sanasi</dt>
                 <dd className="mt-1 text-sm font-medium text-slate-800">
-                  {book.published_date || "—"}
+                  {formatBookDate(book.published_date) || "—"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-400">Nashr yili</dt>
+                <dd className="mt-1 text-sm font-medium text-slate-800">
+                  {formatBookYear(book.published_date) || "—"}
                 </dd>
               </div>
               <div>
@@ -208,7 +208,7 @@ export default function BookDetail() {
                   <FileListItem
                     key={file.id}
                     file={file}
-                    isDeleting={isDeletingFile}
+                    isDeleting={false}
                     onDownload={() => handleDownloadFile(file)}
                     onDelete={() => handleDeleteFile(file.id)}
                   />
@@ -250,9 +250,8 @@ export default function BookDetail() {
                       <button
                         type="button"
                         onClick={() => handleSetMainImage(img.id)}
-                        disabled={isSettingMainImage || isDeletingImage}
                         title="Asosiy qilish"
-                        className="flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-700 disabled:opacity-50"
+                        className="flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-700"
                       >
                         <Eye size={13} />
                       </button>
@@ -260,9 +259,8 @@ export default function BookDetail() {
                     <button
                       type="button"
                       onClick={() => handleDeleteImage(img.id)}
-                      disabled={isDeletingImage || isSettingMainImage}
                       title="O‘chirish"
-                      className="flex h-7 w-7 items-center justify-center rounded-md bg-white text-red-600 disabled:opacity-50"
+                      className="flex h-7 w-7 items-center justify-center rounded-md bg-white text-red-600"
                     >
                       <Trash2 size={13} />
                     </button>

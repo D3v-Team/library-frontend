@@ -55,17 +55,37 @@ export default function EventDetail() {
     });
   };
 
+  // ===== SKELETON LOADING =====
   if (isLoading) {
     return (
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <SEO title={t("events.loading")} description={t("events.loadingDesc")} />
-        <div className="animate-pulse space-y-6">
-          <div className="h-10 w-3/4 rounded-lg bg-slate-200" />
-          <div className="h-80 rounded-2xl bg-slate-200" />
-          <div className="space-y-3">
-            <div className="h-4 rounded bg-slate-200" />
-            <div className="h-4 rounded bg-slate-200" />
-            <div className="h-4 w-2/3 rounded bg-slate-200" />
+        <div className="animate-pulse">
+          {/* Back link skeleton */}
+          <div className="inline-flex items-center gap-2 h-5 w-32 rounded bg-blue-700/50" />
+          
+          <div className="mt-10 grid items-center gap-10 lg:grid-cols-[1fr_520px] lg:gap-14">
+            {/* LEFT CONTENT SKELETON */}
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="h-7 w-20 rounded-full bg-blue-700" />
+                <div className="h-5 w-32 rounded bg-blue-700/50" />
+              </div>
+              <div className="h-10 w-3/4 rounded bg-blue-700" />
+              <div className="h-px w-full bg-blue-700/30" />
+              <div className="space-y-3">
+                <div className="h-4 w-full rounded bg-blue-700/60" />
+                <div className="h-4 w-full rounded bg-blue-700/60" />
+                <div className="h-4 w-3/4 rounded bg-blue-700/60" />
+              </div>
+              <div className="h-6 w-48 rounded bg-blue-700/50" />
+              <div className="h-6 w-40 rounded bg-blue-700/40" />
+            </div>
+
+            {/* RIGHT IMAGE SKELETON */}
+            <div className="overflow-hidden rounded-3xl bg-blue-700 lg:sticky lg:top-24">
+              <div className="h-[420px] w-full sm:h-[480px] lg:h-[560px] bg-blue-700" />
+            </div>
           </div>
         </div>
       </section>

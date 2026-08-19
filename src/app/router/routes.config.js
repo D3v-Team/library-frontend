@@ -121,6 +121,11 @@ export const ROUTES = [
     component: lazy(() => import("../../Pages/Documents/Documents.jsx")),
     roles: null,
   },
+  {
+    path: "/about/management",
+    component: lazy(() => import("../../Pages/Home/Manegement")),
+    roles: null,
+  },
 
 
  

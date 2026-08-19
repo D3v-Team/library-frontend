@@ -96,8 +96,8 @@ export default function Books() {
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-3">
-            <p className="text-xs text-slate-400">{t("books.total")}</p>
+          <div className="rounded-xl items-center gap-2 flex flex-row border border-slate-200 bg-slate-50 px-5 py-2">
+            <p className="text-x font-bold text-slate-400">{t("books.total")}</p>
             <p className="mt-1 text-xl font-semibold text-slate-900">
               {data?.meta?.total || 0}
             </p>

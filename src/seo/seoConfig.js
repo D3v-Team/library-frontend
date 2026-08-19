@@ -220,6 +220,12 @@ export const SEO_CONFIG = {
       "Ushbu sahifani ko'rish uchun yetarli huquq yo'q. Chinoz axborot-kutubxona markazi bosh sahifasiga qayting.",
     path: "/403",
   },
+  management: {
+  title: "Rahbariyat | Chinoz axborot-kutubxona markazi",
+  description: "Kutubxona rahbariyati va mas'ul xodimlar haqida ma'lumot.",
+  keywords: "rahbariyat, kutubxona, xodimlar, direktor",
+  canonical: "/about/management",
+},
 
   login: {
     title: "Kirish",

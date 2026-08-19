@@ -222,7 +222,7 @@
   "heading": "Rahbariyat",
   "description": "Kutubxona rahbariyati va mas'ul xodimlar haqida ma'lumot.",
   "error": "Ma'lumotlarni yuklashda xatolik yuz berdi.",
-  "empty": "Ma'lumot mavjud emas."
+  "empty": "Hozircha rahbariyat ma'lumotlari mavjud emas."
 },
 "authorDetail": {
   "back": "Mualliflarga qaytish",
@@ -258,6 +258,7 @@
     "error": "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."
   
 },
+
 
   "author": {
     "badge": "KUTUBXONA MUALLIFLARI",

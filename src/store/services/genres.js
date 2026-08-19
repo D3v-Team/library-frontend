@@ -16,8 +16,7 @@ export const genresApi = createApi({
         page = 1,
         limit = 10,
         search = "",
-        sortBy = "created_at",
-        sortOrder = "desc",
+       
       } = {}) => ({
         url: "/genres",
         method: "GET",
@@ -25,8 +24,8 @@ export const genresApi = createApi({
           page,
           limit,
           search,
-          sortBy,
-          sortOrder,
+
+  
         },
       }),
 

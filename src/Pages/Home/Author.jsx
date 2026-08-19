@@ -34,12 +34,31 @@ export default function Author() {
     return (
       <section className="bg-white py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Header Skeleton */}
+          <div className="mb-10 border-b border-slate-200 pb-6">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+              <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+            </div>
+            <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+          </div>
+
+          {/* Cards Skeleton */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-80 animate-pulse rounded-2xl bg-slate-100"
-              />
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+              >
+                <div className="aspect-[5/5] animate-pulse bg-blue-700" />
+                <div className="p-5 space-y-3">
+                  <div className="h-6 w-3/4 animate-pulse rounded bg-blue-700/60" />
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-blue-700/50" />
+                  <div className="h-4 w-1/3 animate-pulse rounded bg-blue-700/40" />
+                  <div className="h-4 w-full animate-pulse rounded bg-blue-700/40" />
+                </div>
+              </div>
             ))}
           </div>
         </div>

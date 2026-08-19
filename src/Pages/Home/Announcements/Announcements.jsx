@@ -178,11 +178,50 @@ export default function Announcements() {
     setIndex((prev) => prev);
   }, [i18n.language]);
 
+  // ===== SKELETON LOADING =====
   if (isLoading) {
+    const skeletonCount = getItemsPerPage(window.innerWidth) || 3;
     return (
-      <section className="bg-slate-50 py-16">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="h-72 animate-pulse rounded-2xl bg-slate-200" />
+      <section className="bg-slate-50 py-16 sm:py-12 lg:py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* HEADER SKELETON */}
+          <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+                <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
+                  <Megaphone size={17} className="text-blue-700/40 animate-pulse" />
+                  <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+                </div>
+              </div>
+              <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
+              <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+            </div>
+            <div className="h-8 w-32 animate-pulse rounded bg-blue-700/40" />
+          </div>
+
+          {/* CARDS SKELETON */}
+          <div className={`grid gap-5 ${skeletonCount === 1 ? 'grid-cols-1' : skeletonCount === 2 ? 'sm:grid-cols-2' : 'lg:grid-cols-3'}`}>
+            {Array.from({ length: skeletonCount }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="h-44 animate-pulse bg-blue-700" />
+                <div className="h-1 w-full bg-blue-700" />
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="h-6 w-20 animate-pulse rounded-full bg-blue-700" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-blue-700" />
+                  </div>
+                  <div className="h-6 w-12 animate-pulse rounded bg-blue-700" />
+                  <div className="h-6 w-3/4 animate-pulse rounded bg-blue-700" />
+                  <div className="h-4 w-full animate-pulse rounded bg-blue-700" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-blue-700" />
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <div className="h-8 w-28 animate-pulse rounded bg-blue-700" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     );

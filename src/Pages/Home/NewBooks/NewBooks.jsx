@@ -23,7 +23,6 @@ function getItemsPerPage(width) {
 }
 
 function mapBookCard(book, lang) {
-  // Tilga qarab title va author ni tanlash
   const getTitle = () => {
     if (lang === "uz") return book.name_latin;
     if (lang === "ru") return book.name_ru;
@@ -56,8 +55,8 @@ export default function NewBooks() {
   const { data, isLoading, error } = useGetBooksQuery({
     page: 1,
     limit: 12,
-    sortBy: "created_at",
-    sortOrder: "desc",
+    // sortBy: "created_at",
+    // sortOrder: "desc",
   });
 
   const books = useMemo(
@@ -164,64 +163,47 @@ export default function NewBooks() {
   return (
     <section className="bg-white py-16 sm:py-10 lg:py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="mb-4 flex items-center gap-3">
-              <span className="h-7 w-1 rounded-full bg-blue-700" />
-              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
-                <BookOpen size={17} />
-                <span>{t("newBooks.badge")}</span>
+        {/* ===== HEADER + SKELETON ===== */}
+        {isLoading ? (
+          <>
+            {/* Header skeleton */}
+            <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+                  <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
+                    <BookOpen size={17} className="text-blue-700/40 animate-pulse" />
+                    <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+                  </div>
+                </div>
+                <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
+                <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 animate-pulse rounded-full bg-blue-700/40" />
+                <div className="h-10 w-10 animate-pulse rounded-full bg-blue-700/40" />
+                <div className="h-6 w-24 animate-pulse rounded bg-blue-700/40" />
               </div>
             </div>
 
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-              {t("newBooks.heading")}
-            </h2>
-
-            <p className="mt-3 text-sm leading-6 text-slate-500 sm:text-base">
-              {t("newBooks.description")}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={goPrev}
-              disabled={books.length === 0}
-              aria-label={t("newBooks.prev")}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-all duration-200 hover:border-blue-700 hover:bg-blue-700 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-            >
-              <ArrowLeft size={17} />
-            </button>
-
-            <button
-              type="button"
-              onClick={goNext}
-              disabled={books.length === 0}
-              aria-label={t("newBooks.next")}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-all duration-200 hover:border-blue-700 hover:bg-blue-700 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-            >
-              <ArrowRight size={17} />
-            </button>
-
-            <Link
-              to="/books"
-              className="ml-2 hidden rounded text-sm font-semibold text-slate-700 transition-colors hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 sm:block"
-            >
-              {t("newBooks.all")}
-            </Link>
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-[3/4] animate-pulse rounded-xl bg-blue-700"
-              />
-            ))}
-          </div>
+            {/* Cards skeleton */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="group overflow-hidden rounded-xl bg-white shadow-sm">
+                  <div className="aspect-[3/4] animate-pulse bg-blue-700" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-5 w-3/4 animate-pulse rounded bg-blue-700/60" />
+                    <div className="h-4 w-1/2 animate-pulse rounded bg-blue-700/50" />
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-12 animate-pulse rounded bg-blue-700/40" />
+                      <span className="h-1 w-1 rounded-full bg-slate-300" />
+                      <div className="h-3 w-16 animate-pulse rounded bg-blue-700/40" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : error ? (
           <div className="rounded-xl border border-dashed border-red-200 bg-red-50 px-6 py-16 text-center text-sm text-red-600">
             {t("newBooks.error")}
@@ -233,6 +215,57 @@ export default function NewBooks() {
           </div>
         ) : (
           <>
+            {/* HEADER */}
+            <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="h-7 w-1 rounded-full bg-blue-700" />
+                  <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
+                    <BookOpen size={17} />
+                    <span>{t("newBooks.badge")}</span>
+                  </div>
+                </div>
+
+                <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                  {t("newBooks.heading")}
+                </h2>
+
+                <p className="mt-3 text-sm leading-6 text-slate-500 sm:text-base">
+                  {t("newBooks.description")}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={goPrev}
+                  disabled={books.length === 0}
+                  aria-label={t("newBooks.prev")}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-all duration-200 hover:border-blue-700 hover:bg-blue-700 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <ArrowLeft size={17} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={goNext}
+                  disabled={books.length === 0}
+                  aria-label={t("newBooks.next")}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-all duration-200 hover:border-blue-700 hover:bg-blue-700 hover:text-white active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <ArrowRight size={17} />
+                </button>
+
+                <Link
+                  to="/books"
+                  className="ml-2 hidden rounded text-sm font-semibold text-slate-700 transition-colors hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 sm:block"
+                >
+                  {t("newBooks.all")}
+                </Link>
+              </div>
+            </div>
+
+            {/* CONTENT */}
             <div className="overflow-hidden">
               <div
                 onTransitionEnd={handleTransitionEnd}
@@ -336,16 +369,16 @@ export default function NewBooks() {
                 );
               })}
             </div>
+
+            <Link
+              to="/books"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-700 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 sm:hidden"
+            >
+              {t("newBooks.all")}
+              <ArrowRight size={16} />
+            </Link>
           </>
         )}
-
-        <Link
-          to="/books"
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-700 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 sm:hidden"
-        >
-          {t("newBooks.all")}
-          <ArrowRight size={16} />
-        </Link>
       </div>
     </section>
   );

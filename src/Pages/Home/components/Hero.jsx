@@ -11,7 +11,6 @@ const AUTOPLAY_MS = 6500;
 export default function Hero() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [direction, setDirection] = useState("next");
-  console.log(localStorage.getItem('i18nextLng')); // "uz" yoki "ru" yoki "cyrl"
 
   const timerRef = useRef(null);
 
@@ -25,26 +24,27 @@ export default function Hero() {
   // Tilga qarab title ni tanlash
   const getTitleByLanguage = (item) => {
     const lang = i18n.language;
-    
+
     if (lang === "uz") return item.title_latin;
     if (lang === "ru") return item.title_ru;
     if (lang === "cyrl") return item.title_cyril;
-    
+
     return item.title_latin; // fallback
   };
 
-  const slides = data?.data
-    ?.filter((item) => item.is_active)
-    ?.sort((a, b) => a.order - b.order)
-    ?.map((item) => ({
-      id: item.id,
-      eyebrow: t("hero.eyebrow"),
-      title: getTitleByLanguage(item),
-      description: "",
-      button: item.link_url ? t("hero.details") : null,
-      path: item.link_url || "#",
-      image: `${BASE_URL}${item.image_url}`,
-    })) || [];
+  const slides =
+    data?.data
+      ?.filter((item) => item.is_active)
+      ?.sort((a, b) => a.order - b.order)
+      ?.map((item) => ({
+        id: item.id,
+        eyebrow: t("hero.eyebrow"),
+        title: getTitleByLanguage(item),
+        description: "",
+        button: item.link_url ? t("hero.details") : null,
+        path: item.link_url || "#",
+        image: `${BASE_URL}${item.image_url}`,
+      })) || [];
 
   useEffect(() => {
     if (!slides.length) return;
@@ -85,8 +85,39 @@ export default function Hero() {
     setActiveSlide(index);
   };
 
+  // ===== SKELETON LOADING =====
   if (isLoading) {
-    return <section className="min-h-[520px] bg-slate-950" />;
+    return (
+      <section className="relative min-h-[520px] overflow-hidden bg-blue-700 lg:min-h-[640px]">
+        <div className="absolute inset-0  bg-blue-200">
+          {/* Skeleton content – same position as real content */}
+          <div className="relative z-30 mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-20 sm:px-10 lg:min-h-[640px] lg:px-16 xl:px-20">
+            <div className="max-w-7xl text-white animate-pulse">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-blue-600/50 text-white backdrop-blur-sm">
+                  <BookOpen
+                    size={19}
+                    strokeWidth={1.8}
+                    className="text-white/50"
+                  />
+                </div>
+                <div className="h-4 w-32 rounded bg-blue-600/50" />
+              </div>
+              <div className="h-12 w-5/5 rounded bg-blue-600/50 sm:h-14 lg:h-16" />
+              <div className="mt-6 h-4 w-2/2 rounded bg-blue-600/50" />
+              <div className="mt-8 h-12 w-80 rounded-lg bg-blue-600/50" />
+            </div>
+          </div>
+          {/* Gradient overlay to match real design */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-70 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
+          <div className="pointer-events-none absolute left-[2%] top-[18%] z-20 h-[62%] w-[58%] sm:left-[4%] sm:w-[54%] lg:left-[5%] lg:top-[17%] lg:h-[64%] lg:w-[50%]">
+            <div className="absolute inset-0 rounded-[45px] bg-slate-950/20 backdrop-blur-[4px]" />
+            <div className="absolute inset-0 rounded-[45px] bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
+            <div className="absolute inset-0 rounded-[45px] bg-gradient-to-b from-transparent via-transparent to-slate-950/20" />
+          </div>
+        </div>
+      </section>
+    );
   }
 
   if (error || !slides.length) {
@@ -127,7 +158,7 @@ export default function Hero() {
               </div>
             );
           })}
-          
+
           <div className="pointer-events-none absolute left-[2%] top-[18%] z-20 h-[62%] w-[58%] sm:left-[4%] sm:w-[54%] lg:left-[5%] lg:top-[17%] lg:h-[64%] lg:w-[50%]">
             <div className="absolute inset-0 rounded-[45px] bg-slate-950/20 backdrop-blur-[4px]" />
             <div className="absolute inset-0 rounded-[45px] bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />

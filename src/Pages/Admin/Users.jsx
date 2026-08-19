@@ -51,7 +51,7 @@ export default function UsersPage() {
 
     search,
 
-    sortBy: "created_at",
+    sortBy: "",
 
     sortOrder: "desc",
   });
