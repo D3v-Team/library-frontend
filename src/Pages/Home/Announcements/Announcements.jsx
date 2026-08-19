@@ -1,6 +1,6 @@
 // src/components/Announcements.jsx
 import { useEffect, useState } from "react";
-import { ArrowRight, CalendarDays, Megaphone } from "lucide-react";
+import { ArrowRight, CalendarDays, Megaphone, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -46,24 +46,19 @@ export default function Announcements() {
     is_public: true,
   });
 
-  // Tilga qarab title va content ni tanlash
   const getTitleByLanguage = (item) => {
     const lang = i18n.language;
-    
     if (lang === "uz") return item.title_latin;
     if (lang === "ru") return item.title_ru;
     if (lang === "cyrl") return item.title_cyril;
-    
     return item.title_latin;
   };
 
   const getContentByLanguage = (item) => {
     const lang = i18n.language;
-    
     if (lang === "uz") return item.content_latin;
     if (lang === "ru") return item.content_ru;
     if (lang === "cyrl") return item.content_cyril;
-    
     return item.content_latin;
   };
 
@@ -173,18 +168,16 @@ export default function Announcements() {
     };
   }, [transitionEnabled]);
 
-  // Til o'zgarganda slaydni yangilash
   useEffect(() => {
     setIndex((prev) => prev);
   }, [i18n.language]);
 
-  // ===== SKELETON LOADING =====
   if (isLoading) {
     const skeletonCount = getItemsPerPage(window.innerWidth) || 3;
     return (
       <section className="bg-slate-50 py-16 sm:py-12 lg:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* HEADER SKELETON */}
+          {/* Header skeleton */}
           <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="mb-4 flex items-center gap-3">
@@ -200,7 +193,7 @@ export default function Announcements() {
             <div className="h-8 w-32 animate-pulse rounded bg-blue-700/40" />
           </div>
 
-          {/* CARDS SKELETON */}
+          {/* Cards skeleton */}
           <div className={`grid gap-5 ${skeletonCount === 1 ? 'grid-cols-1' : skeletonCount === 2 ? 'sm:grid-cols-2' : 'lg:grid-cols-3'}`}>
             {Array.from({ length: skeletonCount }).map((_, i) => (
               <div key={i} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -250,6 +243,18 @@ export default function Announcements() {
   const itemWidthPercent = 100 / trackItems.length;
   const trackWidthPercent = (trackItems.length / itemsPerPage) * 100;
   const trackPosition = index + itemsPerPage;
+
+  const goPrevSlide = () => {
+    if (isAnimating) return;
+    const newIndex = activePagination - 1 < 0 ? total - 1 : activePagination - 1;
+    goToSlide(newIndex);
+  };
+
+  const goNextSlide = () => {
+    if (isAnimating) return;
+    const newIndex = (activePagination + 1) % total;
+    goToSlide(newIndex);
+  };
 
   return (
     <section className="bg-slate-50 py-16 sm:py-12 lg:py-16">
@@ -374,24 +379,54 @@ export default function Announcements() {
           </div>
         </div>
 
+        {/* ===== PAGINATION ===== */}
         <div className="mt-8 flex items-center justify-center gap-2">
-          {announcements.map((item, index) => {
-            const active = activePagination === index;
+          {/* Desktop dots – yumaloq pagination */}
+          <div className="hidden md:flex items-center gap-2">
+            {announcements.map((item, index) => {
+              const active = activePagination === index;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => goToSlide(index)}
+                  aria-label={`${index + 1}-e'lon`}
+                  className={`h-2 rounded-full border transition-all duration-500 ${
+                    active
+                      ? "w-10 bg-blue-700 border-blue-700"
+                      : "w-3 bg-white border-slate-300 hover:border-blue-500 hover:bg-blue-100"
+                  }`}
+                />
+              );
+            })}
+          </div>
 
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => goToSlide(index)}
-                aria-label={`${index + 1}-e'lon`}
-                className={`h-2 rounded-full border transition-all duration-500 ${
-                  active
-                    ? "w-10 bg-blue-700 border-blue-700"
-                    : "w-3 bg-white border-slate-300 hover:border-blue-500 hover:bg-blue-100"
-                }`}
-              />
-            );
-          })}
+          {/* Mobile – oldinga/orqaga strelkalar + joriy sahifa */}
+          <div className="flex md:hidden items-center gap-4">
+            <button
+              type="button"
+              onClick={goPrevSlide}
+              aria-label="Oldingi"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 transition hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+              disabled={total <= 1}
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            <span className="text-sm font-medium text-slate-600">
+              {activePagination + 1} / {total}
+            </span>
+
+            <button
+              type="button"
+              onClick={goNextSlide}
+              aria-label="Keyingi"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 transition hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+              disabled={total <= 1}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         </div>
       </div>
     </section>

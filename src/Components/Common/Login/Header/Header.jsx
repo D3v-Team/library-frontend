@@ -347,7 +347,42 @@ export default function Header({ onMessageOpen }) {
             </div>
           </div>
 
-          {/* Mobile Button */}
+          {/* ===== MOBILE: Language Selector (tepada) ===== */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setLanguageOpen((prev) => !prev)}
+                className="flex h-11 items-center gap-1.5 rounded-lg px-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                aria-label="Tilni o'zgartirish"
+              >
+                <Globe size={18} />
+                <span className="text-xs font-semibold uppercase">
+                  {i18n.language === "cyrl" ? "ЎЗ" : i18n.language.toUpperCase()}
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${languageOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {languageOpen && (
+                <div className="absolute right-0 top-full mt-2 w-32 rounded-xl border border-slate-200 bg-white p-2 shadow-lg z-50">
+                  {["uz", "ru", "cyrl"].map((l) => (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => changeLanguage(l)}
+                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      {l === "uz" ? "O'zbekcha" : l === "ru" ? "Русский" : "Ўзбекча"}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Menu Button */}
           <button
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
@@ -355,8 +390,18 @@ export default function Header({ onMessageOpen }) {
             aria-expanded={mobileOpen}
             className="relative flex h-11 w-11 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 active:scale-95 lg:hidden"
           >
-            <Menu size={24} className={`absolute transition-all ${mobileOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"}`} />
-            <X size={24} className={`absolute transition-all ${mobileOpen ? "scale-100 opacity-100" : "scale-0 opacity-0"}`} />
+            <Menu
+              size={24}
+              className={`absolute transition-all duration-200 ${
+                mobileOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"
+              }`}
+            />
+            <X
+              size={24}
+              className={`absolute transition-all duration-200 ${
+                mobileOpen ? "scale-100 opacity-100" : "scale-0 opacity-0"
+              }`}
+            />
           </button>
         </div>
 
@@ -369,14 +414,20 @@ export default function Header({ onMessageOpen }) {
           }`}
         />
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation (no language selector at bottom) */}
         <div
-          className={`fixed inset-x-0 top-24 z-40 origin-top overflow-hidden border-t border-slate-200 bg-white shadow-xl transition-all duration-300 lg:hidden ${
-            mobileOpen ? "max-h-[calc(100dvh-6rem)] translate-y-0 opacity-100" : "pointer-events-none max-h-0 -translate-y-2 opacity-0"
+          className={`fixed inset-x-0 top-24 z-40 origin-top overflow-hidden border-t border-slate-200 bg-white shadow-xl transition-all duration-300 ease-out lg:hidden ${
+            mobileOpen
+              ? "max-h-[calc(100dvh-6rem)] translate-y-0 opacity-100"
+              : "pointer-events-none max-h-0 -translate-y-2 opacity-0"
           }`}
         >
           <nav className="mx-auto flex max-h-[calc(100dvh-6rem)] max-w-[1440px] flex-col overflow-y-auto px-4 py-3 sm:px-6">
-            <Link to="/" onClick={() => setMobileOpen(false)} className="rounded-xl px-4 py-3.5 text-base font-medium text-slate-800 active:bg-slate-100">
+            <Link
+              to="/"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-xl px-4 py-3.5 text-base font-medium text-slate-800 transition-colors duration-150 active:bg-slate-100"
+            >
               {t("header.home")}
             </Link>
 
@@ -388,12 +439,23 @@ export default function Header({ onMessageOpen }) {
                     type="button"
                     onClick={() => toggleMenu(item.label)}
                     aria-expanded={isOpen}
-                    className="flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-base font-medium text-slate-800 active:bg-slate-100"
+                    className="flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-left text-base font-medium text-slate-800 transition-colors duration-150 active:bg-slate-100"
                   >
                     {t(item.label)}
-                    <ChevronDown size={18} className={`shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                      size={18}
+                      className={`shrink-0 text-slate-400 transition-transform duration-300 ${
+                        isOpen ? "rotate-180" : ""
+                      }`}
+                    />
                   </button>
-                  <div className={`grid transition-all duration-300 ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <div
+                    className={`grid transition-all duration-300 ease-out ${
+                      isOpen
+                        ? "grid-rows-[1fr] opacity-100"
+                        : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
                     <div className="overflow-hidden">
                       <div className="mb-1 ml-2 flex flex-col gap-0.5 border-l-2 border-slate-100 pl-3">
                         {item.children.map((child) => {
@@ -402,7 +464,11 @@ export default function Header({ onMessageOpen }) {
                               <button
                                 key={child.label}
                                 type="button"
-                                onClick={() => { setMobileOpen(false); setOpenMenu(null); openBookOrder(); }}
+                                onClick={() => {
+                                  setMobileOpen(false);
+                                  setOpenMenu(null);
+                                  openBookOrder();
+                                }}
                                 className="rounded-lg px-3 py-2.5 text-left text-sm text-slate-500"
                               >
                                 {t(child.label)}
@@ -414,7 +480,11 @@ export default function Header({ onMessageOpen }) {
                               <button
                                 key={child.label}
                                 type="button"
-                                onClick={() => { setMobileOpen(false); setOpenMenu(null); onMessageOpen?.(); }}
+                                onClick={() => {
+                                  setMobileOpen(false);
+                                  setOpenMenu(null);
+                                  onMessageOpen?.();
+                                }}
                                 className="rounded-lg px-3 py-2.5 text-left text-sm text-slate-500"
                               >
                                 {t(child.label)}
@@ -425,7 +495,10 @@ export default function Header({ onMessageOpen }) {
                             <Link
                               key={child.path}
                               to={child.path}
-                              onClick={() => { setMobileOpen(false); setOpenMenu(null); }}
+                              onClick={() => {
+                                setMobileOpen(false);
+                                setOpenMenu(null);
+                              }}
                               className="rounded-lg px-3 py-2.5 text-sm text-slate-500"
                             >
                               {t(child.label)}
@@ -444,39 +517,13 @@ export default function Header({ onMessageOpen }) {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                className="border-t border-slate-100 px-4 py-3.5 text-base font-medium text-slate-800 active:bg-slate-100"
+                className="border-t border-slate-100 px-4 py-3.5 text-base font-medium text-slate-800 transition-colors duration-150 active:bg-slate-100"
               >
                 {t(item.label)}
               </Link>
             ))}
 
-            <div className="sticky bottom-0 mt-2 flex gap-2 border-t border-slate-200 bg-white pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setLanguageOpen((prev) => !prev)}
-                  className="flex h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-100"
-                >
-                  <Globe size={18} />
-                  <span>{i18n.language === "cyrl" ? "ЎЗ" : i18n.language.toUpperCase()}</span>
-                  <ChevronDown size={14} className={`transition-transform ${languageOpen ? "rotate-180" : ""}`} />
-                </button>
-                {languageOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-32 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
-                    {["uz", "cyrl", "ru"].map((l) => (
-                      <button
-                        key={l}
-                        type="button"
-                        onClick={() => changeLanguage(l)}
-                        className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
-                      >
-                        {l === "uz" ? "O'zbekcha" : l === "cyrl" ? "Ўзбекча" : "Русский"}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Mobile actions – language selector removed from here */}
           </nav>
         </div>
       </header>
@@ -497,7 +544,9 @@ export default function Header({ onMessageOpen }) {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
                   <BookOpen size={20} />
                 </div>
-                <h2 className="text-xl font-semibold text-slate-900">{t("header.bookOrder")}</h2>
+                <h2 className="text-xl font-semibold text-slate-900">
+                  {t("header.bookOrder")}
+                </h2>
               </div>
               <button
                 type="button"
@@ -509,7 +558,6 @@ export default function Header({ onMessageOpen }) {
             </div>
 
             <form onSubmit={handleBookSubmit} className="space-y-4">
-              {/* ... existing fields ... */}
               <div>
                 <input
                   name="full_name"
@@ -518,8 +566,11 @@ export default function Header({ onMessageOpen }) {
                   placeholder="Ism-familiya *"
                   className={`w-full rounded-lg border ${bookErrors.full_name ? "border-red-500" : "border-slate-200"} px-4 py-3 text-sm outline-none focus:border-slate-900`}
                 />
-                {bookErrors.full_name && <p className="mt-1 text-xs text-red-500">{bookErrors.full_name}</p>}
+                {bookErrors.full_name && (
+                  <p className="mt-1 text-xs text-red-500">{bookErrors.full_name}</p>
+                )}
               </div>
+
               <div>
                 <input
                   name="phone"
@@ -528,8 +579,11 @@ export default function Header({ onMessageOpen }) {
                   placeholder="Telefon raqam *"
                   className={`w-full rounded-lg border ${bookErrors.phone ? "border-red-500" : "border-slate-200"} px-4 py-3 text-sm outline-none focus:border-slate-900`}
                 />
-                {bookErrors.phone && <p className="mt-1 text-xs text-red-500">{bookErrors.phone}</p>}
+                {bookErrors.phone && (
+                  <p className="mt-1 text-xs text-red-500">{bookErrors.phone}</p>
+                )}
               </div>
+
               <div>
                 <input
                   name="email"
@@ -539,12 +593,16 @@ export default function Header({ onMessageOpen }) {
                   placeholder="Email *"
                   className={`w-full rounded-lg border ${bookErrors.email ? "border-red-500" : "border-slate-200"} px-4 py-3 text-sm outline-none focus:border-slate-900`}
                 />
-                {bookErrors.email && <p className="mt-1 text-xs text-red-500">{bookErrors.email}</p>}
+                {bookErrors.email && (
+                  <p className="mt-1 text-xs text-red-500">{bookErrors.email}</p>
+                )}
               </div>
 
-              {/* ===== KITOBLAR SELECT + PAGINATION ===== */}
+              {/* Kitoblar select + pagination */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Kitob tanlang *</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Kitob tanlang *
+                </label>
                 <div className="relative">
                   <select
                     name="book_id"
@@ -567,7 +625,6 @@ export default function Header({ onMessageOpen }) {
                   )}
                 </div>
 
-                {/* Pagination controls */}
                 {totalPages > 1 && (
                   <div className="mt-2 flex items-center justify-between">
                     <button
@@ -591,7 +648,9 @@ export default function Header({ onMessageOpen }) {
                     </button>
                   </div>
                 )}
-                {bookErrors.book_id && <p className="mt-1 text-xs text-red-500">{bookErrors.book_id}</p>}
+                {bookErrors.book_id && (
+                  <p className="mt-1 text-xs text-red-500">{bookErrors.book_id}</p>
+                )}
               </div>
 
               <div>
@@ -608,7 +667,7 @@ export default function Header({ onMessageOpen }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-black transition hover:bg-slate-800 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
               >
                 {isLoading ? "Yuborilmoqda..." : "Yuborish"}
               </button>

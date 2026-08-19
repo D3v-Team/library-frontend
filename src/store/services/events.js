@@ -102,7 +102,7 @@ export const eventsApi = createApi({
     sortBy,
     sortOrder = "desc",
     upcoming,
-    is_public,
+  
   } = {}) => ({
     url: "/events/admin",
     method: "GET",
@@ -113,7 +113,7 @@ export const eventsApi = createApi({
       sortBy,
       sortOrder,
       upcoming,
-      is_public,
+
     },
   }),
 
