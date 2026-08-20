@@ -168,19 +168,7 @@
     }
   
 },
-"contact": {
-  "badge": "ALOQA",
-  "heading": "Biz bilan bog'laning",
-  "description": "Kutubxona bilan bog'lanish uchun kerakli aloqa ma'lumotlari.",
-  "info": "Aloqa ma'lumotlari",
-  "address": "Manzil",
-  "phone": "Telefon",
-  "email": "Email",
-  "social": "Ijtimoiy tarmoqlar",
-  "location": "Joylashuv",
-  "locationDesc": "Kutubxona manzili",
-  "notFound": "Aloqa ma'lumotlari topilmadi"
-},
+
 "message": {
   "title": "Biz bilan bog'laning",
   "send": "Yuborish",
@@ -269,5 +257,22 @@
     "details": "Batafsil",
     "unknownName": "Nomsiz"
   
-}
+},
+"contact": {
+    "badge": "Bog‘lanish",
+    "heading": "Biz bilan bog‘laning",
+    "more": "Batafsil",
+    "address": "Manzil",
+    "info": "Aloqa ma'lumotlari",
+    "phone": "Telefon",
+    "email": "Elektron pochta",
+    "social": "Ijtimoiy tarmoqlar",
+    "meta": {
+      "title": "Kutubxona bilan bog‘lanish | Aloqa ma'lumotlari",
+      "description": "Kutubxona manzili, telefon raqami, elektron pochta va ijtimoiy tarmoqlardagi sahifalarimiz."
+    }
+  }
+
+
+  
 }

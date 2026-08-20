@@ -30,9 +30,9 @@ const emptyForm = {
   title_latin: "",
   title_cyril: "",
   title_ru: "",
-  content_latin: "",   // <- TO'G'RI (content, description emas)
-  content_cyril: "",   // <- TO'G'RI
-  content_ru: "",      // <- TO'G'RI
+  content_latin: "",
+  content_cyril: "",
+  content_ru: "",
   cover_image: null,
   is_public: true,
 };
@@ -52,8 +52,9 @@ export default function Announcements() {
   const [file, setFile] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activeLang, setActiveLang] = useState("latin");
+  const [errors, setErrors] = useState({});
 
-  const { data, isLoading, isFetching, error } = useGetAnnouncementsQuery({
+  const { data, isLoading, isFetching, error, refetch } = useGetAnnouncementsQuery({
     page,
     limit: 10,
     search,
@@ -76,6 +77,7 @@ export default function Announcements() {
     setForm({ ...emptyForm });
     setFile(null);
     setActiveLang("latin");
+    setErrors({});
     setModalOpen(true);
   };
 
@@ -84,12 +86,14 @@ export default function Announcements() {
     setForm({ ...emptyForm, ...item });
     setFile(null);
     setActiveLang("latin");
+    setErrors({});
     setModalOpen(true);
   };
 
   const closeModal = () => {
     setModalOpen(false);
     setEditing(null);
+    setErrors({});
   };
 
   const changeField = (field, value) => {
@@ -97,16 +101,67 @@ export default function Announcements() {
       ...prev,
       [field]: value,
     }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      ...form,
-      cover_image: file ?? undefined,
-      is_public: Boolean(form.is_public),
-    };
+    let payload = {};
+
+    if (editing) {
+      // ---- EDIT MODE: faqat o‘zgargan maydonlarni yuborish ----
+      const changed = {};
+      const initial = editing;
+
+      // Barcha maydonlarni tekshiramiz
+      Object.keys(form).forEach((key) => {
+        if (key === 'cover_image') {
+          // Rasm alohida tekshiriladi
+          if (file !== null && file !== undefined) {
+            changed.cover_image = file;
+          }
+          return;
+        }
+        // Qiymat o‘zgargan bo‘lsa qo‘shamiz
+        if (form[key] !== initial[key]) {
+          changed[key] = form[key];
+        }
+      });
+
+      payload = changed;
+
+      // Agar hech narsa o‘zgarmagan bo‘lsa, xatolik chiqaramiz
+      if (Object.keys(payload).length === 0) {
+        toast.error("Hech qanday o‘zgarish kiritilmagan");
+        return;
+      }
+    } else {
+      // ---- CREATE MODE: barcha maydonlarni yuborish ----
+      // Majburiy maydonlarni tekshirish
+      const requiredFields = ['title_latin', 'title_cyril', 'title_ru', 'content_latin', 'content_cyril', 'content_ru'];
+      const missing = requiredFields.filter(field => !form[field]?.trim());
+      if (missing.length > 0) {
+        const fieldLabels = {
+          title_latin: "Lotin sarlavha",
+          title_cyril: "Kirill sarlavha",
+          title_ru: "Rus sarlavha",
+          content_latin: "Lotin tavsif",
+          content_cyril: "Kirill tavsif",
+          content_ru: "Rus tavsif",
+        };
+        toast.error(`Quyidagi maydonlar to‘ldirilishi shart: ${missing.map(f => fieldLabels[f] || f).join(', ')}`);
+        return;
+      }
+
+      payload = {
+        ...form,
+        cover_image: file ?? undefined,
+        is_public: Boolean(form.is_public),
+      };
+    }
 
     try {
       if (editing) {
@@ -120,8 +175,19 @@ export default function Announcements() {
         toast.success("E'lon qo'shildi");
       }
       closeModal();
+      refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Saqlashda xatolik");
+      const backendError = err?.data?.message;
+      if (typeof backendError === 'string') {
+        toast.error(backendError);
+      } else if (err?.data?.errors) {
+        // Agar backend maydon bo‘yicha xatoliklar yuborsa
+        const errorObj = err.data.errors;
+        const errorMessages = Object.values(errorObj).flat().join(' ');
+        toast.error(errorMessages || "Xatolik yuz berdi");
+      } else {
+        toast.error("Saqlashda xatolik yuz berdi");
+      }
     }
   };
 
@@ -132,6 +198,7 @@ export default function Announcements() {
       await deleteAnnouncement(deleteTarget.id).unwrap();
       toast.success("E'lon o'chirildi");
       setDeleteTarget(null);
+      refetch();
     } catch (err) {
       toast.error(err?.data?.message || "O'chirishda xatolik");
     }
@@ -143,6 +210,7 @@ export default function Announcements() {
         id: item.id,
         is_public: item.is_public !== true,
       }).unwrap();
+      refetch();
     } catch (err) {
       toast.error(err?.data?.message || "Holatni o'zgartirib bo'lmadi");
     }
@@ -283,6 +351,7 @@ export default function Announcements() {
                 label={`Sarlavha (${lang.label})`}
                 value={form[`title_${lang.key}`]}
                 onChange={(e) => changeField(`title_${lang.key}`, e.target.value)}
+                error={errors[`title_${lang.key}`]}
               />
 
               <FormField
@@ -291,6 +360,7 @@ export default function Announcements() {
                 label={`Tavsif (${lang.label})`}
                 value={form[`content_${lang.key}`]}
                 onChange={(e) => changeField(`content_${lang.key}`, e.target.value)}
+                error={errors[`content_${lang.key}`]}
               />
             </div>
           ))}

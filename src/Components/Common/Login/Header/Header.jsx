@@ -50,7 +50,7 @@ const navigation = [
 const simpleLinks = [
   { label: "header.news", path: "/news" },
   { label: "header.events", path: "/events" },
-  { label: "header.contact", path: "/contact" },
+  // { label: "header.contact", path: "/contact" },
 ];
 
 const emptyForm = {
@@ -667,7 +667,7 @@ export default function Header({ onMessageOpen }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-black transition hover:bg-slate-800 disabled:opacity-50"
               >
                 {isLoading ? "Yuborilmoqda..." : "Yuborish"}
               </button>

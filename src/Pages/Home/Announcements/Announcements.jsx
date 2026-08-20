@@ -1,19 +1,11 @@
 // src/components/Announcements.jsx
-import { useEffect, useState } from "react";
-import { ArrowRight, CalendarDays, Megaphone, ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { ArrowRight, CalendarDays, Megaphone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useGetAnnouncementsQuery } from "../../../store/services/announcements.api";
 import { BASE_URL } from "../../../store/api";
-
-const AUTOPLAY_MS = 4000;
-
-const BREAKPOINTS = [
-  { minWidth: 1024, itemsPerPage: 3 },
-  { minWidth: 768, itemsPerPage: 2 },
-  { minWidth: 0, itemsPerPage: 1 },
-];
 
 const categoryStyles = {
   Muhim: {
@@ -32,13 +24,9 @@ function getCategoryStyle(category) {
   return categoryStyles[category] || categoryStyles.default;
 }
 
-function getItemsPerPage(width) {
-  const match = BREAKPOINTS.find((item) => width >= item.minWidth);
-  return match ? match.itemsPerPage : 1;
-}
-
 export default function Announcements() {
   const { t, i18n } = useTranslation();
+  const [mobileIndex, setMobileIndex] = useState(0);
 
   const { data, isLoading, error } = useGetAnnouncementsQuery({
     page: 1,
@@ -69,7 +57,7 @@ export default function Announcements() {
         id: item.id,
         date: item.published_at
           ? new Date(item.published_at).toLocaleDateString(
-              i18n.language === "ru" ? "ru-RU" : 
+              i18n.language === "ru" ? "ru-RU" :
               i18n.language === "cyrl" ? "uz-UZ" : "uz-UZ",
               {
                 day: "2-digit",
@@ -87,130 +75,58 @@ export default function Announcements() {
 
   const total = announcements.length;
 
-  const [itemsPerPage, setItemsPerPage] = useState(1);
-  const [index, setIndex] = useState(0);
-  const [transitionEnabled, setTransitionEnabled] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const goNext = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setIndex((prev) => prev + 1);
-  };
-
-  const goToSlide = (slideIndex) => {
-    if (isAnimating) return;
-    setIndex(slideIndex);
-  };
-
-  const handleTransitionEnd = () => {
-    setIsAnimating(false);
-
-    if (index >= total) {
-      setTransitionEnabled(false);
-      setIndex(0);
-    }
-
-    if (index < 0) {
-      setTransitionEnabled(false);
-      setIndex(total - 1);
-    }
-  };
-
   useEffect(() => {
-    const resizeHandler = () => {
-      setItemsPerPage(
-        Math.min(
-          getItemsPerPage(window.innerWidth),
-          total || 1,
-        ),
-      );
-    };
-
-    resizeHandler();
-    window.addEventListener("resize", resizeHandler);
-
-    return () => {
-      window.removeEventListener("resize", resizeHandler);
-    };
+    if (!total) return;
+    const timer = setInterval(() => {
+      setMobileIndex((prev) => (prev + 1) % total);
+    }, 3000);
+    return () => clearInterval(timer);
   }, [total]);
 
-  useEffect(() => {
-    if (isPaused || total <= itemsPerPage) {
-      return;
-    }
+  const marqueeItems = useMemo(() => {
+    if (!total) return [];
+    return [
+      ...announcements.map((item, i) => ({ ...item, _slot: `a-${i}` })),
+      ...announcements.map((item, i) => ({ ...item, _slot: `b-${i}` })),
+    ];
+  }, [announcements, total]);
 
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+  const animationDuration = Math.max(total * 7, 24);
 
-    if (reducedMotion) return;
-
-    const timer = setInterval(goNext, AUTOPLAY_MS);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, [isPaused, itemsPerPage, total, isAnimating]);
-
-  useEffect(() => {
-    if (transitionEnabled) return;
-
-    const raf = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTransitionEnabled(true);
-      });
-    });
-
-    return () => {
-      cancelAnimationFrame(raf);
-    };
-  }, [transitionEnabled]);
-
-  useEffect(() => {
-    setIndex((prev) => prev);
-  }, [i18n.language]);
-
+  // ===== SKELETON LOADING =====
   if (isLoading) {
-    const skeletonCount = getItemsPerPage(window.innerWidth) || 3;
     return (
-      <section className="bg-slate-50 py-16 sm:py-12 lg:py-16">
+      <section className="bg-slate-50 py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Header skeleton */}
           <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="mb-4 flex items-center gap-3">
-                <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
-                <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
-                  <Megaphone size={17} className="text-blue-700/40 animate-pulse" />
-                  <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
-                </div>
+                <span className="h-7 w-1 rounded-full bg-blue-700" />
+                <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
               </div>
-              <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
-              <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+              <div className="h-10 w-64 animate-pulse rounded bg-slate-200" />
+              <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-200" />
             </div>
-            <div className="h-8 w-32 animate-pulse rounded bg-blue-700/40" />
+            <div className="h-8 w-32 animate-pulse rounded bg-slate-200" />
           </div>
 
-          {/* Cards skeleton */}
-          <div className={`grid gap-5 ${skeletonCount === 1 ? 'grid-cols-1' : skeletonCount === 2 ? 'sm:grid-cols-2' : 'lg:grid-cols-3'}`}>
-            {Array.from({ length: skeletonCount }).map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className={`overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ${
+                  i === 1 ? "hidden sm:block" : ""
+                } ${i === 2 ? "hidden lg:block" : ""}`}
+              >
                 <div className="h-44 animate-pulse bg-blue-700" />
                 <div className="h-1 w-full bg-blue-700" />
-                <div className="p-6 space-y-4">
+                <div className="space-y-4 p-6">
                   <div className="flex items-center justify-between">
                     <div className="h-6 w-20 animate-pulse rounded-full bg-blue-700" />
-                    <div className="h-4 w-24 animate-pulse rounded bg-blue-700" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-slate-200" />
                   </div>
-                  <div className="h-6 w-12 animate-pulse rounded bg-blue-700" />
-                  <div className="h-6 w-3/4 animate-pulse rounded bg-blue-700" />
-                  <div className="h-4 w-full animate-pulse rounded bg-blue-700" />
-                  <div className="h-4 w-2/3 animate-pulse rounded bg-blue-700" />
-                  <div className="mt-4 border-t border-slate-100 pt-4">
-                    <div className="h-8 w-28 animate-pulse rounded bg-blue-700" />
-                  </div>
+                  <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
+                  <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
                 </div>
               </div>
             ))}
@@ -224,42 +140,27 @@ export default function Announcements() {
     return null;
   }
 
-  const trackItems = [
-    ...announcements.slice(-itemsPerPage).map((item, index) => ({
-      ...item,
-      _slot: `front-${index}`,
-    })),
-    ...announcements.map((item) => ({
-      ...item,
-      _slot: `real-${item.id}`,
-    })),
-    ...announcements.slice(0, itemsPerPage).map((item, index) => ({
-      ...item,
-      _slot: `back-${index}`,
-    })),
-  ];
-
-  const activePagination = ((index % total) + total) % total;
-  const itemWidthPercent = 100 / trackItems.length;
-  const trackWidthPercent = (trackItems.length / itemsPerPage) * 100;
-  const trackPosition = index + itemsPerPage;
-
-  const goPrevSlide = () => {
-    if (isAnimating) return;
-    const newIndex = activePagination - 1 < 0 ? total - 1 : activePagination - 1;
-    goToSlide(newIndex);
-  };
-
-  const goNextSlide = () => {
-    if (isAnimating) return;
-    const newIndex = (activePagination + 1) % total;
-    goToSlide(newIndex);
-  };
-
   return (
-    <section className="bg-slate-50 py-16 sm:py-12 lg:py-16">
+    <section className="bg-slate-50 py-12 sm:py-16">
+      <style>{`
+        @keyframes announcementsMarquee {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        @media (min-width: 768px) {
+          .announcements-track {
+            animation: announcementsMarquee ${animationDuration}s linear infinite;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .announcements-track {
+            animation: none;
+          }
+        }
+      `}</style>
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-8 sm:mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <div className="mb-4 flex items-center gap-3">
               <span className="h-7 w-1 rounded-full bg-blue-700" />
@@ -269,7 +170,7 @@ export default function Announcements() {
               </div>
             </div>
 
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 lg:text-4xl">
               {t("announcements.heading")}
             </h2>
 
@@ -289,25 +190,93 @@ export default function Announcements() {
           </Link>
         </div>
 
-        <div
-          className="overflow-hidden"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onFocus={() => setIsPaused(true)}
-          onBlur={() => setIsPaused(false)}
-        >
+        {/* ===== MOBILE VERSION (< 768px): 1 TA KARTA (3s Interval) ===== */}
+        <div className="block md:hidden overflow-hidden">
           <div
-            className="flex"
-            onTransitionEnd={handleTransitionEnd}
-            style={{
-              width: `${trackWidthPercent}%`,
-              transform: `translateX(-${trackPosition * itemWidthPercent}%)`,
-              transition: transitionEnabled
-                ? "transform 800ms cubic-bezier(0.22,1,0.36,1)"
-                : "none",
-            }}
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${mobileIndex * 100}%)` }}
           >
-            {trackItems.map((announcement) => {
+            {announcements.map((announcement) => {
+              const style = getCategoryStyle(announcement.category);
+
+              return (
+                <div key={announcement.id} className="w-full shrink-0 px-1">
+                  <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    {announcement.image && (
+                      <img
+                        src={announcement.image}
+                        alt={announcement.title}
+                        loading="lazy"
+                        className="h-44 w-full object-cover"
+                      />
+                    )}
+
+                    <div className={`h-1 w-full ${style.accent}`} />
+
+                    <div className="flex flex-1 flex-col p-5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${style.badge}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                          {announcement.category}
+                        </span>
+
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                          <CalendarDays size={14} />
+                          <time dateTime={announcement.isoDate}>
+                            {announcement.date}
+                          </time>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 text-xs font-medium tracking-widest text-slate-300">
+                        {String(announcements.indexOf(announcement) + 1).padStart(2, "0")}
+                      </div>
+
+                      <h3 className="mt-1.5 line-clamp-2 text-lg font-semibold leading-snug text-slate-900">
+                        {announcement.title}
+                      </h3>
+
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-500">
+                        {announcement.description}
+                      </p>
+
+                      <div className="mt-5 border-t border-slate-100 pt-4">
+                        <Link
+                          to={`/news/${announcement.id}`}
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-blue-700"
+                        >
+                          {t("announcements.details")}
+                          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-slate-700">
+                            <ArrowRight size={14} />
+                          </span>
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile Indicators */}
+          <div className="mt-4 flex justify-center gap-1.5">
+            {announcements.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setMobileIndex(i)}
+                aria-label={`Slayd ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i === mobileIndex ? "w-6 bg-blue-700" : "w-1.5 bg-slate-300"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* ===== TABLET & DESKTOP VERSION (>= 768px): Planshetda 2 ta, Desktopda 3 ta ===== */}
+        <div className="hidden md:block relative overflow-hidden">
+          <div className="announcements-track flex w-max">
+            {marqueeItems.map((announcement) => {
               const style = getCategoryStyle(announcement.category);
               const originalIndex = announcements.findIndex(
                 (item) => item.id === announcement.id
@@ -316,10 +285,7 @@ export default function Announcements() {
               return (
                 <div
                   key={announcement._slot}
-                  className="shrink-0 px-2.5"
-                  style={{
-                    flex: `0 0 ${itemWidthPercent}%`,
-                  }}
+                  className="shrink-0 px-2.5 w-[320px] lg:w-[360px]"
                 >
                   <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                     {announcement.image && (
@@ -334,8 +300,8 @@ export default function Announcements() {
                     <div className={`h-1 w-full ${style.accent}`} />
 
                     <div className="flex flex-1 flex-col p-6">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${style.badge}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${style.badge}`}>
                           <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
                           {announcement.category}
                         </span>
@@ -366,7 +332,7 @@ export default function Announcements() {
                           className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-blue-700"
                         >
                           {t("announcements.details")}
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition hover:border-blue-700 hover:bg-blue-700 hover:text-white">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition group-hover:border-blue-700 group-hover:bg-blue-700 group-hover:text-white">
                             <ArrowRight size={15} />
                           </span>
                         </Link>
@@ -376,56 +342,6 @@ export default function Announcements() {
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        {/* ===== PAGINATION ===== */}
-        <div className="mt-8 flex items-center justify-center gap-2">
-          {/* Desktop dots – yumaloq pagination */}
-          <div className="hidden md:flex items-center gap-2">
-            {announcements.map((item, index) => {
-              const active = activePagination === index;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => goToSlide(index)}
-                  aria-label={`${index + 1}-e'lon`}
-                  className={`h-2 rounded-full border transition-all duration-500 ${
-                    active
-                      ? "w-10 bg-blue-700 border-blue-700"
-                      : "w-3 bg-white border-slate-300 hover:border-blue-500 hover:bg-blue-100"
-                  }`}
-                />
-              );
-            })}
-          </div>
-
-          {/* Mobile – oldinga/orqaga strelkalar + joriy sahifa */}
-          <div className="flex md:hidden items-center gap-4">
-            <button
-              type="button"
-              onClick={goPrevSlide}
-              aria-label="Oldingi"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 transition hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
-              disabled={total <= 1}
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            <span className="text-sm font-medium text-slate-600">
-              {activePagination + 1} / {total}
-            </span>
-
-            <button
-              type="button"
-              onClick={goNextSlide}
-              aria-label="Keyingi"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 transition hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
-              disabled={total <= 1}
-            >
-              <ChevronRight size={18} />
-            </button>
           </div>
         </div>
       </div>

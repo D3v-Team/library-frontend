@@ -46,66 +46,13 @@ export default function Contact() {
     return data.address_latin || "-";
   };
 
-  // ===== SKELETON LOADING =====
   if (isLoading) {
     return (
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <SEO {...SEO_CONFIG.contact} />
-
-        {/* HEADER SKELETON */}
-        <div className="mb-4 flex items-center gap-3">
-          <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
-          <span className="h-6 w-32 animate-pulse rounded bg-blue-700/50" />
-        </div>
-
-        <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
-        <div className="mt-4 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
-
-        {/* CONTACT INFO + SOCIAL SKELETON */}
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_380px]">
-          {/* Contact info skeleton */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="h-6 w-40 animate-pulse rounded bg-blue-700/50" />
-            <div className="mt-6 space-y-5">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="h-11 w-11 shrink-0 rounded-xl bg-blue-700/40 animate-pulse" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3 w-16 animate-pulse rounded bg-blue-700/30" />
-                    <div className="h-4 w-32 animate-pulse rounded bg-blue-700/50" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Social links skeleton */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="h-6 w-40 animate-pulse rounded bg-blue-700/50" />
-            <div className="mt-6 space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-3 rounded-xl border border-slate-200 p-4">
-                  <div className="h-10 w-10 rounded-lg bg-blue-700/40 animate-pulse" />
-                  <div className="flex-1 space-y-1">
-                    <div className="h-4 w-24 animate-pulse rounded bg-blue-700/50" />
-                    <div className="h-3 w-40 animate-pulse rounded bg-blue-700/30" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* MAP SKELETON */}
-        <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex items-center gap-3 border-b border-slate-200 p-5">
-            <div className="h-10 w-10 rounded-lg bg-blue-700/40 animate-pulse" />
-            <div className="space-y-1">
-              <div className="h-5 w-32 animate-pulse rounded bg-blue-700/50" />
-              <div className="h-4 w-40 animate-pulse rounded bg-blue-700/30" />
-            </div>
-          </div>
-          <div className="h-[400px] w-full animate-pulse bg-blue-700/30" />
+        <div className="animate-pulse space-y-5">
+          <div className="h-10 w-64 rounded-lg bg-blue-700" />
+          <div className="h-40 rounded-2xl bg-blue-700" />
         </div>
       </section>
     );
@@ -139,7 +86,7 @@ export default function Contact() {
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-10 lg:px-8">
       <SEO {...SEO_CONFIG.contact} />
 
       {/* HEADER */}
@@ -172,9 +119,7 @@ export default function Contact() {
               </div>
 
               <div>
-                <p className="text-xs text-slate-400">
-                  {t("contact.address")}
-                </p>
+                <p className="text-xs text-slate-400">{t("contact.address")}</p>
                 <p className="mt-1 text-sm font-medium text-slate-900">
                   {address}
                 </p>
@@ -187,9 +132,7 @@ export default function Contact() {
               </div>
 
               <div>
-                <p className="text-xs text-slate-400">
-                  {t("contact.phone")}
-                </p>
+                <p className="text-xs text-slate-400">{t("contact.phone")}</p>
                 <a
                   href={`tel:${data.phone}`}
                   className="mt-1 block text-sm font-medium text-slate-900 hover:text-blue-600"
@@ -205,9 +148,7 @@ export default function Contact() {
               </div>
 
               <div>
-                <p className="text-xs text-slate-400">
-                  {t("contact.email")}
-                </p>
+                <p className="text-xs text-slate-400">{t("contact.email")}</p>
                 <a
                   href={`mailto:${data.email}`}
                   className="mt-1 block text-sm font-medium text-slate-900 hover:text-blue-600"
@@ -245,9 +186,7 @@ export default function Contact() {
                     <p className="text-sm font-semibold text-slate-900">
                       {getPlatformLabel(item.platform)}
                     </p>
-                    <p className="text-xs text-slate-500">
-                      {item.url}
-                    </p>
+                    <p className="text-xs text-slate-500">{item.url}</p>
                   </div>
                 </a>
               );
@@ -276,9 +215,7 @@ export default function Contact() {
         <iframe
           title="Kutubxona joylashuvi"
           src={`
-            https://www.google.com/maps?q=${
-              data.latitude || 41.311081
-            },${
+            https://www.google.com/maps?q=${data.latitude || 41.311081},${
               data.longitude || 69.240562
             }&output=embed
           `}

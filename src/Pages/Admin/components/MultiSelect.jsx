@@ -28,7 +28,7 @@ export default function MultiSelect({ label, options, value = [], onChange, erro
                 onClick={() => toggle(option.value)}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                   isSelected
-                    ? "border-slate-900 bg-slate-900 text-white"
+                    ? "border-slate-900 bg-slate-900 text-blue-200"
                     : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                 }`}
               >

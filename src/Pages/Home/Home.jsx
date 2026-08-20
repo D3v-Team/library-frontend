@@ -10,6 +10,8 @@ import UseFullLinks from "./UseFullLinks/UseFullLinks";
 
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG, SITE_NAME, getSiteUrl } from "../../seo/seoConfig";
+import Contact from "../Contact/Contact";
+import ContactHome from "./ContactHome";
 
 export default function Home() {
   const siteUrl = getSiteUrl();
@@ -39,6 +41,7 @@ export default function Home() {
       <Statistics />
 
       <Media />
+      <ContactHome />
     </div>
   );
 }

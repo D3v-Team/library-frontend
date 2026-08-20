@@ -406,7 +406,7 @@ export default function UsersPage() {
                   ) : (
                     <>
                       <UserX size={13} />
-                      Blok
+                      Nofaol
                     </>
                   )}
                 </button>

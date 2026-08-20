@@ -28,13 +28,13 @@ export function isValidDate(value) {
 }
 
 export function isValidUrl(value) {
-  if (!value) return null;
-  try {
-    new URL(value);
-    return null;
-  } catch {
-    return "Havola (URL) formati noto‘g‘ri";
-  }
+  // if (!value) return null;
+  // try {
+  //   new URL(value);
+  //   return null;
+  // } catch {
+  //   return "Havola (URL) formati noto‘g‘ri";
+  // }
 }
 
 export function isValidNumber(value) {

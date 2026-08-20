@@ -820,7 +820,7 @@ hover:bg-red-50
                 py-2.5
                 text-sm
                 font-medium
-                text-white
+                text-black
                 transition
                 hover:bg-slate-800
                 disabled:opacity-50

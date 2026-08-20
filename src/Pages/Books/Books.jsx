@@ -1,5 +1,5 @@
 // src/pages/Books.jsx
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { BookOpen, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -73,9 +73,75 @@ export default function Books() {
     return book.name_latin || t("books.unknown");
   };
 
+  // ================================
+  // DINAMIK SEO (qidiruv/filter asosida)
+  // ================================
+  const seoTitle = useMemo(() => {
+    const baseTitle = "Kitoblar | Chinoz axborot-kutubxona markazi";
+    if (search) {
+      return `"${search}" bo‘yicha qidiruv natijalari | Kitoblar | Chinoz axborot-kutubxona markazi`;
+    }
+    if (authorFilter) {
+      const author = authorsData?.data?.find((a) => a.id === authorFilter);
+      const authorName = author ? getAuthorName(author) : "";
+      return `${authorName} kitoblari | Chinoz axborot-kutubxona markazi`;
+    }
+    if (genreFilter) {
+      const genre = genresData?.data?.find((g) => g.id === genreFilter);
+      const genreName = genre ? getGenreName(genre) : "";
+      return `${genreName} janridagi kitoblar | Chinoz axborot-kutubxona markazi`;
+    }
+    return baseTitle;
+  }, [search, authorFilter, genreFilter, authorsData, genresData]);
+
+  const seoDescription = useMemo(() => {
+    const baseDesc =
+      "Kutubxona fondidagi kitoblar katalogi. Muallif, janr va nashr yili bo'yicha qidiring, elektron kitoblarni yuklab oling yoki onlayn o'qing.";
+    if (search) {
+      return `"${search}" bo‘yicha kitoblar ro‘yxati. Kutubxona fondidagi barcha natijalarni ko‘ring.`;
+    }
+    if (authorFilter) {
+      const author = authorsData?.data?.find((a) => a.id === authorFilter);
+      const authorName = author ? getAuthorName(author) : "";
+      return `${authorName} tomonidan yozilgan kitoblar ro‘yxati. Kutubxona fondida mavjud.`;
+    }
+    if (genreFilter) {
+      const genre = genresData?.data?.find((g) => g.id === genreFilter);
+      const genreName = genre ? getGenreName(genre) : "";
+      return `${genreName} janridagi barcha kitoblar. Kutubxona fondida mavjud.`;
+    }
+    return baseDesc;
+  }, [search, authorFilter, genreFilter, authorsData, genresData]);
+
+  // SEO kalit so‘zlari ham dinamik bo‘lishi mumkin (ixtiyoriy)
+  const seoKeywords = useMemo(() => {
+    const baseKeywords = [
+      "kitoblar katalogi",
+      "elektron kitoblar",
+      "kutubxona fondi",
+      "kitob qidirish",
+      "onlayn kitobxona",
+    ];
+    if (search) return [...baseKeywords, search];
+    if (authorFilter) {
+      const author = authorsData?.data?.find((a) => a.id === authorFilter);
+      return author ? [...baseKeywords, getAuthorName(author)] : baseKeywords;
+    }
+    if (genreFilter) {
+      const genre = genresData?.data?.find((g) => g.id === genreFilter);
+      return genre ? [...baseKeywords, getGenreName(genre)] : baseKeywords;
+    }
+    return baseKeywords;
+  }, [search, authorFilter, genreFilter, authorsData, genresData]);
+
   return (
     <section className="bg-white">
-      <SEO {...SEO_CONFIG.books} />
+      <SEO
+        {...SEO_CONFIG.books}
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+      />
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         {/* HEADER */}
         <div className="mb-8 flex flex-col gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
@@ -160,7 +226,7 @@ export default function Books() {
           </div>
         </div>
 
-        {/* CONTENT */}
+        {/* CONTENT (o‘zgarmagan) */}
         {isLoading ? (
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (

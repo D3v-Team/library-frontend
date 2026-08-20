@@ -43,7 +43,8 @@
     "react-select": "^5.8.3",
     "react-sweetalert2": "^0.6.0",
     "recharts": "^2.15.3",
-    "styled-components": "^6.1.17"
+    "styled-components": "^6.1.17",
+    "swiper": "^14.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

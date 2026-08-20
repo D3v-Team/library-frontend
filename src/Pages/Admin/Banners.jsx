@@ -1,4 +1,5 @@
-import { useState } from "react";
+// src/pages/admin/Banners.jsx
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Pencil, Trash2, GalleryHorizontalEnd } from "lucide-react";
 
@@ -40,10 +41,19 @@ const emptyForm = {
   is_active: true,
 };
 
+// ===== FORM SCHEMA – 3 TIL UCHUN VALIDATSIYA =====
 const formSchema = [
   {
     field: "title_latin",
-    validators: [(v) => required(v, "Sarlavha (lotin)")],
+    validators: [(v) => required(v, "Sarlavha (lotin) to‘ldirilmagan")],
+  },
+  {
+    field: "title_cyril",
+    validators: [(v) => required(v, "Sarlavha (kirill) to‘ldirilmagan")],
+  },
+  {
+    field: "title_ru",
+    validators: [(v) => required(v, "Sarlavha (rus) to‘ldirilmagan")],
   },
   { field: "link_url", validators: [isValidUrl] },
   { field: "order", validators: [isValidNumber] },
@@ -52,6 +62,7 @@ const formSchema = [
 export default function Banners() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -61,10 +72,19 @@ export default function Banners() {
   const [imageFile, setImageFile] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
+  // ===== DEBOUNCE LOGIC – yozish to‘xtaganda 4 sekunddan keyin so‘rov ketadi =====
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const { data, isLoading, isFetching, error } = useGetBannersQuery({
     page,
     limit: 10,
-    search,
+    search: debouncedSearch, // debouncedSearch ishlatiladi
   });
 
   const [createBanner, { isLoading: isCreating }] = useCreateBannerMutation();
@@ -191,7 +211,7 @@ export default function Banners() {
               size={28}
             />
             <p className="text-sm text-slate-500">
-              {search
+              {debouncedSearch
                 ? "Hech narsa topilmadi."
                 : "Hozircha bannerlar mavjud emas."}
             </p>
@@ -228,7 +248,6 @@ shadow-sm
 transition-all
 duration-200
 hover:-translate-y-1
-hover:border-green-200
 hover:shadow-lg
 "
                   >
@@ -278,7 +297,7 @@ gap-3
 line-clamp-2
 font-semibold
 text-slate-900
-group-hover:text-green-700
+
 transition-colors
 "
                         >
@@ -429,12 +448,12 @@ transition
             >
               <FormField
                 label={`Sarlavha (${lang.label})`}
-                required={lang.key === "latin"}
+                required
                 value={form[`title_${lang.key}`]}
                 onChange={(e) =>
                   handleFieldChange(`title_${lang.key}`, e.target.value)
                 }
-                error={lang.key === "latin" ? errors.title_latin : undefined}
+                error={errors[`title_${lang.key}`]}
               />
             </div>
           ))}

@@ -24,7 +24,7 @@ const emptyForm = {
   title_ru: "",
 
   url: "",
-  icon: "",
+
 
   order: 0,
   is_active: true,
@@ -346,7 +346,7 @@ export default function Links() {
 
                 <ExternalLink size={14} />
               </a>
-              <span>{item.icon}</span>
+            
 
               <div
                 className="
@@ -467,12 +467,7 @@ export default function Links() {
             onChange={(e) => changeField("url", e.target.value)}
           />
 
-          <FormField
-            label="Icon"
-            value={form.icon}
-            onChange={(e) => changeField("icon", e.target.value)}
-          />
-
+          
           <FormField
             type="number"
             label="Tartib raqami"

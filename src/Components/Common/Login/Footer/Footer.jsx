@@ -143,11 +143,11 @@ export default function Footer() {
                   {t("footer.services.faq")}
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link to="/contact" className="text-sm text-slate-500 transition hover:text-blue-600">
                   {t("footer.services.contact")}
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link to="/about/documents" className="text-sm text-slate-500 transition hover:text-blue-600">
                   {t("footer.services.documents")}
@@ -195,12 +195,12 @@ export default function Footer() {
                 </a>
               )}
 
-              <Link
+              {/* <Link
                 to="/contact"
                 className="block text-sm text-slate-500 transition hover:text-blue-600"
               >
                 {t("footer.contactPage")}
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>

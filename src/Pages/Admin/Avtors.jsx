@@ -43,9 +43,18 @@ const emptyForm = {
   death_date: "",
 };
 
+// ===== FORM VALIDATION SCHEMA – 3 TIL MAJBURIY =====
 const formSchema = [
-  { field: "full_name_latin", validators: [(v) => required(v, "Ism (lotin)"), (v) => minLength(v, 2, "Ism (lotin)")] },
-  { field: "birth_date", validators: [(v) => required(v, "Tug'ilgan sana"), isValidDate] },
+  { field: "full_name_latin", validators: [(v) => required(v, "Ism (lotin) to‘ldirilmagan"), (v) => minLength(v, 2, "Ism (lotin) kamida 2 belgi bo‘lishi kerak")] },
+  { field: "full_name_cyril", validators: [(v) => required(v, "Ism (kirill) to‘ldirilmagan")] },
+  { field: "full_name_ru", validators: [(v) => required(v, "Ism (rus) to‘ldirilmagan")] },
+  { field: "biography_latin", validators: [] }, // ixtiyoriy
+  { field: "biography_cyril", validators: [] },
+  { field: "biography_ru", validators: [] },
+  { field: "nationality_latin", validators: [] },
+  { field: "nationality_cyril", validators: [] },
+  { field: "nationality_ru", validators: [] },
+  { field: "birth_date", validators: [(v) => required(v, "Tug'ilgan sana kiriting"), isValidDate] },
   { field: "death_date", validators: [isValidDate] },
 ];
 
@@ -133,16 +142,22 @@ export default function Avtors() {
     setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // ===== RASM YUKLASH FUNKSIYASI =====
   const uploadAuthorImages = async (authorId) => {
     if (newImageFiles.length === 0) return;
     setIsUploading(true);
     try {
+      // Backend "files" array kutilganligi uchun shu nomda yuboriladi
       await uploadImages({ authorId, files: newImageFiles }).unwrap();
       toast.success(`${newImageFiles.length} ta rasm yuklandi`);
       setNewImageFiles([]);
-      refetchImages();
+      // refetchImages();
     } catch (err) {
-      toast.error(err?.data?.message || "Rasm yuklashda xatolik");
+      // Xatolikni o‘zbekcha ko‘rsatish
+      const msg = err?.data?.message || "Rasm yuklashda xatolik yuz berdi";
+      toast.error(msg);
+      // Xatolikni yuqoriga uzatamiz, shunda handleSubmit catch qismi ishlaydi
+      throw new Error(msg);
     } finally {
       setIsUploading(false);
     }
@@ -169,10 +184,12 @@ export default function Avtors() {
     }
   };
 
+  // ===== FORM SUBMIT =====
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSaving) return;
 
+    // 1. Validatsiya
     const validationErrors = validateForm(form, formSchema);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -184,23 +201,34 @@ export default function Avtors() {
       let authorId;
 
       if (editingAuthor) {
+        // UPDATE
         await updateAuthor({ id: editingAuthor.id, data: form }).unwrap();
         authorId = editingAuthor.id;
         toast.success("Muallif ma'lumotlari yangilandi");
       } else {
+        // CREATE
         const created = await createAuthor(form).unwrap();
-        authorId = created.id;
+        // Backend javob tuzilishiga qarab id ni olish
+        authorId = created.id || created?.data?.id || created?.id;
+        if (!authorId) {
+          toast.error("Muallif yaratildi, lekin identifikator olib bo'lmadi");
+          return;
+        }
         toast.success("Muallif qo'shildi");
       }
 
+      // 2. Agar rasm tanlangan bo‘lsa, yuklaymiz
       if (newImageFiles.length > 0 && authorId) {
         await uploadAuthorImages(authorId);
       }
 
+      // 3. Modani yopish va ro‘yxatni yangilash
       closeModal();
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Saqlashda xatolik yuz berdi");
+      // Xatolikni o‘zbekcha ko‘rsatish
+      const message = err?.data?.message || err?.message || "Saqlashda xatolik yuz berdi";
+      toast.error(message);
     }
   };
 
@@ -263,7 +291,7 @@ export default function Avtors() {
           }`}
         >
           {authors.map((author) => {
-            const mainImage = getImageUrl(author.main_image_url);
+            const mainImage = getImageUrl(author.images?.find(img => img.is_main)?.url);
             return (
               <div
                 key={author.id}
@@ -363,11 +391,11 @@ export default function Avtors() {
             >
               <FormField
                 label={`Ism-familiya (${lang.label})`}
-                required={lang.key === "latin"}
+                required={true}
                 value={form[`full_name_${lang.key}`]}
                 onChange={(e) => handleFieldChange(`full_name_${lang.key}`, e.target.value)}
-                error={lang.key === "latin" ? errors.full_name_latin : undefined}
-                placeholder="Abdulla Qodiriy"
+                error={errors[`full_name_${lang.key}`]}
+                placeholder="Masalan: Abdulla Qodiriy"
               />
 
               <FormField
@@ -376,12 +404,14 @@ export default function Avtors() {
                 label={`Tarjimai hol (${lang.label})`}
                 value={form[`biography_${lang.key}`]}
                 onChange={(e) => handleFieldChange(`biography_${lang.key}`, e.target.value)}
+                error={errors[`biography_${lang.key}`]}
               />
 
               <FormField
                 label={`Millati (${lang.label})`}
                 value={form[`nationality_${lang.key}`]}
                 onChange={(e) => handleFieldChange(`nationality_${lang.key}`, e.target.value)}
+                error={errors[`nationality_${lang.key}`]}
               />
             </div>
           ))}

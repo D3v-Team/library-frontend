@@ -233,4 +233,78 @@ export const SEO_CONFIG = {
       "Chinoz axborot-kutubxona markazi admin paneliga kirish sahifasi.",
     path: "/login",
   },
+  // src/seo/seoConfig.js
+
+books: {
+  title: "Kitoblar katalogi",
+  description: "Kutubxona fondidagi kitoblar katalogi. Muallif, janr va nashr yili bo'yicha qidiring, elektron kitoblarni yuklab oling yoki onlayn o'qing.",
+  keywords: [
+    "kitoblar katalogi",
+    "elektron kitoblar",
+    "kutubxona fondi",
+    "kitob qidirish",
+    "onlayn kitobxona",
+  ],
+  path: "/books",
+  openGraph: {
+    title: "Kitoblar katalogi | Chinoz axborot-kutubxona markazi",
+    description: "Kutubxona fondidagi barcha kitoblar, mualliflar va janrlar bo'yicha qidirish.",
+    url: "https://book.udsgroup.uz/books",
+    type: "website",
+    image: "https://book.udsgroup.uz/og-image-books.jpg",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kitoblar katalogi | Chinoz axborot-kutubxona markazi",
+    description: "Kutubxona fondidagi barcha kitoblar, mualliflar va janrlar bo'yicha qidirish.",
+    image: "https://book.udsgroup.uz/og-image-books.jpg",
+  },
+},
+// src/seo/seoConfig.js (yoki qayerda bo‘lsa)
+
+
+
+  contact: {
+    // title: "contact.meta.title",
+    description: "contact.meta.description",
+    // Agar kerak bo‘lsa, qo‘shimcha meta-lar:
+    openGraph: {
+      // title: "contact.meta.title",
+      description: "contact.meta.description",
+      type: "website",
+      url: "/contact",
+    },
+  },
+
+
+faq: {
+  title: "Ko'p so'raladigan savollar",
+  description:
+    "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar. Xizmatlar, kitob fondi va kutubxona faoliyati bo'yicha ma'lumot oling.",
+  keywords: [
+    "FAQ",
+    "ko'p so'raladigan savollar",
+    "kutubxona savollari",
+    "Chinoz kutubxonasi",
+    "xizmatlar",
+    "kitob fondi",
+  ],
+  path: "/faq",
+
+  openGraph: {
+    title: "Ko'p so'raladigan savollar | Chinoz axborot-kutubxona markazi",
+    description:
+      "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar.",
+    url: "https://book.udsgroup.uz/faq",
+    type: "website",
+    image: "https://book.udsgroup.uz/og-image-faq.jpg", 
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ko'p so'raladigan savollar | Chinoz axborot-kutubxona markazi",
+    description:
+      "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar.",
+    image: "https://book.udsgroup.uz/og-image-faq.jpg",
+  },
+},
 };

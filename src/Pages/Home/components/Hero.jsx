@@ -88,32 +88,15 @@ export default function Hero() {
   // ===== SKELETON LOADING =====
   if (isLoading) {
     return (
-      <section className="relative min-h-[520px] overflow-hidden bg-blue-700 lg:min-h-[640px]">
-        <div className="absolute inset-0  bg-blue-200">
-          {/* Skeleton content – same position as real content */}
-          <div className="relative z-30 mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-20 sm:px-10 lg:min-h-[640px] lg:px-16 xl:px-20">
-            <div className="max-w-7xl text-white animate-pulse">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-blue-600/50 text-white backdrop-blur-sm">
-                  <BookOpen
-                    size={19}
-                    strokeWidth={1.8}
-                    className="text-white/50"
-                  />
-                </div>
-                <div className="h-4 w-32 rounded bg-blue-600/50" />
-              </div>
-              <div className="h-12 w-5/5 rounded bg-blue-600/50 sm:h-14 lg:h-16" />
-              <div className="mt-6 h-4 w-2/2 rounded bg-blue-600/50" />
-              <div className="mt-8 h-12 w-80 rounded-lg bg-blue-600/50" />
+      <section className="relative min-h-[520px] overflow-hidden bg-slate-950 lg:min-h-[640px]">
+        <div className="relative z-30 mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-20 sm:px-10 lg:min-h-[640px] lg:px-16 xl:px-20">
+          <div className="w-full max-w-3xl animate-pulse space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-white/10" />
+              <div className="h-4 w-32 rounded bg-white/10" />
             </div>
-          </div>
-          {/* Gradient overlay to match real design */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-70 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
-          <div className="pointer-events-none absolute left-[2%] top-[18%] z-20 h-[62%] w-[58%] sm:left-[4%] sm:w-[54%] lg:left-[5%] lg:top-[17%] lg:h-[64%] lg:w-[50%]">
-            <div className="absolute inset-0 rounded-[45px] bg-slate-950/20 backdrop-blur-[4px]" />
-            <div className="absolute inset-0 rounded-[45px] bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
-            <div className="absolute inset-0 rounded-[45px] bg-gradient-to-b from-transparent via-transparent to-slate-950/20" />
+            <div className="h-12 w-3/4 rounded bg-white/10 sm:h-14 lg:h-16" />
+            <div className="h-12 w-40 rounded-lg bg-white/10" />
           </div>
         </div>
       </section>
@@ -127,8 +110,10 @@ export default function Hero() {
   const currentSlide = slides[activeSlide] || slides[0];
 
   return (
-    <section className="relative overflow-hidden bg-slate-950">
+    <section className="relative overflow-hidden bg-slate-950 text-white">
       <div className="relative min-h-[520px] lg:min-h-[640px]">
+        
+        {/* Background Images - Toza va tiniq rasmlar */}
         <div className="absolute inset-0 overflow-hidden">
           {slides.map((slide, index) => {
             const isActive = index === activeSlide;
@@ -136,10 +121,10 @@ export default function Hero() {
             return (
               <div
                 key={slide.id}
-                className={`absolute inset-0 ${
+                className={`absolute inset-0 transition-opacity duration-700 ${
                   isActive
-                    ? "z-10 pointer-events-auto"
-                    : "z-0 pointer-events-none"
+                    ? "z-10 opacity-100 pointer-events-auto"
+                    : "z-0 opacity-0 pointer-events-none"
                 }`}
               >
                 <img
@@ -153,61 +138,59 @@ export default function Hero() {
                       : ""
                   }`}
                 />
-
-                <div className="absolute inset-0 bg-black/20" />
               </div>
             );
           })}
-
-          <div className="pointer-events-none absolute left-[2%] top-[18%] z-20 h-[62%] w-[58%] sm:left-[4%] sm:w-[54%] lg:left-[5%] lg:top-[17%] lg:h-[64%] lg:w-[50%]">
-            <div className="absolute inset-0 rounded-[45px] bg-slate-950/20 backdrop-blur-[4px]" />
-            <div className="absolute inset-0 rounded-[45px] bg-gradient-to-r from-slate-950/35 via-slate-950/10 to-transparent" />
-            <div className="absolute inset-0 rounded-[45px] bg-gradient-to-b from-transparent via-transparent to-slate-950/20" />
-          </div>
-
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
         </div>
 
+        {/* Content Area */}
         <div className="relative z-30 mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-20 sm:px-10 lg:min-h-[640px] lg:px-16 xl:px-20">
           <div
             key={currentSlide.id + i18n.language}
-            className="max-w-3xl text-white animate-[heroContentIn_700ms_ease-out]"
+            className="max-w-3xl animate-[heroContentIn_700ms_ease-out]"
           >
+            {/* Eyebrow */}
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-black/20 text-white backdrop-blur-sm">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-black/40 text-white backdrop-blur-md shadow-lg">
                 <BookOpen size={19} strokeWidth={1.8} />
               </div>
 
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] sm:text-sm">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] sm:text-sm">
                 {currentSlide.eyebrow}
               </span>
             </div>
 
-            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.75)] sm:text-5xl lg:text-6xl xl:text-[64px]">
+            {/* Title bilan kuchli Shadow */}
+            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] sm:text-5xl lg:text-6xl xl:text-[64px]">
               {currentSlide.title}
             </h1>
 
+            {/* Description */}
             {currentSlide.description && (
-              <p className="mt-6 max-w-2xl text-base leading-7 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] sm:text-lg sm:leading-8">
+              <p className="mt-6 max-w-2xl text-base leading-7 text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] sm:text-lg sm:leading-8">
                 {currentSlide.description}
               </p>
             )}
 
+            {/* Button */}
             {currentSlide.button && (
               <a
                 href={currentSlide.path}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-8 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3.5 text-sm font-semibold !text-black shadow-lg shadow-black/25 transition-all duration-200 hover:bg-slate-100 hover:shadow-xl active:scale-[0.98]"
+                className="mt-8 inline-flex items-center gap-2 text-black rounded-lg bg-white px-6 py-3.5 text-sm font-semibold !text-slate-900 shadow-2xl shadow-black/50 transition-all duration-200 hover:bg-slate-100 active:scale-[0.98]"
               >
-                <span className="!text-slate-900">{currentSlide.button}</span>
-                <ArrowRight size={18} className="!text-slate-900" />
+                <span>{currentSlide.button}</span>
+                <ArrowRight size={18} className="!text-black" />
               </a>
             )}
           </div>
         </div>
 
+        {/* Navigation / Controls */}
         <div className="absolute bottom-7 left-6 right-6 z-40 flex items-center justify-between sm:left-10 sm:right-10 lg:left-16 lg:right-16 xl:left-20 xl:right-20">
+          
+          {/* Pagination Indicators */}
           <div className="flex items-center gap-2.5">
             {slides.map((slide, index) => {
               const isActive = index === activeSlide;
@@ -219,7 +202,7 @@ export default function Hero() {
                   onClick={() => goToSlide(index)}
                   aria-label={`${index + 1}-slayd`}
                   aria-current={isActive ? "true" : undefined}
-                  className="relative h-1.5 w-8 overflow-hidden rounded-full bg-white/30"
+                  className="relative h-1.5 w-8 overflow-hidden rounded-full bg-white/40 shadow-md"
                 >
                   <span
                     className={`absolute inset-y-0 left-0 rounded-full bg-white transition-all duration-500 ${
@@ -231,12 +214,13 @@ export default function Hero() {
             })}
           </div>
 
+          {/* Prev / Next Buttons */}
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={prevSlide}
               aria-label={t("hero.prev")}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/20 text-white backdrop-blur-sm transition-all duration-200 hover:border-white/60 hover:bg-white hover:text-slate-900 active:scale-95"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/40 text-white backdrop-blur-md shadow-lg transition-all duration-200 hover:border-white/60 hover:bg-white hover:text-slate-900 active:scale-95"
             >
               <ArrowLeft size={18} />
             </button>
@@ -245,7 +229,7 @@ export default function Hero() {
               type="button"
               onClick={nextSlide}
               aria-label={t("hero.next")}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/20 text-white backdrop-blur-sm transition-all duration-200 hover:border-white/60 hover:bg-white hover:text-slate-900 active:scale-95"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-black/40 text-white backdrop-blur-md shadow-lg transition-all duration-200 hover:border-white/60 hover:bg-white hover:text-slate-900 active:scale-95"
             >
               <ArrowRight size={18} />
             </button>
@@ -257,23 +241,15 @@ export default function Hero() {
         @keyframes heroPageInNext {
           0% {
             opacity: 0;
-            transform: perspective(1600px)
-              rotateY(-8deg)
-              translateX(45px)
-              scale(1.015);
+            transform: perspective(1600px) rotateY(-8deg) translateX(45px) scale(1.015);
             transform-origin: left center;
           }
-
           45% {
             opacity: 1;
           }
-
           100% {
             opacity: 1;
-            transform: perspective(1600px)
-              rotateY(0deg)
-              translateX(0)
-              scale(1);
+            transform: perspective(1600px) rotateY(0deg) translateX(0) scale(1);
             transform-origin: left center;
           }
         }
@@ -281,23 +257,15 @@ export default function Hero() {
         @keyframes heroPageInPrev {
           0% {
             opacity: 0;
-            transform: perspective(1600px)
-              rotateY(8deg)
-              translateX(-45px)
-              scale(1.015);
+            transform: perspective(1600px) rotateY(8deg) translateX(-45px) scale(1.015);
             transform-origin: right center;
           }
-
           45% {
             opacity: 1;
           }
-
           100% {
             opacity: 1;
-            transform: perspective(1600px)
-              rotateY(0deg)
-              translateX(0)
-              scale(1);
+            transform: perspective(1600px) rotateY(0deg) translateX(0) scale(1);
             transform-origin: right center;
           }
         }
@@ -307,7 +275,6 @@ export default function Hero() {
             opacity: 0;
             transform: translateY(14px);
           }
-
           100% {
             opacity: 1;
             transform: translateY(0);
