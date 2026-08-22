@@ -339,11 +339,11 @@ gap-3
       <div
         className="
 rounded-2xl
-border
-border-slate-200
-bg-white
+
+
+
 p-5
-shadow-sm
+
 "
       >
         {isLoading ? (
@@ -815,14 +815,14 @@ hover:bg-red-50
               disabled={isSaving}
               className="
                 rounded-lg
-                bg-slate-900
+                border
                 px-5
                 py-2.5
                 text-sm
                 font-medium
                 text-black
                 transition
-                hover:bg-slate-800
+                hover:bg-slate-50
                 disabled:opacity-50
               "
             >

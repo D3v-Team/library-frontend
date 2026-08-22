@@ -135,7 +135,7 @@ export default function Banners() {
       return;
     }
 
-    const payload = { ...form, image_file: imageFile ?? undefined };
+    const payload = { ...form, image_file: imageFile  };
 
     try {
       if (editing) {
@@ -510,7 +510,7 @@ transition
             <button
               type="submit"
               disabled={isSaving}
-              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-lg border px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-50 disabled:opacity-50"
             >
               {isSaving ? "Saqlanmoqda..." : "Saqlash"}
             </button>

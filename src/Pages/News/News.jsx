@@ -81,16 +81,16 @@ export default function News() {
           <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="mb-3 flex items-center gap-3">
-                <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+                <span className="h-7 w-1 rounded-full bg-slate-300 animate-pulse" />
                 <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
-                  <Megaphone size={17} className="text-blue-700/40 animate-pulse" />
-                  <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+                  <Megaphone size={17} className="text-slate-400 animate-pulse" />
+                  <span className="h-6 w-48 animate-pulse rounded bg-slate-300" />
                 </div>
               </div>
-              <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
-              <div className="mt-2 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+              <div className="h-10 w-64 animate-pulse rounded bg-slate-300" />
+              <div className="mt-2 h-4 w-72 animate-pulse rounded bg-slate-300" />
             </div>
-            <div className="h-8 w-32 animate-pulse rounded bg-blue-700/40" />
+            <div className="h-8 w-32 animate-pulse rounded bg-slate-300" />
           </div>
 
           {/* CARDS SKELETON */}
@@ -100,17 +100,17 @@ export default function News() {
                 key={i}
                 className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
               >
-                <div className="h-52 animate-pulse bg-blue-700" />
+                <div className="h-52 animate-pulse bg-slate-300" />
                 <div className="p-6 space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="h-6 w-20 animate-pulse rounded-full bg-blue-700" />
-                    <div className="h-4 w-24 animate-pulse rounded bg-blue-700" />
+                    <div className="h-6 w-20 animate-pulse rounded-full bg-slate-300" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-slate-300" />
                   </div>
-                  <div className="h-6 w-3/4 animate-pulse rounded bg-blue-700" />
-                  <div className="h-4 w-full animate-pulse rounded bg-blue-700" />
-                  <div className="h-4 w-2/3 animate-pulse rounded bg-blue-700" />
+                  <div className="h-6 w-3/4 animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-full animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-slate-300" />
                   <div className="mt-4 border-t border-slate-100 pt-4">
-                    <div className="h-8 w-28 animate-pulse rounded bg-blue-700" />
+                    <div className="h-8 w-28 animate-pulse rounded bg-slate-300" />
                   </div>
                 </div>
               </div>
@@ -136,7 +136,7 @@ export default function News() {
     <section className="bg-slate-50 py-10 sm:py-12 lg:py-14">
       <SEO {...SEO_CONFIG.news} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-8 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-3 flex items-center gap-3">
               <span className="h-7 w-1 rounded-full bg-blue-700" />
@@ -157,10 +157,10 @@ export default function News() {
 
           <Link
             to="/"
-            className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-blue-700"
+            className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
           >
             {t("announcements.home")}
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 transition group-hover:bg-blue-700 group-hover:text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 transition group-hover:bg-slate-900 group-hover:text-white">
               <ArrowRight size={15} />
             </span>
           </Link>
@@ -209,7 +209,7 @@ export default function News() {
                     </div>
                   </div>
 
-                  <h2 className="mt-5 line-clamp-2 text-xl font-semibold leading-[1.3] text-slate-900 transition-colors group-hover:text-blue-700">
+                  <h2 className="mt-5 line-clamp-2 text-xl font-semibold leading-[1.3] text-slate-900 transition-colors group-hover:text-slate-900">
                     {item.title}
                   </h2>
 
@@ -220,10 +220,10 @@ export default function News() {
                   <div className="mt-6 border-t border-slate-100 pt-5">
                     <Link
                       to={`/news/${item.id}`}
-                      className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-blue-700"
+                      className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-900"
                     >
                       {t("announcements.details")}
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition-all group-hover:border-blue-700 group-hover:bg-blue-700 group-hover:text-white">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition-all group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white">
                         <ArrowRight size={15} />
                       </span>
                     </Link>
@@ -252,8 +252,8 @@ export default function News() {
                   }}
                   className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition-all ${
                     page === pageNumber
-                      ? "bg-blue-700 text-white shadow-md"
-                      : "bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-700"
+                      ? "bg-slate-900 text-white shadow-md"
+                      : "bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-slate-900"
                   }`}
                 >
                   {pageNumber}

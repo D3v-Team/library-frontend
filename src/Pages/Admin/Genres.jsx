@@ -474,14 +474,14 @@ export default function Genres() {
               disabled={createLoading || updateLoading}
               className="
               rounded-lg
-              bg-slate-900
+              border
               px-5
               py-2.5
               text-sm
               font-medium
               text-black
               transition
-              hover:bg-slate-800
+        hover:bg-slate-50
               disabled:opacity-50
               "
             >

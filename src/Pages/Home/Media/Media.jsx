@@ -189,18 +189,18 @@ export default function Media() {
             <>
               <div>
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+                  <span className="h-7 w-1 rounded-full bg-slate-300 animate-pulse" />
                   <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
-                    <Images size={17} className="text-blue-700/40 animate-pulse" />
-                    <span className="h-6 w-20 animate-pulse rounded bg-blue-700/50" />
+                    <Images size={17} className="text-slate-400 animate-pulse" />
+                    <span className="h-6 w-20 animate-pulse rounded bg-slate-300" />
                   </div>
                 </div>
-                <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
-                <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+                <div className="h-10 w-64 animate-pulse rounded bg-slate-300" />
+                <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-300" />
               </div>
               <div className="flex w-fit rounded-lg border border-slate-200 bg-white p-1">
-                <div className="h-10 w-24 animate-pulse rounded-md bg-blue-700/40" />
-                <div className="h-10 w-24 animate-pulse rounded-md bg-blue-700/30 ml-1" />
+                <div className="h-10 w-24 animate-pulse rounded-md bg-slate-300" />
+                <div className="h-10 w-24 animate-pulse rounded-md bg-slate-300 ml-1" />
               </div>
             </>
           ) : (
@@ -223,13 +223,15 @@ export default function Media() {
                 </p>
               </div>
 
-              <div className="flex w-fit rounded-lg border border-slate-200 bg-white p-1">
+              <div className="hidden lg:block lg:flex-1 self-end mb-[3px] border-b border-slate-200 mr-6" />
+
+              <div className="flex w-fit shrink-0 rounded-lg border border-slate-200 bg-white p-1">
                 <button
                   type="button"
                   onClick={() => changeTab("VIDEO")}
                   className={`flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
                     activeTab === "VIDEO"
-                      ? "bg-blue-700 text-white shadow-sm"
+                      ? "bg-slate-900 text-white shadow-sm"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -242,7 +244,7 @@ export default function Media() {
                   onClick={() => changeTab("PHOTO")}
                   className={`flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
                     activeTab === "PHOTO"
-                      ? "bg-blue-700 text-white shadow-sm"
+                      ? "bg-slate-900 text-white shadow-sm"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -258,12 +260,12 @@ export default function Media() {
         {isLoading ? (
           // CONTENT SKELETON (bg-blue-700)
           <div className="grid gap-5 lg:grid-cols-[1.65fr_1fr]">
-            <div className="min-h-[360px] rounded-2xl bg-blue-700 sm:min-h-[460px] animate-pulse" />
+            <div className="min-h-[360px] rounded-2xl bg-slate-300 sm:min-h-[460px] animate-pulse" />
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="min-h-[170px] rounded-xl bg-blue-700 animate-pulse"
+                  className="min-h-[170px] rounded-xl bg-slate-300 animate-pulse"
                 />
               ))}
             </div>
@@ -418,7 +420,7 @@ export default function Media() {
                             {getMediaType(item.type)}
                           </span>
 
-                          <h4 className="mt-2 text-base font-semibold leading-6 text-slate-900 transition-colors group-hover:text-blue-700">
+                          <h4 className="mt-2 text-base font-semibold leading-6 text-slate-900 transition-colors group-hover:text-slate-900">
                             {item.title}
                           </h4>
 
@@ -431,7 +433,7 @@ export default function Media() {
 
                         <ArrowRight
                           size={17}
-                          className="text-slate-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-blue-700"
+                          className="text-slate-400 transition-all duration-200 group-hover:translate-x-1 group-hover:text-slate-900"
                         />
                       </div>
                     </button>
@@ -455,7 +457,7 @@ export default function Media() {
                 onClick={prevItem}
                 disabled={items.length <= 1}
                 aria-label={t("media.prev")}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-all hover:border-blue-700 hover:bg-blue-700 hover:text-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-700"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-all hover:border-slate-900 hover:bg-slate-900 hover:text-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-700"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -465,7 +467,7 @@ export default function Media() {
                 onClick={nextItem}
                 disabled={items.length <= 1}
                 aria-label={t("media.next")}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-all hover:border-blue-700 hover:bg-blue-700 hover:text-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-700"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-all hover:border-slate-900 hover:bg-slate-900 hover:text-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-700"
               >
                 <ChevronRight size={18} />
               </button>
@@ -473,7 +475,7 @@ export default function Media() {
 
             {/* <Link
               to="/media"
-              className="group hidden items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-blue-700 sm:flex"
+              className="group hidden items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-900 sm:flex"
             >
               {t("media.all")}
               <ArrowRight

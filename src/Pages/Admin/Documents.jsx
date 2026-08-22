@@ -628,6 +628,7 @@ export default function Documents() {
                 py-2.5
                 text-sm
                 text-slate-600
+                hover:bg-slate-50
               "
             >
               Bekor qilish
@@ -637,13 +638,14 @@ export default function Documents() {
               disabled={isSaving}
               className="
                 rounded-lg
-                bg-slate-900
+                border
                 px-5
                 py-2.5
                 text-sm
                 font-medium
                 text-black
                 disabled:opacity-50
+                hover:bg-slate-50
               "
             >
               {isSaving ? "Saqlanmoqda..." : "Saqlash"}

@@ -101,7 +101,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+    <div className="flex  items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-lg">
         <h1 className="text-center text-2xl font-semibold text-slate-900">
           Admin panel

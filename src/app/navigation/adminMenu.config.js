@@ -4,7 +4,6 @@
 // role-based menu (Users/Settings) for a future auth system. This one is
 // the simple, no-auth menu the admin MVP actually uses right now.
 
-import { PeopleOutlineTwoTone } from '@mui/icons-material';
 import {
   LayoutDashboard,
   GalleryHorizontalEnd,
@@ -13,6 +12,7 @@ import {
   CalendarDays,
   Images,
   Users,
+  Users2,
   Megaphone,
   BookAIcon,
   UserSquare,
@@ -107,6 +107,6 @@ export const ADMIN_MENU = [
   {
     label: 'Adminlar',
     path: '/admin/users',
-    icon: PeopleOutlineTwoTone,
+    icon: Users2,
   },
 ];

@@ -667,7 +667,7 @@ export default function Header({ onMessageOpen }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-3 text-sm font-semibold text-black transition hover:bg-slate-800 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-lg  py-3 text-sm font-semibold text-black transition border disabled:opacity-50"
               >
                 {isLoading ? "Yuborilmoqda..." : "Yuborish"}
               </button>

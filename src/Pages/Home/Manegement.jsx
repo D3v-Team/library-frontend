@@ -45,11 +45,11 @@ export default function Management() {
           {/* Header Skeleton */}
           <div className="mb-10 border-b border-slate-200 pb-6">
             <div className="mb-3 flex items-center gap-3">
-              <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
-              <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+              <span className="h-7 w-1 rounded-full bg-slate-300 animate-pulse" />
+              <span className="h-6 w-48 animate-pulse rounded bg-slate-300" />
             </div>
-            <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
-            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+            <div className="h-10 w-64 animate-pulse rounded bg-slate-300" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-300" />
           </div>
 
           {/* Cards Skeleton */}
@@ -60,16 +60,16 @@ export default function Management() {
                 className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
               >
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-blue-700 animate-pulse" />
+                  <div className="h-12 w-12 rounded-xl bg-slate-300 animate-pulse" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-6 w-3/4 animate-pulse rounded bg-blue-700/60" />
-                    <div className="h-4 w-1/2 animate-pulse rounded bg-blue-700/50" />
+                    <div className="h-6 w-3/4 animate-pulse rounded bg-slate-300" />
+                    <div className="h-4 w-1/2 animate-pulse rounded bg-slate-300" />
                   </div>
                 </div>
                 <div className="mt-6 space-y-3 border-t border-slate-100 pt-5">
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-blue-700/40" />
-                  <div className="h-4 w-2/3 animate-pulse rounded bg-blue-700/40" />
-                  <div className="h-4 w-1/2 animate-pulse rounded bg-blue-700/40" />
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-slate-300" />
                 </div>
               </div>
             ))}
@@ -96,19 +96,22 @@ export default function Management() {
       <SEO {...SEO_CONFIG.management} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-10 border-b border-slate-200 pb-6">
-          <div className="mb-3 flex items-center gap-3">
-            <span className="h-7 w-1 rounded-full bg-blue-700" />
-            <span className="text-sm font-semibold tracking-[0.12em] text-blue-700">
-              {t("management.badge")}
-            </span>
+        <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="mb-3 flex items-center gap-3">
+              <span className="h-7 w-1 rounded-full bg-blue-700" />
+              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
+                <User size={17} />
+                <span>{t("management.badge")}</span>
+              </div>
+            </div>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              {t("management.heading")}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+              {t("management.description")}
+            </p>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-            {t("management.heading")}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-            {t("management.description")}
-          </p>
         </div>
 
         {/* Managers Grid */}

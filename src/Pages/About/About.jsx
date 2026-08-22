@@ -36,10 +36,29 @@ export default function About() {
     return (
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <SEO {...SEO_CONFIG.about} />
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 w-48 rounded bg-blue-700" />
-          <div className="h-12 w-3/4 rounded bg-blue-700" />
-          <div className="h-64 rounded bg-blue-700" />
+        <div className="animate-pulse">
+          {/* Badge + heading */}
+          <div className="mb-4 flex items-center gap-3">
+            <span className="h-7 w-1 rounded-full bg-slate-300" />
+            <div className="h-4 w-40 rounded bg-slate-300" />
+          </div>
+          <div className="h-10 w-2/3 rounded-lg bg-slate-300" />
+          <div className="mt-4 h-4 w-96 max-w-full rounded bg-slate-300" />
+          {/* Content block */}
+          <div className="mt-10 space-y-3">
+            <div className="h-4 w-full rounded bg-slate-300" />
+            <div className="h-4 w-full rounded bg-slate-300" />
+            <div className="h-4 w-5/6 rounded bg-slate-300" />
+            <div className="h-4 w-full rounded bg-slate-300" />
+            <div className="h-4 w-4/5 rounded bg-slate-300" />
+            <div className="h-4 w-full rounded bg-slate-300" />
+            <div className="h-4 w-3/4 rounded bg-slate-300" />
+          </div>
+          <div className="mt-8 space-y-3">
+            <div className="h-4 w-full rounded bg-slate-300" />
+            <div className="h-4 w-full rounded bg-slate-300" />
+            <div className="h-4 w-2/3 rounded bg-slate-300" />
+          </div>
         </div>
       </section>
     );

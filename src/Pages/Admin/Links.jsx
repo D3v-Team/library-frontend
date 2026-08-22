@@ -510,6 +510,7 @@ export default function Links() {
                 rounded-lg
                 border
                 border-slate-200
+                hover:bg-slate-50
                 px-5
                 py-2.5
                 text-sm
@@ -524,7 +525,8 @@ export default function Links() {
               disabled={isSaving}
               className="
                 rounded-lg
-                bg-slate-900
+                border
+                hover:bg-slate-50
                 px-5
                 py-2.5
                 text-sm

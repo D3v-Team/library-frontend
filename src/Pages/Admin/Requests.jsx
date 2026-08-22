@@ -463,9 +463,9 @@ export default function Requests() {
                 type="button"
                 onClick={handleUpdate}
                 disabled={isUpdating}
-                className="flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-800 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-50 disabled:opacity-50"
               >
-                <Send size={16} />
+
                 {isUpdating ? "Saqlanmoqda..." : "Saqlash"}
               </button>
             </div>

@@ -1,8 +1,7 @@
 // src/pages/Books.jsx
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { BookOpen, Search } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { BookOpen, Search } from "lucide-react";import { useTranslation } from "react-i18next";
 
 import { useGetBooksQuery } from "../../store/services/books.api";
 import { useGetAuthorsQuery } from "../../store/services/avtors.api";
@@ -144,29 +143,30 @@ export default function Books() {
       />
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         {/* HEADER */}
-        <div className="mb-8 flex flex-col gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-8 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-3 flex items-center gap-3">
-              <span className="h-6 w-1 rounded-full bg-blue-700" />
-              <span className="text-xs font-semibold tracking-[0.15em] text-blue-700">
-                {t("books.badge")}
-              </span>
+              <span className="h-7 w-1 rounded-full bg-blue-700" />
+              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
+                <BookOpen size={17} />
+                <span>{t("books.badge")}</span>
+              </div>
             </div>
 
             <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
               {t("books.heading")}
             </h1>
 
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500">
+            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
               {t("books.description")}
             </p>
           </div>
 
-          <div className="rounded-xl items-center gap-2 flex flex-row border border-slate-200 bg-slate-50 px-5 py-2">
-            <p className="text-x font-bold text-slate-400">{t("books.total")}</p>
-            <p className="mt-1 text-xl font-semibold text-slate-900">
-              {data?.meta?.total || 0}
-            </p>
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2">
+              <span className="text-sm font-medium text-slate-400">{t("books.total")}</span>
+              <span className="text-lg font-semibold text-slate-900">{data?.meta?.total || 0}</span>
+            </div>
           </div>
         </div>
 
@@ -186,7 +186,7 @@ export default function Books() {
                   setPage(1);
                 }}
                 placeholder={t("books.search")}
-                className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-700 focus:bg-white"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-900 focus:bg-white"
               />
             </div>
 
@@ -197,7 +197,7 @@ export default function Books() {
                 setAuthorFilter(e.target.value);
                 setPage(1);
               }}
-              className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none focus:border-blue-700"
+              className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none focus:border-slate-900"
             >
               <option value="">{t("books.allAuthors")}</option>
               {(authorsData?.data || []).map((author) => (
@@ -214,7 +214,7 @@ export default function Books() {
                 setGenreFilter(e.target.value);
                 setPage(1);
               }}
-              className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none focus:border-blue-700"
+              className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none focus:border-slate-900"
             >
               <option value="">{t("books.allGenres")}</option>
               {(genresData?.data || []).map((genre) => (
@@ -232,7 +232,7 @@ export default function Books() {
             {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[3/4] animate-pulse rounded-xl bg-blue-700"
+                className="aspect-[3/4] animate-pulse rounded-xl bg-slate-300"
               />
             ))}
           </div>
@@ -285,7 +285,7 @@ export default function Books() {
 
                     {/* INFO */}
                     <div className="mt-4">
-                      <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition-colors group-hover:text-blue-700">
+                      <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition-colors group-hover:text-slate-900">
                         {bookName}
                       </h3>
 
@@ -326,7 +326,7 @@ export default function Books() {
                 }}
                 className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition ${
                   page === i + 1
-                    ? "bg-blue-700 text-white"
+                    ? "bg-slate-900 text-white"
                     : "border border-slate-200 text-slate-600 hover:bg-slate-50"
                 }`}
               >

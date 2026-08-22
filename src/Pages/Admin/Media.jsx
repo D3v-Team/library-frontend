@@ -539,7 +539,7 @@ const handleUploadSubmit = useCallback(async () => {
                       resetUploadForm();
                       setUploadTarget(item);
                     }}
-                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-2.5 text-sm font-medium text-black transition-colors hover:bg-slate-800"
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium text-black transition-colors hover:bg-slate-50"
                   >
                     <Upload size={15} />
                     Fayl qo'shish
@@ -620,7 +620,7 @@ const handleUploadSubmit = useCallback(async () => {
           <button
             type="submit"
             disabled={isCreating || isUpdating}
-            className="w-full rounded-lg bg-slate-900 py-3 text-sm font-medium text-black transition-colors hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border py-3 text-sm font-medium text-black transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isCreating || isUpdating ? "Saqlanmoqda..." : "Saqlash"}
           </button>
@@ -779,7 +779,7 @@ const handleUploadSubmit = useCallback(async () => {
             type="button"
             onClick={handleUploadSubmit}
             disabled={isAddingItem}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-3 text-sm font-medium text-black transition-colors hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border py-3 text-sm font-medium text-black transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload size={16} />
             {isAddingItem ? "Yuklanmoqda..." : "Yuklash"}

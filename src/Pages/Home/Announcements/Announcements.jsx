@@ -15,8 +15,8 @@ const categoryStyles = {
   },
   default: {
     badge: "bg-blue-50 text-blue-700",
-    dot: "bg-blue-700",
-    accent: "bg-blue-700",
+    dot: "bg-slate-900",
+    accent: "bg-slate-900",
   },
 };
 
@@ -118,11 +118,11 @@ export default function Announcements() {
                   i === 1 ? "hidden sm:block" : ""
                 } ${i === 2 ? "hidden lg:block" : ""}`}
               >
-                <div className="h-44 animate-pulse bg-blue-700" />
+                <div className="h-44 animate-pulse bg-slate-300" />
                 <div className="h-1 w-full bg-blue-700" />
                 <div className="space-y-4 p-6">
                   <div className="flex items-center justify-between">
-                    <div className="h-6 w-20 animate-pulse rounded-full bg-blue-700" />
+                    <div className="h-6 w-20 animate-pulse rounded-full bg-slate-300" />
                     <div className="h-4 w-24 animate-pulse rounded bg-slate-200" />
                   </div>
                   <div className="h-6 w-3/4 animate-pulse rounded bg-slate-200" />
@@ -179,12 +179,14 @@ export default function Announcements() {
             </p>
           </div>
 
+          <div className="hidden lg:block lg:flex-1 self-end mb-[3px] border-b border-slate-200 mx-6" />
+
           <Link
             to="/news"
-            className="group inline-flex w-fit items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-blue-700"
+            className="group inline-flex w-fit shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-slate-900"
           >
             {t("announcements.all")}
-            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 transition-all group-hover:border-blue-700 group-hover:bg-blue-700 group-hover:text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 transition-all group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white">
               <ArrowRight size={15} />
             </span>
           </Link>
@@ -243,7 +245,7 @@ export default function Announcements() {
                       <div className="mt-5 border-t border-slate-100 pt-4">
                         <Link
                           to={`/news/${announcement.id}`}
-                          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-blue-700"
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-slate-900"
                         >
                           {t("announcements.details")}
                           <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-slate-700">
@@ -266,7 +268,7 @@ export default function Announcements() {
                 onClick={() => setMobileIndex(i)}
                 aria-label={`Slayd ${i + 1}`}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
-                  i === mobileIndex ? "w-6 bg-blue-700" : "w-1.5 bg-slate-300"
+                  i === mobileIndex ? "w-6 bg-slate-900" : "w-1.5 bg-slate-300"
                 }`}
               />
             ))}
@@ -318,7 +320,7 @@ export default function Announcements() {
                         {String(originalIndex + 1).padStart(2, "0")}
                       </div>
 
-                      <h3 className="mt-3 line-clamp-2 text-xl font-semibold leading-[1.3] text-slate-900 transition-colors group-hover:text-blue-700">
+                      <h3 className="mt-3 line-clamp-2 text-xl font-semibold leading-[1.3] text-slate-900 transition-colors group-hover:text-slate-900">
                         {announcement.title}
                       </h3>
 
@@ -329,10 +331,10 @@ export default function Announcements() {
                       <div className="mt-auto border-t border-slate-100 pt-5">
                         <Link
                           to={`/news/${announcement.id}`}
-                          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-blue-700"
+                          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-slate-900"
                         >
                           {t("announcements.details")}
-                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition group-hover:border-blue-700 group-hover:bg-blue-700 group-hover:text-white">
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white">
                             <ArrowRight size={15} />
                           </span>
                         </Link>

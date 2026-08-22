@@ -239,7 +239,7 @@ export default function Announcements() {
       {isLoading ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-52 rounded-2xl bg-blue-700 animate-pulse" />
+            <div key={i} className="h-52 rounded-2xl bg-slate-300 animate-pulse" />
           ))}
         </div>
       ) : error ? (
@@ -388,7 +388,7 @@ export default function Announcements() {
               type="button"
               onClick={closeModal}
               disabled={isSaving}
-              className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm text-slate-600"
+              className="rounded-lg border border-slate-200 px-5 hover:bg-slate-50 py-2.5 text-sm text-slate-600"
             >
               Bekor qilish
             </button>
@@ -396,7 +396,7 @@ export default function Announcements() {
             <button
               type="submit"
               disabled={isSaving}
-              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-lg border px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-50 disabled:opacity-50"
             >
               {isSaving ? "Saqlanmoqda..." : "Saqlash"}
             </button>

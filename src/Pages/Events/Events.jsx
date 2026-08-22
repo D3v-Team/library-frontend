@@ -74,16 +74,16 @@ export default function Events() {
           <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="mb-4 flex items-center gap-3">
-                <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
+                <span className="h-7 w-1 rounded-full bg-slate-300 animate-pulse" />
                 <div className="flex items-center gap-2 text-sm font-semibold tracking-[0.12em]">
-                  <CalendarDays size={17} className="text-blue-700/40 animate-pulse" />
-                  <span className="h-6 w-32 animate-pulse rounded bg-blue-700/50" />
+                  <CalendarDays size={17} className="text-slate-400 animate-pulse" />
+                  <span className="h-6 w-32 animate-pulse rounded bg-slate-300" />
                 </div>
               </div>
-              <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
-              <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+              <div className="h-10 w-64 animate-pulse rounded bg-slate-300" />
+              <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-300" />
             </div>
-            <div className="h-8 w-32 animate-pulse rounded bg-blue-700/40" />
+            <div className="h-8 w-32 animate-pulse rounded bg-slate-300" />
           </div>
 
           {/* CARDS SKELETON */}
@@ -93,18 +93,18 @@ export default function Events() {
                 key={i}
                 className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
               >
-                <div className="aspect-[16/9] animate-pulse bg-blue-700" />
+                <div className="aspect-[16/9] animate-pulse bg-slate-300" />
                 <div className="p-6 space-y-4">
-                  <div className="h-7 w-3/4 animate-pulse rounded bg-blue-700/60" />
-                  <div className="h-4 w-full animate-pulse rounded bg-blue-700/50" />
-                  <div className="h-4 w-2/3 animate-pulse rounded bg-blue-700/50" />
+                  <div className="h-7 w-3/4 animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-full animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-slate-300" />
                   <div className="mt-5 space-y-2 border-t border-slate-100 pt-5">
-                    <div className="h-4 w-32 animate-pulse rounded bg-blue-700/40" />
-                    <div className="h-4 w-40 animate-pulse rounded bg-blue-700/40" />
+                    <div className="h-4 w-32 animate-pulse rounded bg-slate-300" />
+                    <div className="h-4 w-40 animate-pulse rounded bg-slate-300" />
                   </div>
                   <div className="mt-4 flex items-center gap-2">
-                    <div className="h-6 w-24 animate-pulse rounded bg-blue-700/40" />
-                    <div className="h-8 w-8 animate-pulse rounded-full bg-blue-700/40" />
+                    <div className="h-6 w-24 animate-pulse rounded bg-slate-300" />
+                    <div className="h-8 w-8 animate-pulse rounded-full bg-slate-300" />
                   </div>
                 </div>
               </div>
@@ -134,10 +134,10 @@ export default function Events() {
         <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="mb-4 flex items-center gap-3">
-              <span className="h-7 w-1 rounded-full bg-slate-900" />
-              <div className="flex items-center gap-2 text-sm font-semibold tracking-[0.12em] text-slate-900">
+              <span className="h-7 w-1 rounded-full bg-blue-700" />
+              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
                 <CalendarDays size={17} />
-                {t("events.badge")}
+                <span>{t("events.badge")}</span>
               </div>
             </div>
 
@@ -150,17 +150,15 @@ export default function Events() {
             </p>
           </div>
 
-          <div>
-            <Link
-              to="/"
-              className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-blue-700"
-            >
-              {t("events.home")}
-              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 transition group-hover:bg-blue-700 group-hover:text-white">
-                <ArrowRight size={15} />
-              </span>
-            </Link>
-          </div>
+          <Link
+            to="/"
+            className="group inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
+          >
+            {t("events.home")}
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 transition group-hover:border-slate-900 group-hover:bg-slate-900 group-hover:text-white">
+              <ArrowRight size={15} />
+            </span>
+          </Link>
         </div>
 
         {events.length === 0 ? (
@@ -214,7 +212,7 @@ export default function Events() {
 
                   {/* Content */}
                   <div className="p-6">
-                    <h2 className="line-clamp-2 text-xl font-semibold text-slate-900 transition group-hover:text-blue-700">
+                    <h2 className="line-clamp-2 text-xl font-semibold text-slate-900 transition group-hover:text-slate-900">
                       {title}
                     </h2>
 
@@ -238,10 +236,10 @@ export default function Events() {
 
                     <Link
                       to={`/events/${event.id}`}
-                      className="group/link mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-blue-700"
+                      className="group/link mt-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900"
                     >
                       {t("events.details")}
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition group-hover/link:border-blue-700 group-hover/link:bg-blue-700 group-hover/link:text-white">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 transition group-hover/link:border-slate-900 group-hover/link:bg-slate-900 group-hover/link:text-white">
                         <ArrowRight size={15} />
                       </span>
                     </Link>

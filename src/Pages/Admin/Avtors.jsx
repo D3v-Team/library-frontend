@@ -538,7 +538,7 @@ export default function Avtors() {
             <button
               type="submit"
               disabled={isSaving || isUploading}
-              className="rounded-lg border bg-slate-900 px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-800 disabled:opacity-50"
+              className="rounded-lg border border px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-50 disabled:opacity-50"
             >
               {isSaving || isUploading ? "Saqlanmoqda..." : "Saqlash"}
             </button>

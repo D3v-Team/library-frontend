@@ -745,7 +745,8 @@ export default function Departament() {
                   disabled={isSaving}
                   className="
               rounded-lg
-              bg-slate-900
+              hover:bg-slate-50
+              border
               px-5
               py-2.5
               text-sm

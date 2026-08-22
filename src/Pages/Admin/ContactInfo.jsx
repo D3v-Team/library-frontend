@@ -361,13 +361,13 @@ export default function ContactInfo() {
                 items-center
                 gap-2
                 rounded-lg
-                bg-slate-900
+                border
                 px-4
                 py-2
                 text-sm
                 font-medium
                 text-black
-                hover:bg-slate-800
+                hover:bg-slate-50
                 "
               >
                 <Pencil size={15} />
@@ -745,12 +745,13 @@ export default function ContactInfo() {
             className="
             w-full
             rounded-lg
-            bg-slate-900
+            border
             py-3
             text-sm
             font-medium
             text-black
             disabled:opacity-50
+            hover:bg-slate-50
             "
           >
             {isCreatingSocial || isUpdatingSocial

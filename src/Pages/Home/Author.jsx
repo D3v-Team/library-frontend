@@ -37,11 +37,11 @@ export default function Author() {
           {/* Header Skeleton */}
           <div className="mb-10 border-b border-slate-200 pb-6">
             <div className="mb-3 flex items-center gap-3">
-              <span className="h-7 w-1 rounded-full bg-blue-700/40 animate-pulse" />
-              <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+              <span className="h-7 w-1 rounded-full bg-slate-300 animate-pulse" />
+              <span className="h-6 w-48 animate-pulse rounded bg-slate-300" />
             </div>
-            <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
-            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+            <div className="h-10 w-64 animate-pulse rounded bg-slate-300" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-300" />
           </div>
 
           {/* Cards Skeleton */}
@@ -51,12 +51,12 @@ export default function Author() {
                 key={i}
                 className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
               >
-                <div className="aspect-[5/5] animate-pulse bg-blue-700" />
+                <div className="aspect-[5/5] animate-pulse bg-slate-300" />
                 <div className="p-5 space-y-3">
-                  <div className="h-6 w-3/4 animate-pulse rounded bg-blue-700/60" />
-                  <div className="h-4 w-1/2 animate-pulse rounded bg-blue-700/50" />
-                  <div className="h-4 w-1/3 animate-pulse rounded bg-blue-700/40" />
-                  <div className="h-4 w-full animate-pulse rounded bg-blue-700/40" />
+                  <div className="h-6 w-3/4 animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-1/3 animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-full animate-pulse rounded bg-slate-300" />
                 </div>
               </div>
             ))}
@@ -83,19 +83,22 @@ export default function Author() {
       <SEO {...SEO_CONFIG.authors} />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-10 border-b border-slate-200 pb-6">
-          <div className="mb-3 flex items-center gap-3">
-            <span className="h-7 w-1 rounded-full bg-blue-700" />
-            <span className="text-sm font-semibold tracking-[0.12em] text-blue-700">
-              {t("author.badge")}
-            </span>
+        <div className="mb-10 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="mb-3 flex items-center gap-3">
+              <span className="h-7 w-1 rounded-full bg-blue-700" />
+              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
+                <User size={17} />
+                <span>{t("author.badge")}</span>
+              </div>
+            </div>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              {t("author.pageTitle")}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+              {t("author.description")}
+            </p>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-            {t("author.pageTitle")}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-            {t("author.description")}
-          </p>
         </div>
 
         {/* Authors Grid */}
@@ -179,7 +182,7 @@ export default function Author() {
 
                     {/* Content */}
                     <div className="flex flex-1 flex-col p-5">
-                      <h2 className="line-clamp-1 text-xl font-semibold text-slate-900 transition-colors group-hover:text-blue-700">
+                      <h2 className="line-clamp-1 text-xl font-semibold text-slate-900 transition-colors group-hover:text-slate-900">
                         {fullName}
                       </h2>
                       {nationality && (

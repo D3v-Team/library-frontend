@@ -59,21 +59,8 @@ function mapBookCard(book, lang) {
   };
 }
 
-function getInitialOffset(columnIndex) {
-  const config = COLUMN_CONFIG[columnIndex];
-
-  const key = `new-books-animation-${columnIndex}`;
-
-  let startTime = localStorage.getItem(key);
-
-  if (!startTime) {
-    startTime = Date.now().toString();
-    localStorage.setItem(key, startTime);
-  }
-
-  const elapsed = Date.now() - Number(startTime);
-
-  return (elapsed / 1000 / config.duration + config.offset) % 1;
+function getInitialOffset(_columnIndex) {
+  return 0;
 }
 
 function BookCard({ book }) {
@@ -147,9 +134,6 @@ function BookCard({ book }) {
 
 function BookColumn({ books, columnIndex }) {
   const config = COLUMN_CONFIG[columnIndex];
-
-  const initialProgress = getInitialOffset(columnIndex);
-
   const stacks = [books, books];
 
   return (
@@ -205,9 +189,7 @@ function BookColumn({ books, columnIndex }) {
       />
 
       <motion.div
-        initial={{
-          y: `${-initialProgress * 50}%`,
-        }}
+        initial={{ y: "0%" }}
         animate={{
           y: ["0%", "-50%"],
         }}
@@ -312,11 +294,11 @@ export default function NewBooks() {
       <section className="bg-white py-10 sm:py-12 lg:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8 border-b border-slate-200 pb-7">
-            <div className="mb-4 h-7 w-48 animate-pulse rounded bg-blue-700/40" />
+            <div className="mb-4 h-7 w-48 animate-pulse rounded bg-slate-300" />
 
-            <div className="h-9 w-64 animate-pulse rounded bg-blue-700/50" />
+            <div className="h-9 w-64 animate-pulse rounded bg-slate-300" />
 
-            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-300" />
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 lg:gap-6">
@@ -397,13 +379,16 @@ export default function NewBooks() {
             </p>
           </div>
 
+          <div className="hidden lg:block lg:flex-1 self-end mb-[3px] border-b border-slate-200 mx-6" />
+
           <Link
             to="/books"
-            className="hidden items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 sm:inline-flex"
+            className="hidden shrink-0 items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 sm:inline-flex"
           >
             {t("newBooks.all")}
-
-            <ArrowRight size={16} />
+            <button className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 transition-all group-hover:border-slate-900 hover:bg-slate-900 hover:text-white">
+              <ArrowRight size={16} />
+            </button>
           </Link>
         </div>
 
@@ -452,7 +437,7 @@ export default function NewBooks() {
         {/* MOBILE / TABLET LINK */}
         <Link
           to="/books"
-          className="mt-7 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-700 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 sm:mt-8 lg:hidden"
+          className="mt-7 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-900 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 sm:mt-8 lg:hidden"
         >
           {t("newBooks.all")}
 

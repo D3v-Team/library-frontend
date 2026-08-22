@@ -49,21 +49,21 @@ export default function UseFullLinks() {
           {/* HEADER SKELETON */}
           <div className="mb-10 border-b border-slate-200 pb-7">
             <div className="mb-4 flex items-center gap-3">
-              <span className="h-7 w-1 animate-pulse rounded-full bg-blue-700/40" />
+              <span className="h-7 w-1 animate-pulse rounded-full bg-slate-300" />
 
               <div className="flex items-center gap-2 text-sm font-semibold tracking-wide">
                 <Globe2
                   size={17}
-                  className="animate-pulse text-blue-700/40"
+                  className="animate-pulse text-slate-400"
                 />
 
-                <span className="h-6 w-48 animate-pulse rounded bg-blue-700/50" />
+                <span className="h-6 w-48 animate-pulse rounded bg-slate-300" />
               </div>
             </div>
 
-            <div className="h-10 w-64 animate-pulse rounded bg-blue-700/50" />
+            <div className="h-10 w-64 animate-pulse rounded bg-slate-300" />
 
-            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-blue-700/40" />
+            <div className="mt-3 h-4 w-72 animate-pulse rounded bg-slate-300" />
           </div>
 
           {/* CARDS SKELETON */}
@@ -73,29 +73,29 @@ export default function UseFullLinks() {
                 key={i}
                 className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white p-5 transition-all duration-300"
               >
-                <div className="absolute right-5 top-4 h-4 w-8 animate-pulse rounded bg-blue-700/40" />
+                <div className="absolute right-5 top-4 h-4 w-8 animate-pulse rounded bg-slate-300" />
 
-                <div className="flex h-11 w-11 animate-pulse items-center justify-center rounded-lg border border-slate-200 bg-blue-700/30" />
+                <div className="flex h-11 w-11 animate-pulse items-center justify-center rounded-lg border border-slate-200 bg-slate-300" />
 
                 <div className="mt-5 space-y-2 pr-6">
-                  <div className="h-5 w-3/4 animate-pulse rounded bg-blue-700/60" />
-                  <div className="h-4 w-full animate-pulse rounded bg-blue-700/40" />
+                  <div className="h-5 w-3/4 animate-pulse rounded bg-slate-300" />
+                  <div className="h-4 w-full animate-pulse rounded bg-slate-300" />
                 </div>
 
                 <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-4">
-                  <div className="h-4 w-20 animate-pulse rounded bg-blue-700/40" />
-                  <div className="h-8 w-8 animate-pulse rounded-full bg-blue-700/40" />
+                  <div className="h-4 w-20 animate-pulse rounded bg-slate-300" />
+                  <div className="h-8 w-8 animate-pulse rounded-full bg-slate-300" />
                 </div>
 
-                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-blue-700 transition-all group-hover:w-full" />
+                <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-slate-900 transition-all group-hover:w-full" />
               </div>
             ))}
           </div>
 
           {/* FOOTER SKELETON */}
           <div className="mt-6 flex items-center gap-2">
-            <div className="h-4 w-4 animate-pulse rounded bg-blue-700/40" />
-            <div className="h-4 w-64 animate-pulse rounded bg-blue-700/40" />
+            <div className="h-4 w-4 animate-pulse rounded bg-slate-300" />
+            <div className="h-4 w-64 animate-pulse rounded bg-slate-300" />
           </div>
         </div>
       </section>
@@ -116,25 +116,29 @@ export default function UseFullLinks() {
     <section className="bg-white py-16 sm:py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* HEADER */}
-        <div className="mb-10 border-b border-slate-200 pb-7">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="h-7 w-1 rounded-full bg-blue-700" />
+       <div className="mb-10  border-b border-slate-200 pb-7">
+  <div className="mb-4 flex items-center gap-3">
+    <span className="h-7 w-1 rounded-full bg-blue-700" />
 
-            <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
-              <Globe2 size={17} />
+    <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
+      <Globe2 size={17} />
+      {t("usefulLinks.badge")}
+    </div>
+  </div>
 
-              {t("usefulLinks.badge")}
-            </div>
-          </div>
+  <div className="flex items-center gap-4">
+    <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+      {t("usefulLinks.heading")}
+    </h2>
 
-          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-            {t("usefulLinks.heading")}
-          </h2>
 
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-            {t("usefulLinks.description")}
-          </p>
-        </div>
+    <span className="hidden h-px flex-1 bg-slate-200 sm:block" />
+  </div>
+
+  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+    {t("usefulLinks.description")}
+  </p>
+</div>
 
         {/* CARDS */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -226,7 +230,7 @@ export default function UseFullLinks() {
           text-blue-700
           shadow-sm
           transition
-          group-hover:bg-blue-700
+          group-hover:bg-slate-900
           group-hover:text-white
         "
       >
@@ -245,7 +249,7 @@ export default function UseFullLinks() {
             leading-6
             text-slate-900
             transition
-            group-hover:text-blue-700
+            group-hover:text-slate-900
           "
         >
           {title}

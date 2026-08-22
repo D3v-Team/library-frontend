@@ -4,24 +4,14 @@ import "./index.css";
 import "./I18n";
 
 import App from "./App.jsx";
-import { ThemeProvider } from "@material-tailwind/react";
 import { Toaster } from "react-hot-toast";
 import { HelmetProvider } from "react-helmet-async";
-
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <HelmetProvider>
-      <ThemeProvider>
-
-        <App />
-
-        <Toaster
-          position="top-right"
-          reverseOrder={false}
-        />
-
-      </ThemeProvider>
+      <App />
+      <Toaster position="top-right" reverseOrder={false} />
     </HelmetProvider>
   </StrictMode>
 );

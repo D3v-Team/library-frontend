@@ -786,6 +786,7 @@ px-5
 py-2.5
 text-sm
 text-slate-600
+hover:bg-slate-50
 "
                 >
                   Bekor qilish
@@ -796,7 +797,8 @@ text-slate-600
                   type="submit"
                   className="
 rounded-lg
-bg-slate-900
+border
+hover:bg-slate-50
 px-5
 py-2.5
 text-sm

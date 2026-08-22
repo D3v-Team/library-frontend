@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   BookOpen,
   CalendarDays,
   LibraryBig,
@@ -115,33 +116,33 @@ export default function Statistics() {
     <section className="py-16 sm:py-12 lg:py-12">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         {/* Section heading */}
-        <div className="mb-10 max-w-2xl sm:mb-12">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="h-6 w-1 bg-[#2563EB]" />
+       <div className="mb-10 border-b border-slate-200 pb-7 sm:mb-12">
+  <div className="mb-4 flex items-center gap-3">
+    <span className="h-7 w-1 rounded-full bg-blue-700" />
+    <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
+      <BarChart3 size={17} />
+      <span>{t("statistics.badge")}</span>
+    </div>
+  </div>
 
-            <span className="text-sm font-semibold uppercase tracking-[0.12em] text-[#2563EB]">
-              {t("statistics.badge")}
-            </span>
-          </div>
+  <div className="flex items-center gap-6">
+    <h2 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+      {t("statistics.heading")}
+      {t("statistics.headingSuffix") && (
+        <span> {t("statistics.headingSuffix")}</span>
+      )}
+    </h2>
 
-          <h2 className="text-3xl font-semibold tracking-tight text-[#111827] sm:text-4xl">
-            {t("statistics.heading")}
-            <br className="hidden sm:block" />
-            <span className="text-black">
-              {" "}
-              {t(
-                "statistics.headingSuffix",
-              )}
-            </span>
-          </h2>
+    {/* 👇 heading bilan bir qatorda, uning balandligida turadigan chiziq */}
+    <span className="hidden h-px flex-1 bg-slate-200 lg:block" />
+  </div>
 
-          <p className="mt-4 max-w-xl text-sm leading-6 text-[#4B5563] sm:text-base">
-            {t(
-              "statistics.description",
-            )}
-          </p>
-        </div>
+  <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+    {t("statistics.description")}
+  </p>
+</div>
 
+         
         {/* Statistics cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statistics.map((item) => {

@@ -23,7 +23,6 @@ export const booksApi = createApi({
 
   endpoints: (builder) => ({
     // --- Core CRUD ---
-
     getBooks: builder.query({
       query: ({
         page = 1,
@@ -142,8 +141,7 @@ export const booksApi = createApi({
       ],
     }),
 
-    // --- Images ---
-    // Backend has no GET /books/:id/images — images live on the book detail.
+
 
     getBookImages: builder.query({
       query: (bookId) => ({
@@ -205,9 +203,7 @@ export const booksApi = createApi({
   }),
 });
 
-// Download isn't modeled as an RTK Query endpoint on purpose — a file
-// download needs a Blob response and to trigger the browser's native
-// save dialog, which doesn't fit the JSON-shaped query/mutation model.
+
 export async function downloadBookFile(bookId, fileId, fileName = "fayl") {
   const response = await $api.get(`/books/${bookId}/files/${fileId}/download`, {
     responseType: "blob",

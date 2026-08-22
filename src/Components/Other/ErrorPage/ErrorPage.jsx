@@ -1,41 +1,38 @@
-import { Card, CardBody, Typography, Button } from "@material-tailwind/react";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function ErrorPage() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-            <Card className="max-w-md w-full shadow-lg rounded-2xl">
-                <CardBody className="flex flex-col items-center text-center gap-6 p-8">
-                    {/* Icon */}
-                    <div className="bg-red-100 text-red-600 rounded-full p-6">
-                        <ExclamationTriangleIcon className="h-16 w-16" />
-                    </div>
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
+        <div className="flex flex-col items-center gap-6 text-center">
+          {/* Icon */}
+          <div className="rounded-full bg-red-100 p-6 text-red-600">
+            <AlertTriangle className="h-16 w-16" />
+          </div>
 
-                    {/* Title */}
-                    <Typography variant="h4" className="font-bold text-gray-900">
-                        Xatolik yuz berdi
-                    </Typography>
+          {/* Title */}
+          <h4 className="text-xl font-bold text-gray-900">
+            Xatolik yuz berdi
+          </h4>
 
-                    {/* Subtitle */}
-                    <Typography className="text-gray-600">
-                        Kechirasiz, sahifa  mavjud emas.
-                        Iltimos qaytadan urinib ko‘ring yoki bosh sahifaga qayting.
-                    </Typography>
+          {/* Subtitle */}
+          <p className="text-gray-600">
+            Kechirasiz, sahifa mavjud emas. Iltimos qaytadan urinib ko'ring yoki bosh sahifaga qayting.
+          </p>
 
-                    {/* Button */}
-                    <Button
-                        color="red"
-                        size="lg"
-                        className="mt-4"
-                        onClick={() => navigate("/")}
-                    >
-                        Bosh sahifaga qaytish
-                    </Button>
-                </CardBody>
-            </Card>
+          {/* Button */}
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="mt-4 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-red-700 active:scale-95"
+          >
+            Bosh sahifaga qaytish
+          </button>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

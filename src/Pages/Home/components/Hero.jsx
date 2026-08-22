@@ -1,6 +1,7 @@
 // src/components/Hero.jsx
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 
 import { useGetBannersQuery } from "../../../store/services/banners.api";
@@ -8,28 +9,28 @@ import { BASE_URL } from "../../../store/api";
 
 const AUTOPLAY_MS = 6500;
 
+// Har slide uchun Ken Burns yo'nalishi — faqat scale + translateY (X yo'q — chiqib ketmasin)
+const KB_VARIANTS = [
+  { initial: { scale: 1.08, y: "0%"    }, animate: { scale: 1.0,  y: "-1.5%" } },
+  { initial: { scale: 1.0,  y: "-1.5%" }, animate: { scale: 1.08, y: "0%"    } },
+  { initial: { scale: 1.07, y: "0%"    }, animate: { scale: 1.0,  y: "-1%"   } },
+  { initial: { scale: 1.0,  y: "-1%"   }, animate: { scale: 1.07, y: "0%"    } },
+];
+
+
 export default function Hero() {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [direction, setDirection] = useState("next");
-
   const timerRef = useRef(null);
-
   const { t, i18n } = useTranslation();
 
-  const { data, isLoading, error } = useGetBannersQuery({
-    page: 1,
-    limit: 10,
-  });
+  const { data, isLoading, error } = useGetBannersQuery({ page: 1, limit: 10 });
 
-  // Tilga qarab title ni tanlash
   const getTitleByLanguage = (item) => {
     const lang = i18n.language;
-
     if (lang === "uz") return item.title_latin;
     if (lang === "ru") return item.title_ru;
     if (lang === "cyrl") return item.title_cyril;
-
-    return item.title_latin; // fallback
+    return item.title_latin;
   };
 
   const slides =
@@ -48,44 +49,38 @@ export default function Hero() {
 
   useEffect(() => {
     if (!slides.length) return;
-
     timerRef.current = setInterval(() => {
-      setDirection("next");
       setActiveSlide((prev) => (prev + 1) % slides.length);
     }, AUTOPLAY_MS);
-
-    return () => {
-      clearInterval(timerRef.current);
-    };
+    return () => clearInterval(timerRef.current);
   }, [slides.length]);
 
-  // Til o'zgarganda slaydni yangilash
-  useEffect(() => {
-    setActiveSlide((prev) => prev);
-  }, [i18n.language]);
-
   const nextSlide = () => {
-    if (!slides.length) return;
-
-    setDirection("next");
+    clearInterval(timerRef.current);
     setActiveSlide((prev) => (prev + 1) % slides.length);
+    timerRef.current = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    }, AUTOPLAY_MS);
   };
 
   const prevSlide = () => {
-    if (!slides.length) return;
-
-    setDirection("prev");
+    clearInterval(timerRef.current);
     setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    timerRef.current = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    }, AUTOPLAY_MS);
   };
 
   const goToSlide = (index) => {
     if (index === activeSlide) return;
-
-    setDirection(index > activeSlide ? "next" : "prev");
+    clearInterval(timerRef.current);
     setActiveSlide(index);
+    timerRef.current = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    }, AUTOPLAY_MS);
   };
 
-  // ===== SKELETON LOADING =====
+  // ===== SKELETON =====
   if (isLoading) {
     return (
       <section className="relative min-h-[520px] overflow-hidden bg-slate-950 lg:min-h-[640px]">
@@ -103,98 +98,119 @@ export default function Hero() {
     );
   }
 
-  if (error || !slides.length) {
-    return null;
-  }
+  if (error || !slides.length) return null;
 
   const currentSlide = slides[activeSlide] || slides[0];
 
   return (
     <section className="relative overflow-hidden bg-slate-950 text-white">
       <div className="relative min-h-[520px] lg:min-h-[640px]">
-        
-        {/* Background Images - Toza va tiniq rasmlar */}
+
+        {/* ── Background: Ken Burns rasmlar ── */}
         <div className="absolute inset-0 overflow-hidden">
           {slides.map((slide, index) => {
             const isActive = index === activeSlide;
+            const nextIndex = (activeSlide + 1) % slides.length;
+            // Faqat aktiv va keyingi slide render qilinadi — boshqalari DOM da yo'q
+            if (!isActive && index !== nextIndex) return null;
+
+            const kbVar = KB_VARIANTS[index % KB_VARIANTS.length];
 
             return (
-              <div
+              <motion.div
                 key={slide.id}
-                className={`absolute inset-0 transition-opacity duration-700 ${
-                  isActive
-                    ? "z-10 opacity-100 pointer-events-auto"
-                    : "z-0 opacity-0 pointer-events-none"
-                }`}
+                className="absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: isActive ? 1 : 0 }}
+                transition={{ duration: 0.9, ease: "easeInOut" }}
+                style={{ zIndex: isActive ? 10 : 0 }}
               >
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className={`absolute inset-0 h-full w-full object-cover object-center ${
-                    isActive
-                      ? direction === "next"
-                        ? "animate-[heroPageInNext_900ms_ease-out]"
-                        : "animate-[heroPageInPrev_900ms_ease-out]"
-                      : ""
-                  }`}
-                />
-              </div>
+                {/* Ken Burns motion wrapper */}
+                <motion.div
+                  className="absolute inset-0 overflow-hidden will-change-transform"
+                  initial={kbVar.initial}
+                  animate={isActive ? kbVar.animate : kbVar.initial}
+                  transition={{
+                    duration: AUTOPLAY_MS / 1000,
+                    ease: "linear",
+                  }}
+                >
+                  <img
+                    src={slide.image}
+                    alt={slide.title}
+                    className="h-full w-full object-cover object-center"
+                    loading={index === 0 ? "eager" : "lazy"}
+                  />
+                </motion.div>
+
+                {/* Gradient overlay — matn o'qilishi uchun */}
+                <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-black/10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              </motion.div>
             );
           })}
         </div>
 
-        {/* Content Area */}
-        <div className="relative z-30 mx-auto flex min-h-[520px] max-w-[1440px] items-center px-6 py-20 sm:px-10 lg:min-h-[640px] lg:px-16 xl:px-20">
-          <div
-            key={currentSlide.id + i18n.language}
-            className="max-w-3xl animate-[heroContentIn_700ms_ease-out]"
-          >
-            {/* Eyebrow */}
-            <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-black/40 text-white backdrop-blur-md shadow-lg">
-                <BookOpen size={19} strokeWidth={1.8} />
-              </div>
+        {/* ── Kontent ── */}
+        <div className="relative z-30 mx-auto min-h-[520px] max-w-[1440px] px-6 py-20 sm:px-10 lg:min-h-[640px] lg:px-16 xl:px-20">
+          {/* Absolute positioned — layout shift bo'lmasin */}
+         <div className="absolute inset-x-6 inset-y-0 flex items-center sm:inset-x-10 lg:inset-x-16 xl:inset-x-20">
+  <AnimatePresence mode="wait" initial={false}>
+    <motion.div
+      key={currentSlide.id + "-" + i18n.language}
+      initial={{ opacity: 0, y: 16, x: 0 }}
+      animate={{ opacity: 1, y: 0, x: 0, transition: { duration: 0.45, ease: [0.25, 0.1, 0.25, 1] } }}
+      exit={{ opacity: 0, x: 0, transition: { duration: 0.2 } }}
+      className="absolute left-0 w-full max-w-2xl"   // 👈 shu joy o'zgardi
+    >
+                {/* Eyebrow */}
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/25 bg-black/40 text-white backdrop-blur-md shadow-lg">
+                    <BookOpen size={19} strokeWidth={1.8} />
+                  </div>
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/90 sm:text-sm">
+                    {currentSlide.eyebrow}
+                  </span>
+                </div>
 
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] sm:text-sm">
-                {currentSlide.eyebrow}
-              </span>
-            </div>
+                {/* Sarlavha */}
+                <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+                  {currentSlide.title}
+                </h1>
 
-            {/* Title bilan kuchli Shadow */}
-            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] sm:text-5xl lg:text-6xl xl:text-[64px]">
-              {currentSlide.title}
-            </h1>
+                {/* Description */}
+                {currentSlide.description && (
+                  <p className="mt-5 max-w-xl text-base leading-7 text-white/80 sm:text-lg sm:leading-8">
+                    {currentSlide.description}
+                  </p>
+                )}
 
-            {/* Description */}
-            {currentSlide.description && (
-              <p className="mt-6 max-w-2xl text-base leading-7 text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] sm:text-lg sm:leading-8">
-                {currentSlide.description}
-              </p>
-            )}
-
-            {/* Button */}
-            {currentSlide.button && (
-              <a
-                href={currentSlide.path}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-8 inline-flex items-center gap-2 text-black rounded-lg bg-white px-6 py-3.5 text-sm font-semibold !text-slate-900 shadow-2xl shadow-black/50 transition-all duration-200 hover:bg-slate-100 active:scale-[0.98]"
-              >
-                <span>{currentSlide.button}</span>
-                <ArrowRight size={18} className="!text-black" />
-              </a>
-            )}
+                {/* Button */}
+                {currentSlide.button && (
+                  <div className="mt-8">
+                    <a
+                      href={currentSlide.path}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center text-black gap-2 rounded-lg bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 shadow-2xl shadow-black/50 transition-all duration-200 hover:bg-slate-100 active:scale-[0.98]"
+                    >
+                      {currentSlide.button}
+                      <ArrowRight size={17} />
+                    </a>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* Navigation / Controls */}
+        {/* ── Navigation ── */}
         <div className="absolute bottom-7 left-6 right-6 z-40 flex items-center justify-between sm:left-10 sm:right-10 lg:left-16 lg:right-16 xl:left-20 xl:right-20">
-          
-          {/* Pagination Indicators */}
+
+          {/* Dots */}
           <div className="flex items-center gap-2.5">
             {slides.map((slide, index) => {
               const isActive = index === activeSlide;
-
               return (
                 <button
                   key={slide.id}
@@ -202,19 +218,20 @@ export default function Hero() {
                   onClick={() => goToSlide(index)}
                   aria-label={`${index + 1}-slayd`}
                   aria-current={isActive ? "true" : undefined}
-                  className="relative h-1.5 w-8 overflow-hidden rounded-full bg-white/40 shadow-md"
+                  className="relative h-1.5 w-8 overflow-hidden rounded-full bg-white/35 shadow-md transition-all duration-300 hover:bg-white/55"
                 >
-                  <span
-                    className={`absolute inset-y-0 left-0 rounded-full bg-white transition-all duration-500 ${
-                      isActive ? "w-full" : "w-0"
-                    }`}
+                  <motion.span
+                    className="absolute inset-y-0 left-0 rounded-full bg-white"
+                    initial={{ width: "0%" }}
+                    animate={{ width: isActive ? "100%" : "0%" }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                   />
                 </button>
               );
             })}
           </div>
 
-          {/* Prev / Next Buttons */}
+          {/* Prev / Next */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -224,7 +241,6 @@ export default function Hero() {
             >
               <ArrowLeft size={18} />
             </button>
-
             <button
               type="button"
               onClick={nextSlide}
@@ -236,61 +252,6 @@ export default function Hero() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes heroPageInNext {
-          0% {
-            opacity: 0;
-            transform: perspective(1600px) rotateY(-8deg) translateX(45px) scale(1.015);
-            transform-origin: left center;
-          }
-          45% {
-            opacity: 1;
-          }
-          100% {
-            opacity: 1;
-            transform: perspective(1600px) rotateY(0deg) translateX(0) scale(1);
-            transform-origin: left center;
-          }
-        }
-
-        @keyframes heroPageInPrev {
-          0% {
-            opacity: 0;
-            transform: perspective(1600px) rotateY(8deg) translateX(-45px) scale(1.015);
-            transform-origin: right center;
-          }
-          45% {
-            opacity: 1;
-          }
-          100% {
-            opacity: 1;
-            transform: perspective(1600px) rotateY(0deg) translateX(0) scale(1);
-            transform-origin: right center;
-          }
-        }
-
-        @keyframes heroContentIn {
-          0% {
-            opacity: 0;
-            transform: translateY(14px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          *,
-          *::before,
-          *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-      `}</style>
     </section>
   );
 }

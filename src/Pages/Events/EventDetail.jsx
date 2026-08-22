@@ -14,7 +14,6 @@ export default function EventDetail() {
 
   const { data: event, isLoading, error } = useGetEventByIdQuery(id);
 
-  // Tilga qarab title ni olish
   const getTitle = () => {
     if (!event) return "";
     const lang = i18n.language;
@@ -24,7 +23,6 @@ export default function EventDetail() {
     return event.title_latin || "Nomsiz";
   };
 
-  // Tilga qarab description ni olish
   const getDescription = () => {
     if (!event) return "";
     const lang = i18n.language;
@@ -34,7 +32,6 @@ export default function EventDetail() {
     return event.description_latin || "";
   };
 
-  // Tilga qarab location ni olish
   const getLocation = () => {
     if (!event) return "";
     const lang = i18n.language;
@@ -44,7 +41,6 @@ export default function EventDetail() {
     return event.location_latin || "";
   };
 
-  // Sanani formatlash
   const formatDate = (date) => {
     if (!date) return "";
     const locale = i18n.language === "ru" ? "ru-RU" : "uz-UZ";
@@ -55,36 +51,33 @@ export default function EventDetail() {
     });
   };
 
-  // ===== SKELETON LOADING =====
+  // ===== SKELETON =====
   if (isLoading) {
     return (
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <section className="bg-white">
         <SEO title={t("events.loading")} description={t("events.loadingDesc")} />
-        <div className="animate-pulse">
-          {/* Back link skeleton */}
-          <div className="inline-flex items-center gap-2 h-5 w-32 rounded bg-blue-700/50" />
-          
-          <div className="mt-10 grid items-center gap-10 lg:grid-cols-[1fr_520px] lg:gap-14">
-            {/* LEFT CONTENT SKELETON */}
-            <div className="space-y-6">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="h-7 w-20 rounded-full bg-blue-700" />
-                <div className="h-5 w-32 rounded bg-blue-700/50" />
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="animate-pulse">
+            <div className="mb-10 h-4 w-28 rounded bg-slate-300" />
+            <div className="grid gap-10 lg:grid-cols-[400px_1fr] lg:gap-14">
+              {/* Rasm */}
+              <div className="aspect-[4/3] w-full rounded-2xl bg-slate-300 lg:aspect-auto lg:h-[480px]" />
+              {/* Kontent */}
+              <div className="space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="h-6 w-24 rounded-full bg-slate-300" />
+                  <div className="h-4 w-32 rounded bg-slate-300" />
+                </div>
+                <div className="h-9 w-full rounded-lg bg-slate-300" />
+                <div className="h-8 w-4/5 rounded-lg bg-slate-300" />
+                <div className="h-px w-full rounded bg-slate-300" />
+                <div className="space-y-2.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className={`h-4 rounded bg-slate-300 ${i % 3 === 2 ? "w-4/5" : "w-full"}`} />
+                  ))}
+                </div>
+                <div className="h-5 w-48 rounded bg-slate-300" />
               </div>
-              <div className="h-10 w-3/4 rounded bg-blue-700" />
-              <div className="h-px w-full bg-blue-700/30" />
-              <div className="space-y-3">
-                <div className="h-4 w-full rounded bg-blue-700/60" />
-                <div className="h-4 w-full rounded bg-blue-700/60" />
-                <div className="h-4 w-3/4 rounded bg-blue-700/60" />
-              </div>
-              <div className="h-6 w-48 rounded bg-blue-700/50" />
-              <div className="h-6 w-40 rounded bg-blue-700/40" />
-            </div>
-
-            {/* RIGHT IMAGE SKELETON */}
-            <div className="overflow-hidden rounded-3xl bg-blue-700 lg:sticky lg:top-24">
-              <div className="h-[420px] w-full sm:h-[480px] lg:h-[560px] bg-blue-700" />
             </div>
           </div>
         </div>
@@ -92,30 +85,27 @@ export default function EventDetail() {
     );
   }
 
+  // ===== ERROR =====
   if (error || !event) {
     return (
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <section className="bg-white">
         <SEO
           title={t("events.notFound")}
           description={t("events.notFoundDesc")}
           noIndex
         />
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-6 py-16 text-center">
-          <h2 className="text-xl font-semibold text-slate-900">
-            {t("events.notFound")}
-          </h2>
-
-          <p className="mt-3 text-sm text-slate-500">
-            {t("events.notFoundDesc")}
-          </p>
-
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Link
             to="/events"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+            className="group mb-10 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
             {t("events.back")}
           </Link>
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-20 text-center">
+            <p className="text-base font-semibold text-slate-900">{t("events.notFound")}</p>
+            <p className="mt-2 text-sm text-slate-500">{t("events.notFoundDesc")}</p>
+          </div>
         </div>
       </section>
     );
@@ -127,6 +117,7 @@ export default function EventDetail() {
   const imageUrl = event.cover_image ? `${BASE_URL}${event.cover_image}` : null;
   const date = formatDate(event.event_date);
 
+  // ===== CONTENT =====
   return (
     <article className="bg-white">
       <SEO
@@ -147,69 +138,78 @@ export default function EventDetail() {
         }}
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        {/* Back */}
         <Link
           to="/events"
-          className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-900"
+          className="group mb-10 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
           {t("events.back")}
         </Link>
 
-        <div className="mt-10 grid items-center gap-10 lg:grid-cols-[1fr_520px] lg:gap-14">
-          {/* LEFT CONTENT */}
+        <div className={`grid gap-10 lg:gap-14 ${imageUrl ? "lg:grid-cols-[400px_1fr]" : ""}`}>
+          {/* ── Chap: rasm ── */}
+          {imageUrl && (
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <div className="overflow-hidden rounded-2xl bg-slate-100 shadow-md">
+                <img
+                  src={imageUrl}
+                  alt={title}
+                  loading="lazy"
+                  className="w-full object-cover transition duration-500 hover:scale-105"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ── O'ng: kontent ── */}
           <div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
-              <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+            {/* Meta */}
+            <div className="mb-5 flex flex-wrap items-center gap-3">
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                 {t("events.category")}
               </span>
-
-              <span className="flex items-center gap-2">
-                <CalendarDays size={15} />
-                {date || "-"}
-              </span>
+              {date && (
+                <span className="flex items-center gap-1.5 text-sm text-slate-500">
+                  <CalendarDays size={14} />
+                  {date}
+                </span>
+              )}
             </div>
 
-            <h1 className="mt-7 text-2xl font-semibold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-4xl max-w-3xl">
+            {/* Sarlavha */}
+            <h1 className="text-2xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
               {title}
             </h1>
 
-            <div className="mt-8 h-px w-full bg-slate-200" />
+            <div className="mt-7 h-px w-full bg-slate-100" />
 
+            {/* Tavsif */}
             {description && (
-              <p className="mt-8 whitespace-pre-line text-base leading-8 text-slate-600 sm:text-lg">
+              <div className="mt-7 whitespace-pre-line text-base leading-8 text-slate-600 sm:text-[17px]">
                 {description}
-              </p>
-            )}
-
-            {location && (
-              <div className="mt-6 flex items-center gap-2 text-sm text-slate-500">
-                <MapPin size={17} />
-                {location}
               </div>
             )}
 
-            {event.creator?.full_name && (
-              <div className="mt-6 flex items-center gap-2 border-t border-slate-200 pt-5 text-sm text-slate-400">
-                <User size={16} />
-                {event.creator.full_name}
-              </div>
-            )}
-          </div>
-
-          {/* RIGHT IMAGE */}
-          {imageUrl && (
-            <div className="overflow-hidden rounded-3xl bg-slate-100 lg:sticky lg:top-24">
-              <img
-                src={imageUrl}
-                alt={title}
-                loading="lazy"
-                className="h-[420px] w-full object-cover object-center transition duration-500 hover:scale-105 sm:h-[480px] lg:h-[560px]"
-              />
+            {/* Qo'shimcha meta */}
+            <div className="mt-8 space-y-3">
+              {location && (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <MapPin size={16} className="shrink-0 text-slate-400" />
+                  {location}
+                </div>
+              )}
+              {event.creator?.full_name && (
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <User size={15} className="shrink-0" />
+                  {event.creator.full_name}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </section>
+      </div>
     </article>
   );
 }

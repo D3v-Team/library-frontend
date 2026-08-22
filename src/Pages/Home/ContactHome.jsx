@@ -54,18 +54,18 @@ export default function ContactHome() {
     return (
       <section className="py-12 sm:py-14">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="h-6 w-40 animate-pulse rounded bg-blue-700/40" />
+          <div className="h-6 w-40 animate-pulse rounded bg-slate-300" />
 
-          <div className="mt-3 h-8 w-64 animate-pulse rounded bg-blue-700/50" />
+          <div className="mt-3 h-8 w-64 animate-pulse rounded bg-slate-300" />
 
           <div className="mt-7 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-            <div className="h-[280px] animate-pulse rounded-2xl bg-blue-700" />
+            <div className="h-[280px] animate-pulse rounded-2xl bg-slate-300" />
 
             <div className="space-y-4 rounded-2xl border border-slate-200 p-6">
-              <div className="h-5 w-32 animate-pulse rounded bg-blue-700/50" />
-              <div className="h-12 animate-pulse rounded bg-blue-700/40" />
-              <div className="h-12 animate-pulse rounded bg-blue-700/40" />
-              <div className="h-12 animate-pulse rounded bg-blue-700/40" />
+              <div className="h-5 w-32 animate-pulse rounded bg-slate-300" />
+              <div className="h-12 animate-pulse rounded bg-slate-300" />
+              <div className="h-12 animate-pulse rounded bg-slate-300" />
+              <div className="h-12 animate-pulse rounded bg-slate-300" />
             </div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function ContactHome() {
 
           {/* <a
             href="/contact"
-            className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-blue-700"
+            className="group inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-slate-900"
           >
             {t("contact.more") || "Batafsil"}
 
@@ -129,7 +129,7 @@ export default function ContactHome() {
 
             {/* MAP LABEL */}
             <div className="absolute bottom-4 left-4 flex max-w-[calc(100%-2rem)] items-center gap-2 rounded-xl border border-white/70 bg-white/95 px-3 py-2.5 shadow-lg backdrop-blur">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-700 text-white">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white">
                 <MapPin size={16} />
               </div>
 
@@ -158,7 +158,7 @@ export default function ContactHome() {
                   href={`tel:${data.phone}`}
                   className="group flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-blue-100 hover:bg-blue-50/50"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 transition group-hover:bg-blue-700 group-hover:text-white">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 transition group-hover:bg-slate-900 group-hover:text-white">
                     <Phone size={16} />
                   </span>
 
@@ -180,7 +180,7 @@ export default function ContactHome() {
                   href={`mailto:${data.email}`}
                   className="group flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-blue-100 hover:bg-blue-50/50"
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 transition group-hover:bg-blue-700 group-hover:text-white">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 transition group-hover:bg-slate-900 group-hover:text-white">
                     <Mail size={16} />
                   </span>
 
@@ -232,7 +232,7 @@ export default function ContactHome() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={item.platform}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-blue-700 hover:bg-blue-700 hover:text-white"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-slate-900 hover:bg-slate-900 hover:text-white"
                       >
                         <Icon size={15} />
                       </a>

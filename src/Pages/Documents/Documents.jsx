@@ -66,25 +66,32 @@ export default function Documents() {
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+    <section className="bg-white">
       <SEO {...SEO_CONFIG.documents} />
-      <div className="mb-4 flex items-center gap-3">
-        <span className="h-7 w-1 rounded-full bg-blue-700" />
-        <span className="text-sm font-semibold tracking-[0.12em] text-blue-700">
-          {t("documents.badge")}
-        </span>
-      </div>
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        {/* HEADER */}
+        <div className="mb-8 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="mb-3 flex items-center gap-3">
+              <span className="h-7 w-1 rounded-full bg-blue-700" />
+              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
+                <FileText size={17} />
+                <span>{t("documents.badge")}</span>
+              </div>
+            </div>
 
-      <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-        {t("documents.heading")}
-      </h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+              {t("documents.heading")}
+            </h1>
 
-      <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-        {t("documents.description")}
-      </p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+              {t("documents.description")}
+            </p>
+          </div>
+        </div>
 
-      {/* Category tabs */}
-      <div className="mt-8 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
+        {/* Category tabs */}
+        <div className="mt-8 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
         {CATEGORIES.map((c) => (
           <button
             key={c.value}
@@ -95,8 +102,8 @@ export default function Documents() {
             }}
             className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               category === c.value
-                ? "bg-slate-900 text-blue-700 hover:bg-slate-800"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-slate-900 text-white hover:bg-slate-800"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-300"
             }`}
           >
             {c.label}
@@ -105,7 +112,7 @@ export default function Documents() {
       </div>
 
       {/* Search */}
-      <div className="relative mt-5 w-full sm:w-80">
+        <div className="relative mt-5 w-full sm:w-80">
         <Search
           size={16}
           className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -126,7 +133,7 @@ export default function Documents() {
       {isLoading ? (
         <div className="mt-8 space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-blue-700" />
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-300" />
           ))}
         </div>
       ) : error ? (
@@ -180,7 +187,7 @@ export default function Documents() {
                     target="_blank"
                     rel="noopener noreferrer"
                     download={doc.file_name}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-700 hover:text-blue-700"
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-900 hover:text-slate-900"
                   >
                     <Download size={15} />
                     {t("documents.download")}
@@ -211,6 +218,7 @@ export default function Documents() {
           ))}
         </div>
       )}
-    </section>
+    </div>
+  </section>
   );
 }

@@ -25,7 +25,7 @@ export default function Dashboard() {
               to={item.path}
               className="group flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
             >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white transition-transform duration-200 group-hover:scale-105">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-700 text-white transition-transform duration-200 group-hover:scale-105">
                 <Icon size={20} strokeWidth={1.8} />
               </div>
 

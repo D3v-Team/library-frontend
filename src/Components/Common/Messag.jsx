@@ -71,7 +71,7 @@ export default function Message({ open, onOpen, onClose }) {
           setForm(initialForm);
           onOpen?.();
         }}
-        className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg transition hover:bg-slate-800 active:scale-95"
+        className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-white text-black shadow-lg hover:text-white transition hover:bg-slate-800 active:scale-95"
         aria-label={t("message.buttonLabel")}
       >
         <MessageCircle size={22} />
@@ -140,7 +140,7 @@ export default function Message({ open, onOpen, onClose }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-lg bg-slate-900 border py-3 text-sm font-semibold text-black transition hover:bg-slate-800 disabled:opacity-50"
+                className="w-full rounded-lg  border py-3 text-sm font-semibold text-black transition  disabled:opacity-50"
               >
                 {isLoading ? t("message.sending") : t("message.send")}
               </button>
