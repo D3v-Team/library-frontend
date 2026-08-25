@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 
 import { useGetBannersQuery } from "../../../store/services/banners.api";
 import { BASE_URL } from "../../../store/api";
+import { safeHref } from "../../../utils/url";
 
 const AUTOPLAY_MS = 6500;
 
@@ -189,7 +190,7 @@ export default function Hero() {
                 {currentSlide.button && (
                   <div className="mt-8">
                     <a
-                      href={currentSlide.path}
+                      href={safeHref(currentSlide.path)}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center text-black gap-2 rounded-lg bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 shadow-2xl shadow-black/50 transition-all duration-200 hover:bg-slate-100 active:scale-[0.98]"

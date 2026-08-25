@@ -19,12 +19,27 @@ i18n
   .init({
     resources,
     fallbackLng: "uz",
+
+    // Brauzer "en-GB", "uz-UZ" kabi region bilan til kodini qaytaradi.
+    // Bu uchtasi bo'lmasa i18n.language shundayligicha qolib ketadi va
+    // komponentlardagi i18n.language === "uz" solishtirishlari hech qachon
+    // bajarilmaydi (headerda ham "EN-GB" chiqadi).
+    supportedLngs: ["uz", "ru", "cyrl"],
+    nonExplicitSupportedLngs: true,
+    load: "languageOnly",
+
     interpolation: {
       escapeValue: false,
     },
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],
+
+      // "uz-UZ" / "en-GB" kabi region qo'shimchasini kesib tashlaydi.
+      // supportedLngs bilan birga: uz-UZ -> uz, en-GB -> en -> (qo'llab-
+      // quvvatlanmaydi) -> fallback uz. Shu bilan i18n.language doim
+      // "uz" | "ru" | "cyrl" dan biri bo'ladi.
+      convertDetectedLanguage: (lng) => lng.split("-")[0],
     },
   });
 

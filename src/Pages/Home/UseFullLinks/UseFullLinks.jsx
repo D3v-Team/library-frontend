@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { useGetUsefulLinksQuery } from "../../../store/services/links";
+import { safeHref } from "../../../utils/url";
 
 const iconMap = {
   Globe2,
@@ -151,7 +152,7 @@ export default function UseFullLinks() {
             return (
             <a
   key={link.id}
-  href={link.url}
+  href={safeHref(link.url)}
   target="_blank"
   rel="noopener noreferrer"
   className="

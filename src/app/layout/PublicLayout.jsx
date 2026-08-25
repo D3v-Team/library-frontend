@@ -39,7 +39,7 @@ export default function PublicLayout() {
       <Header onMessageOpen={() => setMessageOpen(true)} />
 
       <main>
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
             variants={pageVariants}

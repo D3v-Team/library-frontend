@@ -1,35 +1,25 @@
 // src/seo/seoConfig.js
-//
+
 // Markazlashtirilgan SEO konfiguratsiyasi.
 // Har bir public sahifa uchun title / description / keywords / OG rasm
-// shu yerda saqlanadi — komponentlar ichida SEO matnlarini qidirib
-// yurishning hojati yo'q.
+// shu yerda saqlanadi.
 
 export const SITE_NAME = "Chinoz axborot-kutubxona markazi";
-
 export const SITE_NAME_SHORT = "Chinoz kutubxonasi";
 
-// Sayt domeni. Production'ga chiqishda VITE_SITE_URL environment
-// o'zgaruvchisi orqali almashtirilishi mumkin (.env faylida
-// VITE_SITE_URL=https://sizning-domeningiz.uz deb yozing).
 export const DEFAULT_SITE_URL = "https://chinozkutubxona.uz";
-
 export const DEFAULT_LOCALE = "uz_UZ";
 
-// Standart Open Graph / Twitter rasmi (public papkaga qo'yilishi kerak).
 export const DEFAULT_OG_IMAGE = "/og-image.jpg";
-
 export const DEFAULT_TWITTER_SITE = "@chinozkutubxona";
 
-/**
- * Joriy sayt manzilini qaytaradi.
- * Build vaqtida VITE_SITE_URL berilgan bo'lsa o'shani, aks holda
- * runtime'dagi window.location.origin'ni, u ham bo'lmasa DEFAULT_SITE_URL'ni.
- */
+
 export function getSiteUrl() {
   const envUrl = import.meta.env?.VITE_SITE_URL;
 
-  if (envUrl) return envUrl.replace(/\/$/, "");
+  if (envUrl) {
+    return envUrl.replace(/\/$/, "");
+  }
 
   if (typeof window !== "undefined" && window.location?.origin) {
     return window.location.origin;
@@ -38,10 +28,9 @@ export function getSiteUrl() {
   return DEFAULT_SITE_URL;
 }
 
-// Har bir public sahifa uchun statik SEO ma'lumotlari.
-// Dinamik (detail) sahifalar uchun ma'lumotlar API javobidan
-// qurib chiqiladi (qarang: src/seo/seoUtils.js).
+
 export const SEO_CONFIG = {
+
   home: {
     title: "Bosh sahifa",
     description:
@@ -58,6 +47,7 @@ export const SEO_CONFIG = {
     path: "/",
   },
 
+
   news: {
     title: "Yangiliklar va e'lonlar",
     description:
@@ -70,6 +60,7 @@ export const SEO_CONFIG = {
     ],
     path: "/news",
   },
+
 
   events: {
     title: "Tadbirlar",
@@ -84,6 +75,7 @@ export const SEO_CONFIG = {
     path: "/events",
   },
 
+
   books: {
     title: "Kitoblar katalogi",
     description:
@@ -96,13 +88,37 @@ export const SEO_CONFIG = {
       "onlayn kitobxona",
     ],
     path: "/books",
+
+    openGraph: {
+      title: "Kitoblar katalogi | Chinoz axborot-kutubxona markazi",
+      description:
+        "Kutubxona fondidagi barcha kitoblar, mualliflar va janrlar bo'yicha qidirish.",
+      url: "/books",
+      type: "website",
+      image: "/og-image-books.jpg",
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title: "Kitoblar katalogi | Chinoz axborot-kutubxona markazi",
+      description:
+        "Kutubxona fondidagi barcha kitoblar, mualliflar va janrlar bo'yicha qidirish.",
+      image: "/og-image-books.jpg",
+    },
   },
+
 
   bookDetail: {
     title: "Kitob",
-    description: "Kutubxona fondidagi kitob haqida batafsil ma'lumot.",
-    keywords: ["kitob", "elektron kitob", "kutubxona fondi"],
+    description:
+      "Kutubxona fondidagi kitob haqida batafsil ma'lumot.",
+    keywords: [
+      "kitob",
+      "elektron kitob",
+      "kutubxona fondi",
+    ],
   },
+
 
   contact: {
     title: "Bog'lanish",
@@ -115,15 +131,29 @@ export const SEO_CONFIG = {
       "kutubxona telefon raqami",
     ],
     path: "/contact",
+
+    openGraph: {
+      title: "Bog'lanish | Chinoz axborot-kutubxona markazi",
+      description:
+        "Chinoz axborot-kutubxona markazi bilan bog'lanish ma'lumotlari.",
+      url: "/contact",
+      type: "website",
+    },
   },
+
 
   usefulLinks: {
     title: "Foydali havolalar",
     description:
       "Davlat idoralari, ta'lim va madaniyat muassasalarining rasmiy saytlariga foydali havolalar to'plami.",
-    keywords: ["foydali havolalar", "rasmiy saytlar", "davlat portallari"],
+    keywords: [
+      "foydali havolalar",
+      "rasmiy saytlar",
+      "davlat portallari",
+    ],
     path: "/useful-links",
   },
+
 
   documents: {
     title: "Hujjatlar",
@@ -140,6 +170,7 @@ export const SEO_CONFIG = {
     path: "/about/documents",
   },
 
+
   about: {
     title: "Kutubxona haqida",
     description:
@@ -152,14 +183,19 @@ export const SEO_CONFIG = {
     ],
     path: "/about",
   },
-
-  media: {
+    media: {
     title: "Media",
     description:
       "Kutubxona hayotidan fotolavhalar, videolavhalar va taqdimotlar to'plamini shu yerdan tomosha qiling.",
-    keywords: ["media", "fotogalereya", "videogalereya", "taqdimotlar"],
+    keywords: [
+      "media",
+      "fotogalereya",
+      "videogalereya",
+      "taqdimotlar",
+    ],
     path: "/media",
   },
+
 
   faq: {
     title: "Ko'p so'raladigan savollar",
@@ -170,9 +206,31 @@ export const SEO_CONFIG = {
       "ko'p so'raladigan savollar",
       "kutubxona savollari",
       "Chinoz kutubxonasi",
+      "xizmatlar",
+      "kitob fondi",
     ],
     path: "/faq",
+
+    openGraph: {
+      title:
+        "Ko'p so'raladigan savollar | Chinoz axborot-kutubxona markazi",
+      description:
+        "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar.",
+      url: "/faq",
+      type: "website",
+      image: "/og-image-faq.jpg",
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title:
+        "Ko'p so'raladigan savollar | Chinoz axborot-kutubxona markazi",
+      description:
+        "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar.",
+      image: "/og-image-faq.jpg",
+    },
   },
+
 
   privacy: {
     title: "Maxfiylik siyosati",
@@ -186,6 +244,7 @@ export const SEO_CONFIG = {
     ],
     path: "/privacy-policy",
   },
+
 
   authors: {
     title: "Mualliflar",
@@ -201,11 +260,18 @@ export const SEO_CONFIG = {
     path: "/authors",
   },
 
+
   authorDetail: {
     title: "Muallif",
-    description: "Kutubxona fondidagi muallif haqida batafsil ma'lumot.",
-    keywords: ["muallif", "biografiya", "kutubxona fondi"],
+    description:
+      "Kutubxona fondidagi muallif haqida batafsil ma'lumot.",
+    keywords: [
+      "muallif",
+      "biografiya",
+      "kutubxona fondi",
+    ],
   },
+
 
   notFound: {
     title: "Sahifa topilmadi",
@@ -214,18 +280,37 @@ export const SEO_CONFIG = {
     path: "/404",
   },
 
+
   forbidden: {
     title: "Kirish taqiqlangan",
     description:
       "Ushbu sahifani ko'rish uchun yetarli huquq yo'q. Chinoz axborot-kutubxona markazi bosh sahifasiga qayting.",
     path: "/403",
   },
+
+
   management: {
-  title: "Rahbariyat | Chinoz axborot-kutubxona markazi",
-  description: "Kutubxona rahbariyati va mas'ul xodimlar haqida ma'lumot.",
-  keywords: "rahbariyat, kutubxona, xodimlar, direktor",
-  canonical: "/about/management",
-},
+    title: "Rahbariyat | Chinoz axborot-kutubxona markazi",
+    description:
+      "Kutubxona rahbariyati va mas'ul xodimlar haqida ma'lumot.",
+    keywords: [
+      "rahbariyat",
+      "kutubxona",
+      "xodimlar",
+      "direktor",
+    ],
+    path: "/about/management",
+
+    openGraph: {
+      title:
+        "Rahbariyat | Chinoz axborot-kutubxona markazi",
+      description:
+        "Kutubxona rahbariyati va mas'ul xodimlar haqida ma'lumot.",
+      url: "/about/management",
+      type: "website",
+    },
+  },
+
 
   login: {
     title: "Kirish",
@@ -233,78 +318,5 @@ export const SEO_CONFIG = {
       "Chinoz axborot-kutubxona markazi admin paneliga kirish sahifasi.",
     path: "/login",
   },
-  // src/seo/seoConfig.js
 
-books: {
-  title: "Kitoblar katalogi",
-  description: "Kutubxona fondidagi kitoblar katalogi. Muallif, janr va nashr yili bo'yicha qidiring, elektron kitoblarni yuklab oling yoki onlayn o'qing.",
-  keywords: [
-    "kitoblar katalogi",
-    "elektron kitoblar",
-    "kutubxona fondi",
-    "kitob qidirish",
-    "onlayn kitobxona",
-  ],
-  path: "/books",
-  openGraph: {
-    title: "Kitoblar katalogi | Chinoz axborot-kutubxona markazi",
-    description: "Kutubxona fondidagi barcha kitoblar, mualliflar va janrlar bo'yicha qidirish.",
-    url: "https://book.udsgroup.uz/books",
-    type: "website",
-    image: "https://book.udsgroup.uz/og-image-books.jpg",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Kitoblar katalogi | Chinoz axborot-kutubxona markazi",
-    description: "Kutubxona fondidagi barcha kitoblar, mualliflar va janrlar bo'yicha qidirish.",
-    image: "https://book.udsgroup.uz/og-image-books.jpg",
-  },
-},
-// src/seo/seoConfig.js (yoki qayerda bo‘lsa)
-
-
-
-  contact: {
-    // title: "contact.meta.title",
-    description: "contact.meta.description",
-    // Agar kerak bo‘lsa, qo‘shimcha meta-lar:
-    openGraph: {
-      // title: "contact.meta.title",
-      description: "contact.meta.description",
-      type: "website",
-      url: "/contact",
-    },
-  },
-
-
-faq: {
-  title: "Ko'p so'raladigan savollar",
-  description:
-    "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar. Xizmatlar, kitob fondi va kutubxona faoliyati bo'yicha ma'lumot oling.",
-  keywords: [
-    "FAQ",
-    "ko'p so'raladigan savollar",
-    "kutubxona savollari",
-    "Chinoz kutubxonasi",
-    "xizmatlar",
-    "kitob fondi",
-  ],
-  path: "/faq",
-
-  openGraph: {
-    title: "Ko'p so'raladigan savollar | Chinoz axborot-kutubxona markazi",
-    description:
-      "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar.",
-    url: "https://book.udsgroup.uz/faq",
-    type: "website",
-    image: "https://book.udsgroup.uz/og-image-faq.jpg", 
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Ko'p so'raladigan savollar | Chinoz axborot-kutubxona markazi",
-    description:
-      "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar.",
-    image: "https://book.udsgroup.uz/og-image-faq.jpg",
-  },
-},
 };

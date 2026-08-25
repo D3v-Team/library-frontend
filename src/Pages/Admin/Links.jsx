@@ -16,6 +16,8 @@ import {
   useUpdateUsefulLinkMutation,
   useDeleteUsefulLinkMutation,
 } from "../../store/services/links";
+import { safeHref } from "../../utils/url";
+import { required, isValidUrl, validateForm } from "./utils/validators";
 
 
 const emptyForm = {
@@ -29,6 +31,17 @@ const emptyForm = {
   order: 0,
   is_active: true,
 };
+
+const formSchema = [
+  {
+    field: "title_latin",
+    validators: [(v) => required(v, "Nomi (Lotin)")],
+  },
+  {
+    field: "url",
+    validators: [(v) => required(v, "URL"), isValidUrl],
+  },
+];
 
 const LANGS = [
   {
@@ -57,6 +70,8 @@ export default function Links() {
   const [form, setForm] = useState(emptyForm);
 
   const [activeLang, setActiveLang] = useState("latin");
+
+  const [errors, setErrors] = useState({});
 
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -89,6 +104,8 @@ export default function Links() {
       ...emptyForm,
     });
 
+    setErrors({});
+
     setActiveLang("latin");
 
     setModalOpen(true);
@@ -101,6 +118,8 @@ export default function Links() {
       ...emptyForm,
       ...item,
     });
+
+    setErrors({});
 
     setActiveLang("latin");
 
@@ -118,10 +137,29 @@ export default function Links() {
       ...prev,
       [field]: value,
     }));
+
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
   };
 
   const submitHandler = async (e) => {
     e.preventDefault();
+
+    if (isSaving) return;
+
+    const validationErrors = validateForm(form, formSchema);
+
+    if (Object.keys(validationErrors).length) {
+      setErrors(validationErrors);
+
+      toast.error("Formada xatolar bor");
+
+      return;
+    }
 
     try {
       if (editing) {
@@ -328,7 +366,7 @@ export default function Links() {
               </h3>
 
               <a
-                href={item.url}
+                href={safeHref(item.url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="
@@ -453,7 +491,9 @@ export default function Links() {
             >
               <FormField
                 label={`Nomi (${lang.label})`}
+                required={lang.key === "latin"}
                 value={form[`title_${lang.key}`] || ""}
+                error={errors[`title_${lang.key}`]}
                 onChange={(e) =>
                   changeField(`title_${lang.key}`, e.target.value)
                 }
@@ -463,7 +503,10 @@ export default function Links() {
 
           <FormField
             label="URL"
+            required
+            placeholder="https://example.uz"
             value={form.url}
+            error={errors.url}
             onChange={(e) => changeField("url", e.target.value)}
           />
 

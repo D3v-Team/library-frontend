@@ -66,3 +66,31 @@ input[type="number"]::-webkit-inner-spin-button {
   gap: 30px;
   padding: 18px 0px !important;
 }
+
+/* NewBooks ustunlaridagi cheksiz vertikal marquee.
+   Track ichida bir xil stack ikki marta takrorlanadi, shuning uchun
+   -50% siljish halqani deyarli uzluksiz qiladi. Aniq uzluksizlik uchun
+   siljish "stack balandligi + gap" ga teng bo'lishi kerak; -50% esa
+   gap'ning yarmiga kam (masalan lg da 12px) — bu framer-motion bilan
+   ham xuddi shunday bo'lgan, mavjud xatti-harakat saqlangan.
+   Har bir ustunning tezligi komponentda inline `animationDuration`
+   bilan beriladi. */
+@keyframes newBooksMarquee {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.newbooks-track {
+  animation: newBooksMarquee 24s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newbooks-track {
+    animation: none;
+  }
+}

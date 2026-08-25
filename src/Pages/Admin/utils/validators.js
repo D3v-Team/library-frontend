@@ -27,14 +27,28 @@ export function isValidDate(value) {
   return null;
 }
 
+// Havola faqat http(s) bo'lishi mumkin. javascript:, data:, vbscript: kabi
+// sxemalar admin kiritgan havola sifatida saqlanib, keyin public sahifada
+// bosilganda kod bajarilishiga olib keladi — shuning uchun allowlist.
+export const ALLOWED_URL_PROTOCOLS = ["http:", "https:"];
+
 export function isValidUrl(value) {
-  // if (!value) return null;
-  // try {
-  //   new URL(value);
-  //   return null;
-  // } catch {
-  //   return "Havola (URL) formati noto‘g‘ri";
-  // }
+  if (!value) return null; // bo'sh bo'lsa required() hal qiladi
+
+  const trimmed = String(value).trim();
+
+  let parsed;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return "Havola (URL) formati noto‘g‘ri. Masalan: https://example.uz";
+  }
+
+  if (!ALLOWED_URL_PROTOCOLS.includes(parsed.protocol)) {
+    return "Faqat http:// yoki https:// bilan boshlanadigan havolalar ruxsat etilgan";
+  }
+
+  return null;
 }
 
 export function isValidNumber(value) {

@@ -30,6 +30,8 @@ import {
   useUpdateSocialLinkMutation,
   useDeleteSocialLinkMutation,
 } from "../../store/services/contact.info";
+import { safeHref } from "../../utils/url";
+import { required, isValidUrl } from "./utils/validators";
 
 const emptyContactForm = {
   address_latin: "",
@@ -119,6 +121,8 @@ export default function ContactInfo() {
 
   const [socialForm, setSocialForm] = useState(emptySocialForm);
 
+  const [socialUrlError, setSocialUrlError] = useState(null);
+
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const contactInfo = data ?? {};
@@ -191,6 +195,8 @@ export default function ContactInfo() {
       ...emptySocialForm,
     });
 
+    setSocialUrlError(null);
+
     setSocialModalOpen(true);
   };
 
@@ -205,6 +211,8 @@ export default function ContactInfo() {
       icon_image: null,
     });
 
+    setSocialUrlError(null);
+
     setSocialModalOpen(true);
   };
 
@@ -214,10 +222,25 @@ export default function ContactInfo() {
 
       [field]: value,
     }));
+
+    if (field === "url" && socialUrlError) {
+      setSocialUrlError(null);
+    }
   };
 
   const submitSocialHandler = async (e) => {
     e.preventDefault();
+
+    const urlError =
+      required(socialForm.url, "URL") || isValidUrl(socialForm.url);
+
+    if (urlError) {
+      setSocialUrlError(urlError);
+
+      toast.error("Formada xatolar bor");
+
+      return;
+    }
 
     try {
       if (editingSocial) {
@@ -530,7 +553,7 @@ export default function ContactInfo() {
                             </h3>
 
                             <a
-                              href={item.url}
+                              href={safeHref(item.url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="
@@ -707,7 +730,10 @@ export default function ContactInfo() {
 
           <FormField
             label="URL"
+            required
+            placeholder="https://t.me/kanal"
             value={socialForm.url}
+            error={socialUrlError}
             onChange={(e) => changeSocialField("url", e.target.value)}
           />
 

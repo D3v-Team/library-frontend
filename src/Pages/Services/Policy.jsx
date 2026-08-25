@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useGetPageBySlugQuery } from "../../store/services/pages";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
+import { sanitizeHtml } from "../../utils/sanitize";
 
 export default function Policy() {
   const { t, i18n } = useTranslation();
@@ -101,7 +102,7 @@ export default function Policy() {
         {content ? (
           <div
             className="text-base leading-7 text-slate-700"
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
           />
         ) : (
           <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">

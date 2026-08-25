@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useGetContactInfoQuery } from "../../store/services/contact.info";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
+import { safeHref } from "../../utils/url";
 
 const getSocialIcon = (platform) => {
   switch (platform) {
@@ -218,7 +219,7 @@ export default function Contact() {
               return (
                 <a
                   key={item.platform}
-                  href={item.url}
+                  href={safeHref(item.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-blue-200 hover:bg-slate-50"

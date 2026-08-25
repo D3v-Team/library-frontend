@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useGetContactInfoQuery } from "../../store/services/contact.info";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
+import { safeHref } from "../../utils/url";
 
 const getSocialIcon = (platform) => {
   switch (platform) {
@@ -228,7 +229,7 @@ export default function ContactHome() {
                     return (
                       <a
                         key={item.platform}
-                        href={item.url}
+                        href={safeHref(item.url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={item.platform}

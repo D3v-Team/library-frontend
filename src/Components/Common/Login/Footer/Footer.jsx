@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import { useGetContactInfoQuery } from "../../../../store/services/contact.info";
 import logo from "../../../../Images/logo.png";
+import { safeHref } from "../../../../utils/url";
 
 const getSocialIcon = (platform) => {
   switch (platform) {
@@ -74,7 +75,7 @@ export default function Footer() {
                 return (
                   <a
                     key={item.platform}
-                    href={item.url}
+                    href={safeHref(item.url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 text-slate-500 transition hover:border-blue-600 hover:bg-blue-600 hover:text-white"

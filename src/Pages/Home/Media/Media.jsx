@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 
 import { useGetMediaAlbumsQuery } from "../../../store/services/media";
 import { BASE_URL } from "../../../store/api";
+import { safeHref } from "../../../utils/url";
 
 // ================= HELPERS =================
 const getImageUrl = (path) => {
@@ -355,7 +356,7 @@ export default function Media() {
 
                   {activeTab === "VIDEO" && currentItem?.video_url && (
                     <a
-                      href={currentItem.video_url}
+                      href={safeHref(currentItem.video_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-2 inline-flex items-center gap-1 text-sm text-blue-300 hover:text-blue-200 hover:underline"

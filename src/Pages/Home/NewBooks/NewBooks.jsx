@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { motion } from "framer-motion";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -188,18 +187,13 @@ function BookColumn({ books, columnIndex }) {
         "
       />
 
-      <motion.div
-        initial={{ y: "0%" }}
-        animate={{
-          y: ["0%", "-50%"],
-        }}
-        transition={{
-          duration: config.duration,
-          ease: "linear",
-          repeat: Infinity,
-          repeatType: "loop",
-        }}
+      {/* Cheksiz vertikal marquee — CSS keyframes (qarang: src/index.css).
+          Tezlik har ustunga alohida beriladi, keyframes esa umumiy. */}
+      <div
+        style={{ animationDuration: `${config.duration}s` }}
         className="
+          newbooks-track
+
           flex
           flex-col
           gap-5
@@ -231,7 +225,7 @@ function BookColumn({ books, columnIndex }) {
             ))}
           </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -258,13 +252,7 @@ export default function NewBooks() {
     [data, i18n.language],
   );
 
-  /*
-   * Responsive columns:
-   *
-   * desktop -> 4
-   * tablet  -> 3
-   * mobile  -> 2
-   */
+
   const desktopColumns = useMemo(
     () =>
       Array.from({ length: 4 }, (_, index) =>
