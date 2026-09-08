@@ -9,7 +9,7 @@ import {
   setTokens,
 } from "./authCookies";
 
-export const BASE_URL = "https://book.udsgroup.uz";
+export const BASE_URL = "https://dev.chinozakm.uz";
 
 export const $api = axios.create({
   baseURL: `${BASE_URL}/api`,
