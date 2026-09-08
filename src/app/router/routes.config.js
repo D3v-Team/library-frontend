@@ -3,11 +3,6 @@ import { lazy } from "react";
 
 export const ROUTES = [
   {
-    path: "/login",
-    component: lazy(() => import("../../Components/Common/Login")),
-    roles: null,
-  },
-  {
     path: "/",
     component: lazy(() => import("../../Pages/Home/Home.jsx")),
     roles: null,
