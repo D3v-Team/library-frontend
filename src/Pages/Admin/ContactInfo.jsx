@@ -22,6 +22,7 @@ import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
 import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
   useGetContactInfoQuery,
@@ -470,22 +471,7 @@ export default function ContactInfo() {
             </div>
 
             {socialLinks.length === 0 ? (
-              <div
-                className="
-                  rounded-2xl
-                  border
-                  border-dashed
-                  border-slate-300
-                  bg-white
-                  px-6
-                  py-12
-                  text-center
-                  text-sm
-                  text-slate-500
-                  "
-              >
-                Ijtimoiy tarmoqlar mavjud emas.
-              </div>
+              <AdminEmptyState title="Ijtimoiy tarmoqlar topilmadi" icon={Globe} />
             ) : (
               <div
                 className="

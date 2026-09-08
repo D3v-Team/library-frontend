@@ -11,6 +11,7 @@ import ImageUploadField from "./components/ImageUploadField";
 import Pagination from "./components/Pagination";
 
 import { SearchInput } from "./components/ListControls";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
   useCreateEventMutation,
@@ -241,10 +242,7 @@ export default function Events() {
           Tadbirlarni yuklashda xatolik.
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-          <ImageIcon className="mx-auto mb-3 text-slate-300" size={32} />
-          <p className="text-sm text-slate-500">Tadbirlar mavjud emas.</p>
-        </div>
+        <AdminEmptyState title="Tadbirlar topilmadi" icon={CalendarDays} />
       ) : (
         <div
           className={`grid gap-5 md:grid-cols-2 xl:grid-cols-3 transition-opacity ${

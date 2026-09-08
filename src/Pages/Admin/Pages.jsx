@@ -8,6 +8,7 @@ import Modal from "./components/Modal";
 import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
 import { SearchInput } from "./components/ListControls";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
   useGetPagesQuery,
@@ -162,12 +163,7 @@ export default function Pages() {
           Sahifalarni yuklashda xatolik yuz berdi.
         </div>
       ) : filteredPages.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-          <FileText className="mx-auto mb-3 text-slate-300" size={28} />
-          <p className="text-sm text-slate-500">
-            {search ? "Hech narsa topilmadi." : "Hozircha sahifalar mavjud emas."}
-          </p>
-        </div>
+        <AdminEmptyState title="Sahifalar topilmadi" icon={FileText} />
       ) : (
         <div className={`space-y-3 transition-opacity ${isFetching ? "opacity-60" : "opacity-100"}`}>
           {filteredPages.map((page) => (

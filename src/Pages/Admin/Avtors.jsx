@@ -9,6 +9,7 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
 import Pagination from "./components/Pagination";
 import { SearchInput } from "./components/ListControls";
+import AdminEmptyState from "./components/AdminEmptyState";
 import { required, minLength, isValidDate, validateForm } from "./utils/validators";
 import { BASE_URL } from "../../store/api";
 
@@ -278,12 +279,7 @@ export default function Avtors() {
           Mualliflarni yuklashda xatolik yuz berdi. Sahifani yangilab ko'ring.
         </div>
       ) : authors.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-          <User className="mx-auto mb-3 text-slate-300" size={28} />
-          <p className="text-sm text-slate-500">
-            {search ? "Hech narsa topilmadi." : "Hozircha mualliflar mavjud emas."}
-          </p>
-        </div>
+        <AdminEmptyState title="Mualliflar topilmadi" icon={User} />
       ) : (
         <div
           className={`grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 transition-opacity ${

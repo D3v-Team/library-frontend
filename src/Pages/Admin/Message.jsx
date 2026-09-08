@@ -8,6 +8,7 @@ import Modal from "./components/Modal";
 import ConfirmDialog from "./components/ConfirmDialog";
 import Pagination from "./components/Pagination";
 import { SearchInput } from "./components/ListControls";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
   useGetContactMessagesQuery,
@@ -143,36 +144,7 @@ export default function ContactMessages() {
           Xabarlarni yuklashda xatolik.
         </div>
       ) : messages.length === 0 ? (
-        <div
-          className="
-            rounded-2xl
-            border
-            border-dashed
-            border-slate-300
-            bg-white
-            px-6
-            py-16
-            text-center
-          "
-        >
-          <MessageCircle
-            size={34}
-            className="
-              mx-auto
-              mb-3
-              text-slate-300
-            "
-          />
-
-          <p
-            className="
-              text-sm
-              text-slate-500
-            "
-          >
-            Xabarlar mavjud emas.
-          </p>
-        </div>
+        <AdminEmptyState title="Xabarlar topilmadi" icon={MessageCircle} />
       ) : (
         <div
           className={`

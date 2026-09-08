@@ -6,6 +6,7 @@ import {
   Trash2,
   CalendarDays,
   ImageIcon,
+  Megaphone,
 } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
@@ -15,6 +16,7 @@ import FormField from "./components/FormField";
 import ImageUploadField from "./components/ImageUploadField";
 import Pagination from "./components/Pagination";
 import { SearchInput } from "./components/ListControls";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
   useGetAnnouncementsQuery,
@@ -246,6 +248,8 @@ export default function Announcements() {
         <div className="rounded-xl bg-red-50 px-6 py-10 text-center text-red-600">
           E'lonlarni yuklashda xatolik.
         </div>
+      ) : items.length === 0 ? (
+        <AdminEmptyState title="E'lonlar topilmadi" icon={Megaphone} />
       ) : (
         <div className={`grid gap-5 md:grid-cols-2 xl:grid-cols-3 ${isFetching ? "opacity-60" : ""}`}>
           {items.map((item) => (

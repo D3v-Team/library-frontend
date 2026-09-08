@@ -10,6 +10,7 @@ import FormField from "./components/FormField";
 import ImageUploadField from "./components/ImageUploadField";
 import Pagination from "./components/Pagination";
 import { SearchInput } from "./components/ListControls";
+import AdminEmptyState from "./components/AdminEmptyState";
 import {
   required,
   isValidUrl,
@@ -205,17 +206,7 @@ export default function Banners() {
             Bannerlarni yuklashda xatolik yuz berdi.
           </div>
         ) : items.length === 0 ? (
-          <div className="px-6 py-16 text-center">
-            <GalleryHorizontalEnd
-              className="mx-auto mb-3 text-slate-300"
-              size={28}
-            />
-            <p className="text-sm text-slate-500">
-              {debouncedSearch
-                ? "Hech narsa topilmadi."
-                : "Hozircha bannerlar mavjud emas."}
-            </p>
-          </div>
+          <AdminEmptyState title="Bannerlar topilmadi" icon={GalleryHorizontalEnd} />
         ) : (
           <div
             className={`overflow-x-auto transition-opacity ${isFetching ? "opacity-60" : "opacity-100"}`}

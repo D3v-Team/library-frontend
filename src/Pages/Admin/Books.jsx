@@ -10,6 +10,7 @@ import FormField from "./components/FormField";
 import MultiSelect from "./components/MultiSelect";
 import Pagination from "./components/Pagination";
 import { SearchInput, FilterSelect } from "./components/ListControls";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
   required,
@@ -382,16 +383,7 @@ text-red-600
             Kitoblarni yuklashda xatolik yuz berdi.
           </div>
         ) : books.length === 0 ? (
-          <div
-            className="
-py-16
-text-center
-text-sm
-text-slate-500
-"
-          >
-            Kitob topilmadi.
-          </div>
+          <AdminEmptyState title="Kitoblar topilmadi" icon={BookOpen} />
         ) : (
           <div
             className={`

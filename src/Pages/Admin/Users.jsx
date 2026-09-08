@@ -22,6 +22,7 @@ import {
 } from "../../store/services/users";
 
 import AdminPageHeader from "./components/AdminPageHeader";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 const emptyForm = {
   phone_number: "",
@@ -289,35 +290,7 @@ export default function UsersPage() {
       {/* EMPTY */}
 
       {!isLoading && !error && users.length === 0 && (
-        <div
-          className="
-              rounded-2xl
-              border
-              border-dashed
-              border-slate-300
-              bg-white
-              py-16
-              text-center
-            "
-        >
-          <Users
-            size={35}
-            className="
-                mx-auto
-                text-slate-300
-              "
-          />
-
-          <p
-            className="
-                mt-3
-                text-sm
-                text-slate-500
-              "
-          >
-            Foydalanuvchilar topilmadi.
-          </p>
-        </div>
+        <AdminEmptyState title="Foydalanuvchilar topilmadi" icon={Users} />
       )}
 
       {/* USER CARDS */}

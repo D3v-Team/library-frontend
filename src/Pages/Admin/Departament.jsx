@@ -20,6 +20,7 @@ import {
 } from "../../store/services/departament";
 
 import AdminPageHeader from "./components/AdminPageHeader";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 const emptyForm = {
   full_name_latin: "",
@@ -289,35 +290,7 @@ export default function Departament() {
       {/* EMPTY */}
 
       {!isLoading && !error && departments.length === 0 && (
-        <div
-          className="
-          rounded-2xl
-          border
-          border-dashed
-          border-slate-300
-          bg-white
-          py-16
-          text-center
-        "
-        >
-          <Users
-            size={36}
-            className="
-            mx-auto
-            text-slate-300
-          "
-          />
-
-          <p
-            className="
-            mt-3
-            text-sm
-            text-slate-500
-          "
-          >
-            Xodimlar topilmadi
-          </p>
-        </div>
+        <AdminEmptyState title="Xodimlar topilmadi" icon={Users} />
       )}
 
       {/* CARDS */}

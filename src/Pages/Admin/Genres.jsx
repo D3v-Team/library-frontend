@@ -14,6 +14,7 @@ import {
   useDeleteGenreMutation,
 } from "../../store/services/genres";
 import AdminPageHeader from "./components/AdminPageHeader";
+import AdminEmptyState from "./components/AdminEmptyState";
 
 export default function Genres() {
   const [page, setPage] = useState(1);
@@ -235,21 +236,11 @@ export default function Genres() {
             Janrlarni yuklashda xatolik yuz berdi.
           </div>
         ) : genres.length === 0 ? (
-          <div
-            className="
-            col-span-full
-            rounded-xl
-            border
-            border-dashed
-            border-slate-300
-            py-16
-            text-center
-            text-sm
-            text-slate-500
-            "
-          >
-            Janr topilmadi
-          </div>
+          <AdminEmptyState
+            title="Janrlar topilmadi"
+            icon={BookOpen}
+            className="col-span-full"
+          />
         ) : (
           genres.map((genre) => (
             <div
