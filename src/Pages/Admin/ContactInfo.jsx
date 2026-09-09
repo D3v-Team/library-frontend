@@ -674,10 +674,11 @@ export default function ContactInfo() {
             className="
             w-full
             rounded-lg
-            bg-slate-900
+         border
             py-3
             text-sm
             font-medium
+            bg-none
             text-black
             disabled:opacity-50
             "

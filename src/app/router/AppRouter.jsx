@@ -5,6 +5,7 @@ import MainLayout from "../layout/MainLayout";
 import RoleGuard from "./RoleGuard";
 import { ROUTES, ADMIN_ROUTES } from "./routes.config";
 import Loading from "../../Components/Other/UI/Loadings/Loading";
+import AdminPageLoader from "../../Pages/Admin/components/AdminPageLoader";
 import LoginPage from "../../Components/Common/Login";
 
 export default function AppRouter() {
@@ -42,7 +43,7 @@ export default function AppRouter() {
               key={r.path}
               path={r.path}
               element={
-                <Suspense fallback={<Loading />}>
+                <Suspense fallback={<AdminPageLoader />}>
                   <r.component />
                 </Suspense>
               }

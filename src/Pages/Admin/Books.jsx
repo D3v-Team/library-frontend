@@ -504,7 +504,7 @@ text-xs
 text-slate-600
 "
                         >
-                          {g.name_latin || g.name}
+                          {g.name_latin || g.genre.name_latin}
                         </span>
                       ))}
                     </div>
