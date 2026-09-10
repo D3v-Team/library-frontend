@@ -1,215 +1,148 @@
-// src/pages/EventDetail.jsx
-import { ArrowLeft, CalendarDays, MapPin, User } from "lucide-react";
+import { ArrowLeft, MapPin } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { useGetEventByIdQuery } from "../../store/services/events";
+import { useLocalized } from "../../lib/useLocalized";
+import { useGetEventByIdQuery, useGetEventsQuery } from "../../store/services/events";
 import { BASE_URL } from "../../store/api";
+import { Button, EmptyState, Skeleton } from "../../ui";
+import { MountedImage, PageShell, Prose, SectionHeader } from "../../patterns";
 import SEO from "../../seo/SEO";
-import { truncateForMeta } from "../../seo/seoUtils";
+
+const imageUrl = (path) =>
+  !path ? null : path.startsWith("http") ? path : `${BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 
 export default function EventDetail() {
-  const { t, i18n } = useTranslation();
   const { id } = useParams();
+  const { t } = useTranslation();
+  const { pick, formatDate, formatMonth } = useLocalized();
 
-  const { data: event, isLoading, error } = useGetEventByIdQuery(id);
+  const { data, isLoading, error } = useGetEventByIdQuery(id);
+  const others = useGetEventsQuery({ page: 1, limit: 6 });
 
-  const getTitle = () => {
-    if (!event) return "";
-    const lang = i18n.language;
-    if (lang === "uz") return event.title_latin;
-    if (lang === "ru") return event.title_ru;
-    if (lang === "cyrl") return event.title_cyril;
-    return event.title_latin || "Nomsiz";
-  };
+  const event = data?.data ?? data;
+  const rest = (others.data?.data ?? []).filter((e) => e.id !== id).slice(0, 4);
 
-  const getDescription = () => {
-    if (!event) return "";
-    const lang = i18n.language;
-    if (lang === "uz") return event.description_latin;
-    if (lang === "ru") return event.description_ru;
-    if (lang === "cyrl") return event.description_cyril;
-    return event.description_latin || "";
-  };
-
-  const getLocation = () => {
-    if (!event) return "";
-    const lang = i18n.language;
-    if (lang === "uz") return event.location_latin;
-    if (lang === "ru") return event.location_ru;
-    if (lang === "cyrl") return event.location_cyril;
-    return event.location_latin || "";
-  };
-
-  const formatDate = (date) => {
-    if (!date) return "";
-    const locale = i18n.language === "ru" ? "ru-RU" : "uz-UZ";
-    return new Date(date).toLocaleDateString(locale, {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  };
-
-  // ===== SKELETON =====
   if (isLoading) {
     return (
-      <section className="bg-white">
-        <SEO title={t("events.loading")} description={t("events.loadingDesc")} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <div className="animate-pulse">
-            <div className="mb-10 h-4 w-28 rounded bg-slate-300" />
-            <div className="grid gap-10 lg:grid-cols-[400px_1fr] lg:gap-14">
-              {/* Rasm */}
-              <div className="aspect-[4/3] w-full rounded-2xl bg-slate-300 lg:aspect-auto lg:h-[480px]" />
-              {/* Kontent */}
-              <div className="space-y-5">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-24 rounded-full bg-slate-300" />
-                  <div className="h-4 w-32 rounded bg-slate-300" />
-                </div>
-                <div className="h-9 w-full rounded-lg bg-slate-300" />
-                <div className="h-8 w-4/5 rounded-lg bg-slate-300" />
-                <div className="h-px w-full rounded bg-slate-300" />
-                <div className="space-y-2.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className={`h-4 rounded bg-slate-300 ${i % 3 === 2 ? "w-4/5" : "w-full"}`} />
-                  ))}
-                </div>
-                <div className="h-5 w-48 rounded bg-slate-300" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageShell breadcrumbs={[{ label: t("events.heading"), to: "/events" }]} title={t("events.loading")}>
+        <Skeleton className="h-[280px] w-full" rounded="card" />
+      </PageShell>
     );
   }
 
-  // ===== ERROR =====
   if (error || !event) {
     return (
-      <section className="bg-white">
-        <SEO
+      <PageShell breadcrumbs={[{ label: t("events.heading"), to: "/events" }]} title={t("events.notFound")}>
+        <EmptyState
           title={t("events.notFound")}
-          description={t("events.notFoundDesc")}
-          noIndex
+          description={t("events.notFoundHint")}
+          actions={
+            <Button size="sm" variant="primary" to="/events">
+              {t("events.back")}
+            </Button>
+          }
         />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <Link
-            to="/events"
-            className="group mb-10 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
-          >
-            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-            {t("events.back")}
-          </Link>
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-20 text-center">
-            <p className="text-base font-semibold text-slate-900">{t("events.notFound")}</p>
-            <p className="mt-2 text-sm text-slate-500">{t("events.notFoundDesc")}</p>
-          </div>
-        </div>
-      </section>
+      </PageShell>
     );
   }
 
-  const title = getTitle();
-  const description = getDescription();
-  const location = getLocation();
-  const imageUrl = event.cover_image ? `${BASE_URL}${event.cover_image}` : null;
-  const date = formatDate(event.event_date);
+  const title = pick(event, "title");
+  const location = pick(event, "location");
+  const cover = imageUrl(event.cover_image);
+  const d = event.event_date ? new Date(event.event_date) : null;
+  const valid = d && !Number.isNaN(d.getTime());
 
-  // ===== CONTENT =====
   return (
-    <article className="bg-white">
-      <SEO
+    <>
+      <SEO title={title} description={String(pick(event, "description") ?? "").replace(/<[^>]*>/g, " ").slice(0, 160)} image={cover} />
+
+      <PageShell
+        breadcrumbs={[{ label: t("events.heading"), to: "/events" }, { label: title }]}
+        eyebrow={t("events.category")}
         title={title}
-        description={truncateForMeta(description)}
-        image={imageUrl}
-        type="article"
-        publishedTime={event.created_at}
-        modifiedTime={event.updated_at}
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "Event",
-          name: title,
-          description: truncateForMeta(description),
-          image: imageUrl || undefined,
-          startDate: event.event_date,
-          location: location ? { "@type": "Place", name: location } : undefined,
-        }}
-      />
-
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        {/* Back */}
-        <Link
-          to="/events"
-          className="group mb-10 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
-        >
-          <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-          {t("events.back")}
-        </Link>
-
-        <div className={`grid gap-10 lg:gap-14 ${imageUrl ? "lg:grid-cols-[400px_1fr]" : ""}`}>
-          {/* ── Chap: rasm ── */}
-          {imageUrl && (
-            <div className="lg:sticky lg:top-24 lg:self-start">
-              <div className="overflow-hidden rounded-2xl bg-slate-100 shadow-md">
-                <img
-                  src={imageUrl}
-                  alt={title}
-                  loading="lazy"
-                  className="w-full object-cover transition duration-500 hover:scale-105"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* ── O'ng: kontent ── */}
+        // Meta ATAYLAB yo'q: sana va joy yon panelda to'liq ko'rsatiladi.
+        // Ilgari sana bir ekranda uch marta takrorlanardi (lenta meta,
+        // taqvim kartochkasi, yon panel qatori), joy esa ikki marta.
+      >
+        <div className="grid gap-10 lg:grid-cols-[1fr_260px] lg:gap-16">
           <div>
-            {/* Meta */}
-            <div className="mb-5 flex flex-wrap items-center gap-3">
-              <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                {t("events.category")}
-              </span>
-              {date && (
-                <span className="flex items-center gap-1.5 text-sm text-slate-500">
-                  <CalendarDays size={14} />
-                  {date}
-                </span>
-              )}
+            {cover && (
+              <MountedImage src={cover} maxHeight={280} className="mb-9" />
+            )}
+
+            <Prose html={pick(event, "description")} />
+
+            <div className="mt-12">
+              <Button variant="secondary" to="/events" iconStart={<ArrowLeft size={16} />}>
+                {t("events.back")}
+              </Button>
             </div>
+          </div>
 
-            {/* Sarlavha */}
-            <h1 className="text-2xl font-semibold leading-snug tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-              {title}
-            </h1>
-
-            <div className="mt-7 h-px w-full bg-slate-100" />
-
-            {/* Tavsif */}
-            {description && (
-              <div className="mt-7 whitespace-pre-line text-base leading-8 text-slate-600 sm:text-[17px]">
-                {description}
+          {/* Yon panel — taqvim varag'i va joy */}
+          <aside className="flex flex-col gap-6">
+            {valid && (
+              <div className="flex flex-col items-center rounded-card border border-line bg-paper-2 px-6 py-7">
+                <span className="font-display text-[3rem] font-semibold leading-none text-ink tabular">
+                  {d.getDate()}
+                </span>
+                <span className="mt-2 font-sans text-[0.78rem] uppercase tracking-[0.12em] text-gold-dim">
+                  {formatMonth(d)}
+                </span>
+                <span className="mt-0.5 font-mono text-[0.8rem] text-fg-muted tabular">
+                  {d.getFullYear()}
+                </span>
               </div>
             )}
 
-            {/* Qo'shimcha meta */}
-            <div className="mt-8 space-y-3">
-              {location && (
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <MapPin size={16} className="shrink-0 text-slate-400" />
-                  {location}
-                </div>
-              )}
-              {event.creator?.full_name && (
-                <div className="flex items-center gap-2 text-sm text-slate-400">
-                  <User size={15} className="shrink-0" />
-                  {event.creator.full_name}
-                </div>
-              )}
-            </div>
-          </div>
+            {/* Sana bu ro'yxatda YO'Q: ustidagi taqvim kartochkasi uni
+                allaqachon ko'rsatadi. Faqat joy qoladi. */}
+            <dl className="flex flex-col border-t border-line">
+              {[{ icon: MapPin, label: t("events.location"), value: location }]
+                .filter((r) => r.value)
+                .map((row) => {
+                  const Icon = row.icon;
+                  return (
+                    <div key={row.label} className="flex items-start gap-3 border-b border-line-soft py-4">
+                      <Icon size={16} strokeWidth={1.8} className="mt-0.5 shrink-0 text-gold-dim" />
+                      <div className="min-w-0">
+                        <dt className="font-sans text-[0.7rem] uppercase tracking-[0.1em] text-fg-faint">
+                          {row.label}
+                        </dt>
+                        <dd className="mt-0.5 font-display text-[0.92rem] text-fg">{row.value}</dd>
+                      </div>
+                    </div>
+                  );
+                })}
+            </dl>
+          </aside>
         </div>
-      </div>
-    </article>
+
+        {rest.length > 0 && (
+          <div className="mt-20 border-t border-line pt-14">
+            <SectionHeader eyebrow={t("events.badge")} title={t("events.otherTitle")} />
+
+            <ul className="mt-8 grid gap-x-10 border-t border-line sm:grid-cols-2">
+              {rest.map((e) => (
+                <li key={e.id} className="border-b border-line-soft">
+                  <Link
+                    to={`/events/${e.id}`}
+                    className="-mx-3 block rounded-field px-3 py-4 transition-colors duration-1 ease-out-soft hover:bg-paper-3"
+                  >
+                    <p className="font-mono text-[0.72rem] text-fg-faint tabular">
+                      {formatDate(e.event_date)}
+                    </p>
+                    <p className="mt-1 line-clamp-2 font-display text-[0.95rem] font-medium leading-snug text-fg">
+                      {pick(e, "title")}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </PageShell>
+    </>
   );
 }

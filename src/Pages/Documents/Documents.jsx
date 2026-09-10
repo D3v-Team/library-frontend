@@ -1,224 +1,184 @@
-// src/pages/Documents.jsx
-import { useState } from "react";
-import { Download, FileText, Search } from "lucide-react";
+import { useMemo } from "react";
+import { Download, FileText } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { useLocalized } from "../../lib/useLocalized";
 import { useGetDocumentsQuery } from "../../store/services/documents.api";
 import { BASE_URL } from "../../store/api";
+import { Button, EmptyState, Reveal, Skeleton } from "../../ui";
+import { PageMeta, PageShell } from "../../patterns";
 import SEO from "../../seo/SEO";
-import { SEO_CONFIG } from "../../seo/seoConfig";
+
+/**
+ * Hujjatlar.
+ *
+ * Jadval ko'rinishida: nom · kategoriya · sana · yuklab olish.
+ * Yon panelda kategoriya sanoqlari — "boylik retsepti" ning
+ * ikkinchi qatlami.
+ */
+const fileUrl = (path) =>
+  !path ? null : path.startsWith("http") ? path : `${BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 
 export default function Documents() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { pick, formatDate } = useLocalized();
 
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
+  const [params, setParams] = useSearchParams();
+  const category = params.get("category") ?? "";
 
-  const { data, isLoading, isFetching, error } = useGetDocumentsQuery({
-    page,
-    limit: 10,
-    search,
-    category: category || undefined,
-  });
+  const { data, isLoading, error } = useGetDocumentsQuery({ page: 1, limit: 200 });
+  /* `?? []` har renderda yangi massiv qaytaradi — uni useMemo
+     bog'liqligiga bersak memo hech qachon ishlamaydi. */
+  const docs = useMemo(() => data?.data ?? [], [data]);
 
-  const items = data?.data ?? [];
-  const totalPages = data?.meta?.totalPages ?? 1;
+  /* Kategoriya sanoqlari — bo'sh kategoriya ko'rinmaydi */
+  const categories = useMemo(() => {
+    const map = new Map();
+    for (const d of docs) {
+      const key = d.category || "—";
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return [...map.entries()].map(([key, count]) => ({ key, count }));
+  }, [docs]);
 
-  // Tilga qarab title ni olish
-  const getTitle = (doc) => {
-    const lang = i18n.language;
-    if (lang === "uz") return doc.title_latin;
-    if (lang === "ru") return doc.title_ru;
-    if (lang === "cyrl") return doc.title_cyril;
-    return doc.title_latin || "Nomsiz";
-  };
+  const shown = category ? docs.filter((d) => (d.category || "—") === category) : docs;
 
-  // Kategoriyalarni i18n qilish
-  const getCategories = () => {
-    return [
-      { value: "", label: t("documents.categories.all") },
-      { value: "LAW", label: t("documents.categories.law") },
-      { value: "DECISION", label: t("documents.categories.decision") },
-      { value: "ORDER", label: t("documents.categories.order") },
-      { value: "REPORT", label: t("documents.categories.report") },
-    ];
-  };
-
-  // Kategoriya label'ini olish
-  const getCategoryLabel = (categoryValue) => {
-    const categories = getCategories();
-    const found = categories.find((c) => c.value === categoryValue);
-    return found?.label || categoryValue;
-  };
-
-  const CATEGORIES = getCategories();
-
-  // Sanani formatlash
-  const formatDate = (date) => {
-    if (!date) return "";
-    const locale = i18n.language === "ru" ? "ru-RU" : "uz-UZ";
-    return new Date(date).toLocaleDateString(locale, {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
+  const setCategory = (value) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set("category", value);
+    else next.delete("category");
+    setParams(next, { replace: true });
   };
 
   return (
-    <section className="bg-white">
-      <SEO {...SEO_CONFIG.documents} />
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        {/* HEADER */}
-        <div className="mb-8 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
+    <>
+      <SEO title={t("documents.heading")} description={t("documents.description")} />
+
+      <PageShell
+        breadcrumbs={[{ label: t("documents.heading") }]}
+        eyebrow={t("documents.badge")}
+        title={t("documents.heading")}
+        lede={t("documents.description")}
+        meta={
+          <>
+            <PageMeta label={t("documents.metaTotal")} value={docs.length || "—"} />
+            <PageMeta label={t("documents.metaCategories")} value={categories.length || "—"} />
+          </>
+        }
+      >
+        <div className="grid gap-12 lg:grid-cols-[1fr_220px] lg:gap-16">
           <div>
-            <div className="mb-3 flex items-center gap-3">
-              <span className="h-7 w-1 rounded-full bg-blue-700" />
-              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
-                <FileText size={17} />
-                <span>{t("documents.badge")}</span>
+            {error ? (
+              <EmptyState title={t("documents.error")} />
+            ) : isLoading ? (
+              <div className="flex flex-col gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="border-b border-line-soft py-4">
+                    <Skeleton className="h-4 w-3/5" />
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : shown.length === 0 ? (
+              <EmptyState
+                title={t("documents.empty")}
+                description={category ? t("documents.emptyCategory") : t("documents.emptyHint")}
+                actions={
+                  category ? (
+                    <Button size="sm" variant="primary" onClick={() => setCategory("")}>
+                      {t("documents.all")}
+                    </Button>
+                  ) : null
+                }
+              />
+            ) : (
+              <Reveal as="ul" className="flex flex-col border-t border-line">
+                {shown.map((doc) => {
+                  const href = fileUrl(doc.file_url);
+                  const title = pick(doc, "title");
 
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-              {t("documents.heading")}
-            </h1>
+                  return (
+                    <li key={doc.id} className="border-b border-line-soft">
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="-mx-3 flex items-center gap-4 rounded-field px-3 py-4 transition-colors duration-1 ease-out-soft hover:bg-paper-3"
+                      >
+                        <FileText
+                          size={17}
+                          strokeWidth={1.8}
+                          aria-hidden="true"
+                          className="shrink-0 text-gold-dim"
+                        />
 
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-              {t("documents.description")}
-            </p>
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-display text-[0.95rem] font-medium leading-snug text-fg">
+                            {title || doc.file_name}
+                          </span>
+                          <span className="mt-0.5 flex flex-wrap items-center gap-x-4 font-mono text-[0.73rem] text-fg-faint tabular">
+                            {doc.category && <span>{doc.category}</span>}
+                            {doc.created_at && <span>{formatDate(doc.created_at)}</span>}
+                          </span>
+                        </span>
+
+                        <Download
+                          size={16}
+                          strokeWidth={1.8}
+                          aria-hidden="true"
+                          className="shrink-0 text-fg-faint"
+                        />
+                      </a>
+                    </li>
+                  );
+                })}
+              </Reveal>
+            )}
           </div>
-        </div>
 
-        {/* Category tabs */}
-        <div className="mt-8 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.value}
-            type="button"
-            onClick={() => {
-              setCategory(c.value);
-              setPage(1);
-            }}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-              category === c.value
-                ? "bg-slate-900 text-white hover:bg-slate-800"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-300"
-            }`}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+          {categories.length > 1 && (
+            <aside>
+              <h2 className="font-sans text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-gold-dim">
+                {t("documents.categories")}
+              </h2>
 
-      {/* Search */}
-        <div className="relative mt-5 w-full sm:w-80">
-        <Search
-          size={16}
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-        />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          placeholder={t("documents.search")}
-          className="w-full rounded-lg border border-slate-200 py-2.5 pl-9 pr-3 text-sm outline-none transition-colors focus:border-slate-900"
-        />
-      </div>
-
-      {/* List */}
-      {isLoading ? (
-        <div className="mt-8 space-y-3">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-300" />
-          ))}
-        </div>
-      ) : error ? (
-        <div className="mt-8 rounded-xl border border-dashed border-red-200 bg-red-50 px-6 py-16 text-center text-sm text-red-600">
-          {t("documents.error")}
-        </div>
-      ) : items.length === 0 ? (
-        <div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-16 text-center">
-          <FileText className="mx-auto mb-3 text-slate-300" size={28} />
-          <p className="text-sm text-slate-500">
-            {search || category
-              ? t("documents.notFound")
-              : t("documents.empty")}
-          </p>
-        </div>
-      ) : (
-        <div
-          className={`mt-8 divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white transition-opacity ${
-            isFetching ? "opacity-60" : "opacity-100"
-          }`}
-        >
-          {items.map((doc) => {
-            const title = getTitle(doc);
-            const categoryLabel = getCategoryLabel(doc.category);
-            const date = formatDate(doc.created_at);
-
-            return (
-              <div
-                key={doc.id}
-                className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
-                    <FileText size={18} />
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="font-medium text-slate-900">{title}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600">
-                        {categoryLabel}
-                      </span>
-                      {doc.created_at && <span>{date}</span>}
-                    </div>
-                  </div>
-                </div>
-
-                {doc.file_url && (
-                  <a
-                    href={`${BASE_URL}${doc.file_url}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download={doc.file_name}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-900 hover:text-slate-900"
+              <ul className="mt-4 flex flex-col border-t border-line">
+                <li className="border-b border-line-soft">
+                  <button
+                    type="button"
+                    onClick={() => setCategory("")}
+                    className={`flex w-full items-center justify-between py-2.5 text-left font-sans text-[0.85rem] transition-colors duration-1 ease-out-soft ${
+                      category === "" ? "text-fg" : "text-fg-muted hover:text-fg"
+                    }`}
                   >
-                    <Download size={15} />
-                    {t("documents.download")}
-                  </a>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+                    {t("documents.all")}
+                    <span className="font-mono text-[0.74rem] text-fg-faint tabular">
+                      {docs.length}
+                    </span>
+                  </button>
+                </li>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-2">
-          {Array.from({ length: totalPages }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setPage(i + 1)}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
-                page === i + 1
-                  ? "bg-slate-900 text-blue-700"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+                {categories.map((c) => (
+                  <li key={c.key} className="border-b border-line-soft">
+                    <button
+                      type="button"
+                      onClick={() => setCategory(c.key)}
+                      className={`flex w-full items-center justify-between py-2.5 text-left font-sans text-[0.85rem] transition-colors duration-1 ease-out-soft ${
+                        category === c.key ? "text-fg" : "text-fg-muted hover:text-fg"
+                      }`}
+                    >
+                      <span className="truncate">{c.key}</span>
+                      <span className="ml-2 shrink-0 font-mono text-[0.74rem] text-fg-faint tabular">
+                        {c.count}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          )}
         </div>
-      )}
-    </div>
-  </section>
+      </PageShell>
+    </>
   );
 }

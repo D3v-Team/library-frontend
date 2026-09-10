@@ -1,275 +1,190 @@
-// src/pages/Contact.jsx
-import {
-  Facebook,
-  Globe,
-  Instagram,
-  Mail,
-  MapPin,
-  MapPinned,
-  Phone,
-  Send,
-  Youtube,
-} from "lucide-react";
+import { ArrowRight, Facebook, Globe, Instagram, Mail, MapPin, Phone, Send, Youtube } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { useLocalized } from "../../lib/useLocalized";
 import { useGetContactInfoQuery } from "../../store/services/contact.info";
+import { safeHref } from "../../utils/url";
+import { Button, EmptyState, GirihSurface, Skeleton } from "../../ui";
+import { LocationMap, PageShell, SectionHeader } from "../../patterns";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
-import { safeHref } from "../../utils/url";
 
-const getSocialIcon = (platform) => {
-  switch (platform) {
-    case "facebook":
-      return Facebook;
-    case "instagram":
-      return Instagram;
-    case "telegram":
-      return Send;
-    case "youtube":
-      return Youtube;
-    default:
-      return Globe;
-  }
-};
+/**
+ * Aloqa sahifasi.
+ *
+ * Audit topilmasi: bu sahifa router da bor edi, lekin header va
+ * footer dan izohga olingani uchun faqat URL bilan ochilardi
+ * (3-bosqichda navigatsiyaga qaytarildi). Bundan tashqari xuddi shu
+ * ma'lumot bosh sahifadagi ContactHome da yana qo'lda yozilgan edi —
+ * ikkalasi ham hozir bitta manbadan (`useGetContactInfoQuery`)
+ * oziqlanadi va bir xil ko'rinadi.
+ */
+const socialIcon = (platform) =>
+  ({ facebook: Facebook, instagram: Instagram, telegram: Send, youtube: Youtube })[platform] ?? Globe;
 
 export default function Contact() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { pick } = useLocalized();
 
   const { data, isLoading, error } = useGetContactInfoQuery();
 
-  // Tilga qarab address ni olish
-  const getAddress = () => {
-    if (!data) return "-";
-    const lang = i18n.language;
-    if (lang === "uz") return data.address_latin;
-    if (lang === "ru") return data.address_ru;
-    if (lang === "cyrl") return data.address_cyril;
-    return data.address_latin || "-";
-  };
+  const address = pick(data, "address");
+  const social = data?.social_links ?? [];
 
-  if (isLoading) {
-    return (
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-10 lg:px-8">
-        <SEO {...SEO_CONFIG.contact} />
-        <div className="animate-pulse">
-          {/* Badge + heading */}
-          <div className="mb-4 flex items-center gap-3">
-            <span className="h-7 w-1 rounded-full bg-slate-300" />
-            <div className="h-4 w-36 rounded bg-slate-300" />
-          </div>
-          <div className="h-10 w-64 rounded-lg bg-slate-300" />
-          <div className="mt-4 h-4 w-96 max-w-full rounded bg-slate-300" />
-          {/* Cards grid */}
-          <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_380px]">
-            {/* Contact info card */}
-            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-5">
-              <div className="h-6 w-40 rounded bg-slate-300" />
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="h-11 w-11 shrink-0 rounded-xl bg-slate-300" />
-                  <div className="space-y-2 flex-1">
-                    <div className="h-3 w-20 rounded bg-slate-300" />
-                    <div className="h-5 w-48 rounded bg-slate-300" />
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* Social card */}
-            <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-3">
-              <div className="h-6 w-32 rounded bg-slate-300" />
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-xl border border-slate-100 p-4">
-                  <div className="h-10 w-10 rounded-lg bg-slate-300" />
-                  <div className="space-y-1.5 flex-1">
-                    <div className="h-4 w-24 rounded bg-slate-300" />
-                    <div className="h-3 w-40 rounded bg-slate-300" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Map skeleton */}
-          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-            <div className="flex items-center gap-3 border-b border-slate-100 p-5">
-              <div className="h-10 w-10 rounded-lg bg-slate-300" />
-              <div className="space-y-1.5">
-                <div className="h-5 w-36 rounded bg-slate-300" />
-                <div className="h-3 w-52 rounded bg-slate-300" />
-              </div>
-            </div>
-            <div className="h-[400px] w-full bg-slate-100" />
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-        <SEO {...SEO_CONFIG.contact} noIndex />
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-6 py-16 text-center">
-          <h2 className="text-xl font-semibold text-slate-900">
-            {t("contact.notFound")}
-          </h2>
-        </div>
-      </section>
-    );
-  }
-
-  const socialLinks = data?.social_links ?? [];
-  const address = getAddress();
-
-  // Platform nomini formatlash
-  const getPlatformLabel = (platform) => {
-    const labels = {
-      facebook: "Facebook",
-      instagram: "Instagram",
-      telegram: "Telegram",
-      youtube: "YouTube",
-    };
-    return labels[platform] || platform;
-  };
+  const rows = [
+    { key: "address", icon: MapPin, value: address },
+    { key: "phone", icon: Phone, value: data?.phone, href: data?.phone && `tel:${data.phone}`, mono: true },
+    { key: "email", icon: Mail, value: data?.email, href: data?.email && `mailto:${data.email}` },
+  ].filter((r) => r.value);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-10 lg:px-8">
+    <>
       <SEO {...SEO_CONFIG.contact} />
 
-      {/* HEADER */}
-      <div className="mb-4 flex items-center gap-3">
-        <span className="h-7 w-1 rounded-full bg-slate-900" />
-        <span className="text-sm font-semibold tracking-[0.12em] text-slate-900">
-          {t("contact.badge")}
-        </span>
-      </div>
+      <PageShell
+        breadcrumbs={[{ label: t("header.contact") }]}
+        eyebrow={t("contact.badge")}
+        title={t("contact.heading")}
+        lede={t("home.contact.lede")}
+      >
+        {error ? (
+          <EmptyState
+            title={t("contact.notFound")}
+            description={t("contact.errorHint")}
+            actions={
+              <Button size="sm" variant="primary" onClick={() => window.location.reload()}>
+                {t("media.retry")}
+              </Button>
+            }
+          />
+        ) : (
+          <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+            {/* ---------- Aloqa ma'lumotlari ---------- */}
+            <div>
+              <SectionHeader eyebrow={t("contact.info")} title={t("contact.info")} as="h2" />
 
-      <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-        {t("contact.heading")}
-      </h1>
+              <dl className="mt-8 flex flex-col border-t border-line">
+                {isLoading
+                  ? Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="border-b border-line-soft py-5">
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
+                    ))
+                  : rows.map((row) => {
+                      const Icon = row.icon;
 
-      <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-        {t("contact.description")}
-      </p>
+                      return (
+                        <div
+                          key={row.key}
+                          className="flex items-start gap-4 border-b border-line-soft py-5"
+                        >
+                          <Icon
+                            size={17}
+                            strokeWidth={1.8}
+                            aria-hidden="true"
+                            className="mt-0.5 shrink-0 text-gold-dim"
+                          />
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_380px]">
-        {/* CONTACT INFO */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">
-            {t("contact.info")}
-          </h2>
+                          <div className="min-w-0">
+                            <dt className="font-sans text-[0.72rem] uppercase tracking-[0.1em] text-fg-faint">
+                              {t(`contact.${row.key}`)}
+                            </dt>
+                            <dd
+                              className={`mt-1 leading-relaxed text-fg ${
+                                row.mono ? "font-mono text-[0.92rem] tabular" : "font-display text-[0.98rem]"
+                              }`}
+                            >
+                              {row.href ? (
+                                <a
+                                  href={row.href}
+                                  className="transition-colors duration-1 ease-out-soft hover:text-accent"
+                                >
+                                  {row.value}
+                                </a>
+                              ) : (
+                                row.value
+                              )}
+                            </dd>
+                          </div>
+                        </div>
+                      );
+                    })}
+              </dl>
 
-          <div className="mt-6 space-y-5">
-            <div className="flex gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                <MapPin size={20} />
-              </div>
+              {social.length > 0 && (
+                <div className="mt-10">
+                  <h3 className="font-sans text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-gold-dim">
+                    {t("contact.social")}
+                  </h3>
 
-              <div>
-                <p className="text-xs text-slate-400">{t("contact.address")}</p>
-                <p className="mt-1 text-sm font-medium text-slate-900">
-                  {address}
-                </p>
-              </div>
-            </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {social.map((item) => {
+                      const Icon = socialIcon(item.platform);
 
-            <div className="flex gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                <Phone size={20} />
-              </div>
-
-              <div>
-                <p className="text-xs text-slate-400">{t("contact.phone")}</p>
-                <a
-                  href={`tel:${data.phone}`}
-                  className="mt-1 block text-sm font-medium text-slate-900 hover:text-blue-600"
-                >
-                  {data.phone || "-"}
-                </a>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                <Mail size={20} />
-              </div>
-
-              <div>
-                <p className="text-xs text-slate-400">{t("contact.email")}</p>
-                <a
-                  href={`mailto:${data.email}`}
-                  className="mt-1 block text-sm font-medium text-slate-900 hover:text-blue-600"
-                >
-                  {data.email || "-"}
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SOCIAL */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">
-            {t("contact.social")}
-          </h2>
-
-          <div className="mt-6 space-y-3">
-            {socialLinks.map((item) => {
-              const Icon = getSocialIcon(item.platform);
-
-              return (
-                <a
-                  key={item.platform}
-                  href={safeHref(item.url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-blue-200 hover:bg-slate-50"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
-                    <Icon size={18} />
+                      return (
+                        <a
+                          key={item.platform}
+                          href={safeHref(item.url)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={item.platform}
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-field border border-line text-fg-muted transition-colors duration-1 ease-out-soft hover:border-gold hover:text-fg"
+                        >
+                          <Icon size={18} strokeWidth={1.8} />
+                        </a>
+                      );
+                    })}
                   </div>
+                </div>
+              )}
+            </div>
 
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">
-                      {getPlatformLabel(item.platform)}
-                    </p>
-                    <p className="text-xs text-slate-500">{item.url}</p>
-                  </div>
-                </a>
-              );
-            })}
+            {/* ---------- Xarita + xizmatlarga yo'l ---------- */}
+            <div className="flex flex-col gap-8">
+              <LocationMap
+                latitude={data?.latitude}
+                longitude={data?.longitude}
+                address={address}
+                title={t("contact.mapTitle")}
+                height="clamp(260px,36vh,380px)"
+              />
+
+              <GirihSurface as="aside" tone="deep" className="rounded-card p-8 sm:p-10">
+              <h2 className="font-display text-h3 font-semibold text-on-ink">
+                {t("contact.ctaTitle")}
+              </h2>
+
+              <p className="mt-3 max-w-measure font-sans text-[0.9rem] leading-relaxed text-on-ink/65">
+                {t("contact.ctaLede")}
+              </p>
+
+              <ul className="mt-8 flex flex-col gap-px overflow-hidden rounded-card border border-on-ink/15">
+                {[
+                  { label: t("books.heading"), to: "/books" },
+                  { label: t("header.faq"), to: "/faq" },
+                  { label: t("header.documents"), to: "/about/documents" },
+                ].map((link) => (
+                  <li key={link.to}>
+                    {/* Button emas, oddiy Link: `variant="onInk"` ning
+                        `bg-transparent` i bu yerdagi `bg-on-ink/5` bilan
+                        to'qnashardi va qaysi biri g'alaba qilishi CSS
+                        tartibiga bog'liq bo'lib qolardi. */}
+                    <Link
+                      to={link.to}
+                      className="flex items-center justify-between gap-3 bg-on-ink/5 px-5 py-4 font-display text-[0.95rem] font-medium text-on-ink transition-colors duration-1 ease-out-soft hover:bg-on-ink/10 hover:text-gold"
+                    >
+                      {link.label}
+                      <ArrowRight size={15} strokeWidth={1.8} aria-hidden="true" className="shrink-0 text-gold" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              </GirihSurface>
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* MAP */}
-      <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center gap-3 border-b border-slate-200 p-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
-            <MapPinned size={20} />
-          </div>
-
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">
-              {t("contact.location")}
-            </h2>
-            <p className="text-sm text-slate-500">
-              {t("contact.locationDesc")}
-            </p>
-          </div>
-        </div>
-
-        <iframe
-          title="Kutubxona joylashuvi"
-          src={`
-            https://www.google.com/maps?q=${data.latitude || 41.311081},${
-              data.longitude || 69.240562
-            }&output=embed
-          `}
-          className="h-[400px] w-full border-0"
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
-      </div>
-    </section>
+        )}
+      </PageShell>
+    </>
   );
 }

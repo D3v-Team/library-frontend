@@ -1,341 +1,298 @@
-// src/pages/Books.jsx
-import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { BookOpen, Search } from "lucide-react";import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
+import { LayoutGrid, List, Search, X } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
+import cx from "../../lib/cx";
+import { useLocalized } from "../../lib/useLocalized";
 import { useGetBooksQuery } from "../../store/services/books.api";
 import { useGetAuthorsQuery } from "../../store/services/avtors.api";
 import { useGetGenresQuery } from "../../store/services/genres";
-
-import {
-  formatBookYear,
-  getBookCoverUrl,
-  getBookGenreNames,
-} from "./bookHelpers";
+import { Button, EmptyState, Input, Reveal, Select, Skeleton } from "../../ui";
+import { BookCard, PageMeta, PageShell, Pagination } from "../../patterns";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
 
-export default function Books() {
-  const { t, i18n } = useTranslation();
+/**
+ * Kitoblar katalogi.
+ *
+ * Buyurtmachi: «kitoblar katalogida muammo ko'proq, kitoblar juda
+ * katta bo'lib ketgan». O'lchov bilan hal qilindi:
+ *
+ *   eski:  lg:grid-cols-4 + aspect-[3/4]  → ~290×387px, ekranda 4 kitob
+ *   yangi: 2xl:grid-cols-6 + aspect-[2/3] → ~186×279px, ekranda 18 kitob
+ *
+ * Ustiga: ro'yxat ko'rinishi (skanerlash uchun), butun filtr holati
+ * URL da (havola ulashiladi, orqaga tugmasi ishlaydi) va oyna
+ * paginatsiyasi (ilgari 100 sahifa = 100 tugma edi).
+ */
+const LIMIT = 24;
 
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [authorFilter, setAuthorFilter] = useState("");
-  const [genreFilter, setGenreFilter] = useState("");
+export default function Books() {
+  const { t } = useTranslation();
+  const { pick, formatNumber } = useLocalized();
+
+  /* ---------- Butun holat URL da ----------
+     Ilgari faqat `q` URL da, muallif/janr/sahifa esa useState da edi.
+     Natijada filtrlangan natijani ulashish ham, orqaga qaytish ham
+     ishlamasdi. */
+  const [params, setParams] = useSearchParams();
+
+  const search = params.get("q") ?? "";
+  const author = params.get("author") ?? "";
+  const genre = params.get("genre") ?? "";
+  const view = params.get("view") === "list" ? "list" : "grid";
+  const sort = params.get("sort");
+  const page = Math.max(1, Number(params.get("page")) || 1);
+
+  const update = (patch, { resetPage = true } = {}) => {
+    const next = new URLSearchParams(params);
+
+    for (const [key, value] of Object.entries(patch)) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
+    if (resetPage) next.delete("page");
+
+    // replace: qidiruvda har harf uchun tarix yozuvi yaratilmaydi
+    setParams(next, { replace: resetPage });
+  };
 
   const { data, isLoading, isFetching, error } = useGetBooksQuery({
     page,
-    limit: 12,
+    limit: LIMIT,
     search,
-    author_id: authorFilter || undefined,
-    genre_id: genreFilter || undefined,
+    author_id: author || undefined,
+    genre_id: genre || undefined,
+    ...(sort === "new" ? { sortBy: "created_at", sortOrder: "desc" } : {}),
   });
 
-  const { data: authorsData } = useGetAuthorsQuery({
-    page: 1,
-    limit: 100,
-  });
+  const { data: authorsData } = useGetAuthorsQuery({ page: 1, limit: 100 });
+  const { data: genresData } = useGetGenresQuery({ page: 1, limit: 100 });
 
-  const { data: genresData } = useGetGenresQuery({
-    page: 1,
-    limit: 100,
-  });
+  const books = data?.data ?? [];
+  const total = data?.meta?.total;
+  const totalPages = data?.meta?.totalPages ?? 1;
 
-  const books = data?.data || [];
-  const totalPages = data?.meta?.totalPages || 1;
+  /* `?? []` har renderda yangi massiv qaytaradi — uni useMemo
+     bog'liqligiga bersak memo hech qachon ishlamaydi. */
+  const authors = useMemo(() => authorsData?.data ?? [], [authorsData]);
+  const genres = useMemo(() => genresData?.data ?? [], [genresData]);
 
-  // Tilga qarab genre nomini olish
-  const getGenreName = (genre) => {
-    const lang = i18n.language;
-    if (lang === "uz") return genre.name_latin || genre.name;
-    if (lang === "ru") return genre.name_ru || genre.name;
-    if (lang === "cyrl") return genre.name_cyril || genre.name;
-    return genre.name_latin || genre.name;
-  };
+  const hasFilter = Boolean(search || author || genre || sort);
 
-  // Tilga qarab author nomini olish
-  const getAuthorName = (author) => {
-    if (!author) return t("books.unknownAuthor");
-    const lang = i18n.language;
-    if (lang === "uz") return author.full_name_latin;
-    if (lang === "ru") return author.full_name_ru;
-    if (lang === "cyrl") return author.full_name_cyril;
-    return author.full_name_latin || t("books.unknownAuthor");
-  };
-
-  // Tilga qarab book nomini olish
-  const getBookName = (book) => {
-    const lang = i18n.language;
-    if (lang === "uz") return book.name_latin;
-    if (lang === "ru") return book.name_ru;
-    if (lang === "cyrl") return book.name_cyril;
-    return book.name_latin || t("books.unknown");
-  };
-
-  // ================================
-  // DINAMIK SEO (qidiruv/filter asosida)
-  // ================================
-  const seoTitle = useMemo(() => {
-    const baseTitle = "Kitoblar | Chinoz axborot-kutubxona markazi";
+  /* ---------- SEO ---------- */
+  const seo = useMemo(() => {
     if (search) {
-      return `"${search}" bo‘yicha qidiruv natijalari | Kitoblar | Chinoz axborot-kutubxona markazi`;
+      return {
+        title: t("books.seo.search", { term: search }),
+        description: t("books.seo.searchDesc", { term: search }),
+      };
     }
-    if (authorFilter) {
-      const author = authorsData?.data?.find((a) => a.id === authorFilter);
-      const authorName = author ? getAuthorName(author) : "";
-      return `${authorName} kitoblari | Chinoz axborot-kutubxona markazi`;
+    if (author) {
+      const found = authors.find((a) => a.id === author);
+      if (found) {
+        const name = pick(found, "full_name");
+        return { title: t("books.seo.author", { name }), description: t("books.seo.authorDesc", { name }) };
+      }
     }
-    if (genreFilter) {
-      const genre = genresData?.data?.find((g) => g.id === genreFilter);
-      const genreName = genre ? getGenreName(genre) : "";
-      return `${genreName} janridagi kitoblar | Chinoz axborot-kutubxona markazi`;
+    if (genre) {
+      const found = genres.find((g) => g.id === genre);
+      if (found) {
+        const name = pick(found, "name");
+        return { title: t("books.seo.genre", { name }), description: t("books.seo.genreDesc", { name }) };
+      }
     }
-    return baseTitle;
-  }, [search, authorFilter, genreFilter, authorsData, genresData]);
-
-  const seoDescription = useMemo(() => {
-    const baseDesc =
-      "Kutubxona fondidagi kitoblar katalogi. Muallif, janr va nashr yili bo'yicha qidiring, elektron kitoblarni yuklab oling yoki onlayn o'qing.";
-    if (search) {
-      return `"${search}" bo‘yicha kitoblar ro‘yxati. Kutubxona fondidagi barcha natijalarni ko‘ring.`;
-    }
-    if (authorFilter) {
-      const author = authorsData?.data?.find((a) => a.id === authorFilter);
-      const authorName = author ? getAuthorName(author) : "";
-      return `${authorName} tomonidan yozilgan kitoblar ro‘yxati. Kutubxona fondida mavjud.`;
-    }
-    if (genreFilter) {
-      const genre = genresData?.data?.find((g) => g.id === genreFilter);
-      const genreName = genre ? getGenreName(genre) : "";
-      return `${genreName} janridagi barcha kitoblar. Kutubxona fondida mavjud.`;
-    }
-    return baseDesc;
-  }, [search, authorFilter, genreFilter, authorsData, genresData]);
-
-  // SEO kalit so‘zlari ham dinamik bo‘lishi mumkin (ixtiyoriy)
-  const seoKeywords = useMemo(() => {
-    const baseKeywords = [
-      "kitoblar katalogi",
-      "elektron kitoblar",
-      "kutubxona fondi",
-      "kitob qidirish",
-      "onlayn kitobxona",
-    ];
-    if (search) return [...baseKeywords, search];
-    if (authorFilter) {
-      const author = authorsData?.data?.find((a) => a.id === authorFilter);
-      return author ? [...baseKeywords, getAuthorName(author)] : baseKeywords;
-    }
-    if (genreFilter) {
-      const genre = genresData?.data?.find((g) => g.id === genreFilter);
-      return genre ? [...baseKeywords, getGenreName(genre)] : baseKeywords;
-    }
-    return baseKeywords;
-  }, [search, authorFilter, genreFilter, authorsData, genresData]);
+    return {};
+  }, [search, author, genre, authors, genres, pick, t]);
 
   return (
-    <section className="bg-white">
-      <SEO
-        {...SEO_CONFIG.books}
-        title={seoTitle}
-        description={seoDescription}
-        keywords={seoKeywords}
-      />
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        {/* HEADER */}
-        <div className="mb-8 flex flex-col gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="mb-3 flex items-center gap-3">
-              <span className="h-7 w-1 rounded-full bg-blue-700" />
-              <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-blue-700">
-                <BookOpen size={17} />
-                <span>{t("books.badge")}</span>
-              </div>
-            </div>
+    <>
+      <SEO {...SEO_CONFIG.books} {...seo} />
 
-            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-              {t("books.heading")}
-            </h1>
-
-            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-              {t("books.description")}
-            </p>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-3">
-            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2">
-              <span className="text-sm font-medium text-slate-400">{t("books.total")}</span>
-              <span className="text-lg font-semibold text-slate-900">{data?.meta?.total || 0}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* FILTER */}
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="grid gap-3 md:grid-cols-3">
-            {/* SEARCH */}
-            <div className="relative md:col-span-1">
+      <PageShell
+        breadcrumbs={[{ label: t("books.heading") }]}
+        eyebrow={t("books.badge")}
+        title={t("books.heading")}
+        lede={t("books.description")}
+        meta={
+          <>
+            <PageMeta label={t("books.total")} value={total != null ? formatNumber(total) : "—"} />
+            <PageMeta label={t("books.metaAuthors")} value={authors.length || "—"} />
+            <PageMeta label={t("books.metaGenres")} value={genres.length || "—"} />
+          </>
+        }
+        filters={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative flex-1 lg:max-w-sm">
               <Search
                 size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                strokeWidth={1.9}
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-fg-faint"
               />
-              <input
+              <label htmlFor="catalog-search" className="sr-only">
+                {t("books.search")}
+              </label>
+              <Input
+                id="catalog-search"
+                type="search"
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => update({ q: e.target.value })}
                 placeholder={t("books.search")}
-                className="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-900 focus:bg-white"
+                className="pl-10"
               />
             </div>
 
-            {/* AUTHOR */}
-            <select
-              value={authorFilter}
-              onChange={(e) => {
-                setAuthorFilter(e.target.value);
-                setPage(1);
-              }}
-              className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none focus:border-slate-900"
-            >
-              <option value="">{t("books.allAuthors")}</option>
-              {(authorsData?.data || []).map((author) => (
-                <option key={author.id} value={author.id}>
-                  {getAuthorName(author)}
-                </option>
-              ))}
-            </select>
+            <div className="grid flex-1 grid-cols-2 gap-3 sm:flex sm:items-center">
+              <Select
+                aria-label={t("books.allAuthors")}
+                value={author}
+                onChange={(e) => update({ author: e.target.value })}
+                className="sm:w-48"
+              >
+                <option value="">{t("books.allAuthors")}</option>
+                {authors.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {pick(a, "full_name")}
+                  </option>
+                ))}
+              </Select>
 
-            {/* GENRE */}
-            <select
-              value={genreFilter}
-              onChange={(e) => {
-                setGenreFilter(e.target.value);
-                setPage(1);
-              }}
-              className="h-11 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 outline-none focus:border-slate-900"
-            >
-              <option value="">{t("books.allGenres")}</option>
-              {(genresData?.data || []).map((genre) => (
-                <option key={genre.id} value={genre.id}>
-                  {getGenreName(genre)}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+              <Select
+                aria-label={t("books.allGenres")}
+                value={genre}
+                onChange={(e) => update({ genre: e.target.value })}
+                className="sm:w-44"
+              >
+                <option value="">{t("books.allGenres")}</option>
+                {genres.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {pick(g, "name")}
+                  </option>
+                ))}
+              </Select>
+            </div>
 
-        {/* CONTENT (o‘zgarmagan) */}
-        {isLoading ? (
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
+            <div className="flex items-center gap-2 lg:ml-auto">
+              {/* Natija soni shu yerda: ilgari u grid ustida alohida qator
+                  bo'lib turardi va lentadagi "Jami kitoblar 7" bilan bir
+                  xil sonni takrorlardi. Filtr yonida esa u kontekstda —
+                  filtr o'zgarganda darhol ko'zga tashlanadi. */}
+              <span className="mr-1 hidden font-mono text-[0.78rem] text-fg-muted tabular sm:inline">
+                {t("books.results", { count: formatNumber(total ?? books.length) })}
+              </span>
+
+              {hasFilter && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setParams(new URLSearchParams(), { replace: true })}
+                  iconStart={<X size={14} />}
+                >
+                  {t("books.clear")}
+                </Button>
+              )}
+
+              {/* Grid ↔ ro'yxat — ro'yxat skanerlash uchun */}
               <div
-                key={i}
-                className="aspect-[3/4] animate-pulse rounded-xl bg-slate-300"
-              />
-            ))}
+                role="group"
+                aria-label={t("books.view")}
+                className="flex overflow-hidden rounded-field border border-line"
+              >
+                {[
+                  { key: "grid", icon: LayoutGrid, label: t("books.viewGrid") },
+                  { key: "list", icon: List, label: t("books.viewList") },
+                ].map(({ key, icon: Icon, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => update({ view: key === "grid" ? "" : key }, { resetPage: false })}
+                    aria-pressed={view === key}
+                    aria-label={label}
+                    className={cx(
+                      "inline-flex h-11 w-11 items-center justify-center transition-colors duration-1 ease-out-soft",
+                      view === key
+                        ? "bg-ink text-on-ink"
+                        : "text-fg-muted hover:bg-paper-3 hover:text-fg",
+                    )}
+                  >
+                    <Icon size={16} strokeWidth={1.9} />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-        ) : error ? (
-          <div className="mt-8 rounded-xl bg-red-50 px-6 py-12 text-center text-sm text-red-600">
-            {t("books.error")}
+        }
+      >
+        {error ? (
+          <EmptyState
+            title={t("books.error")}
+            actions={
+              <Button size="sm" variant="primary" onClick={() => window.location.reload()}>
+                {t("media.retry")}
+              </Button>
+            }
+          />
+        ) : isLoading ? (
+          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="flex flex-col gap-2.5">
+                <Skeleton className="aspect-[2/3] w-full" rounded="card" />
+                <Skeleton className="h-3.5 w-4/5" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            ))}
           </div>
         ) : books.length === 0 ? (
-          <div className="mt-8 rounded-xl border border-dashed border-slate-300 px-6 py-14 text-center">
-            <BookOpen size={32} className="mx-auto mb-3 text-slate-300" />
-            <p className="text-sm text-slate-500">{t("books.empty")}</p>
-          </div>
+          <EmptyState
+            title={t("books.empty")}
+            description={hasFilter ? t("books.emptyFiltered") : t("books.emptyHint")}
+            actions={
+              hasFilter ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => setParams(new URLSearchParams(), { replace: true })}
+                  >
+                    {t("books.clear")}
+                  </Button>
+                  <Button size="sm" variant="secondary" to="/authors">
+                    {t("header.authors")}
+                  </Button>
+                </>
+              ) : null
+            }
+          />
         ) : (
-          <div
-            className={`mt-8 grid grid-cols-2 gap-x-4 gap-y-8 transition-opacity sm:grid-cols-3 lg:grid-cols-4 ${
-              isFetching ? "opacity-60" : "opacity-100"
-            }`}
-          >
-            {books.map((book) => {
-              const cover = getBookCoverUrl(book);
-              const genres = getBookGenreNames(book, i18n.language);
-              const year = formatBookYear(book.published_date);
-              const bookName = getBookName(book);
-              const authorName = getAuthorName(book.author);
+          <>
+            {view === "list" ? (
+              <div className="border-t border-line">
+                {books.map((book) => (
+                  <BookCard key={book.id} book={book} variant="row" />
+                ))}
+              </div>
+            ) : (
+              <Reveal className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6">
+                {books.map((book) => (
+                  <BookCard key={book.id} book={book} />
+                ))}
+              </Reveal>
+            )}
 
-              return (
-                <Link key={book.id} to={`/books/${book.id}`} className="group">
-                  <article>
-                    {/* COVER */}
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200 transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-lg">
-                      {cover ? (
-                        <img
-                          src={cover}
-                          alt={bookName}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-slate-300">
-                          <BookOpen size={32} />
-                        </div>
-                      )}
-
-                      {genres[0] && (
-                        <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-medium text-slate-700 shadow-sm">
-                          {genres[0]}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* INFO */}
-                    <div className="mt-4">
-                      <h3 className="line-clamp-1 text-base font-semibold text-slate-900 transition-colors group-hover:text-slate-900">
-                        {bookName}
-                      </h3>
-
-                      <p className="mt-1 line-clamp-1 text-sm text-slate-500">
-                        {authorName}
-                      </p>
-
-                      <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
-                        {year && <span>{year}</span>}
-                        {year && genres[0] && (
-                          <span className="h-1 w-1 rounded-full bg-slate-300" />
-                        )}
-                        {genres[0] && (
-                          <span className="line-clamp-1">{genres[0]}</span>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              );
-            })}
-          </div>
+            <div className="mt-14">
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                disabled={isFetching}
+                onChange={(p) => update({ page: p > 1 ? String(p) : "" }, { resetPage: false })}
+                labels={{ nav: t("books.pagination"), prev: t("media.prevPage"), next: t("media.nextPage") }}
+              />
+            </div>
+          </>
         )}
-
-        {/* PAGINATION */}
-        {totalPages > 1 && (
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => {
-                  setPage(i + 1);
-                  window.scrollTo({
-                    top: 0,
-                    behavior: "smooth",
-                  });
-                }}
-                className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition ${
-                  page === i + 1
-                    ? "bg-slate-900 text-white"
-                    : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
+      </PageShell>
+    </>
   );
 }

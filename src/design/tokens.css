@@ -1,0 +1,150 @@
+/* ============================================================
+   PESHTOQ — dizayn tokenlari
+   Butun public saytdagi YAGONA rang manbai.
+   Komponentga hex kod yozilmaydi — faqat shu yerdagi nomlar.
+
+   Ranglar RGB kanallari sifatida saqlanadi ("14 30 58"), chunki
+   Tailwind shundagina `bg-ink/40` kabi shaffoflik modifikatorini
+   hisoblab beradi. Yoniga qulaylik uchun tayyor `--ink` ham beriladi.
+
+   Mavzu <html data-theme="..."> orqali boshqariladi:
+     atribut yo'q            → yorug' (bugungi sayt shu holatda)
+     data-theme="light"      → yorug', tizim sozlamasidan qat'i nazar
+     data-theme="dark"       → tungi
+     data-theme="system"     → tizim sozlamasiga qaraydi
+
+   Nega "system" ham ATRIBUT talab qiladi: agar tizim tungi rejimi
+   avtomatik ishlaganda, OS da dark yoqilgan foydalanuvchida tokenlar
+   hoziroq to'q rangga o'tardi — lekin sayt komponentlari hali
+   `bg-white` da. Natijada, masalan, `prose` matni oq zaminda och
+   rangda chiqib o'qilmas bo'lardi. Shuning uchun avtomatik kuzatish
+   3-bosqichda, komponentlar tokenlarga o'tgach yoqiladi.
+
+   Tungi blokda FAQAT kanallar qayta belgilanadi — `--ink` kabi
+   hosila qiymatlar var() orqali o'zi yangilanadi.
+   ============================================================ */
+
+:root {
+  /* ---------- Brend ranglari (logotipdan) ---------- */
+  --ink-rgb:        14 30 58;      /* Siyoh — logotip navysi */
+  --ink-deep-rgb:    8 18 39;      /* Chuqur siyoh — hero, footer */
+  --ink-soft-rgb:   27 48 85;      /* Yumshoq siyoh — ikkilamchi panel */
+  --gold-rgb:      200 162 74;     /* Tilla — nur va patqalam */
+  --gold-dim-rgb:  143 114 51;     /* So'ngan tilla — chiziq */
+  --lapis-rgb:      28 110 130;    /* Lojuvard — interaktiv */
+  --lapis-lift-rgb: 79 168 184;    /* Feruza — tungi interaktiv */
+  --olive-rgb:      95 112 72;     /* Zaytun — muvaffaqiyat */
+  --clay-rgb:      162 84 47;      /* Terrakota — xato/ogohlantirish */
+
+  /* ---------- Sirtlar va matn (yorug' rejim) ---------- */
+  --paper-rgb:     246 241 230;    /* Asosiy zamin */
+  --paper-2-rgb:   251 248 242;    /* Ko'tarilgan sirt (kartochka) */
+  --paper-3-rgb:   237 230 214;    /* Cho'kkan sirt (input, skeleton) */
+  --line-rgb:      220 211 191;    /* Chegara */
+  --line-soft-rgb: 231 223 205;    /* Yengil ajratgich */
+  --fg-rgb:         14 30 58;      /* Asosiy matn */
+  --fg-muted-rgb:   91 85 72;      /* Ikkilamchi matn */
+  --fg-faint-rgb:  138 130 113;    /* Uchlamchi matn */
+  --accent-rgb:     28 110 130;    /* Havola, birlamchi tugma */
+  --on-ink-rgb:    246 241 230;    /* Siyoh ustidagi matn */
+
+  /* Sahifa zamini — brauzer chizadigan eng orqa qatlam.
+     4-bosqichda oq (#FFFFFF) dan qog'oz (#F6F1E6) ga o'tdi: bosh
+     sahifa endi butunlay tokenlarda ishlaydi, ya'ni "ikki xil oq"
+     muammosi yo'q. Qolgan ichki sahifalar 5-bosqichda o'tadi.
+
+     Nega umuman kerak: zamin belgilanmasa brauzer o'z groundini
+     chizadi va OS da tungi rejim yoqilgan foydalanuvchida
+     zaminsiz sahifalar qora chiqadi. */
+  --page-rgb:      246 241 230;
+
+  /* ---------- Soya ---------- */
+  --shadow-1: 0 1px 2px rgb(14 30 58 / .06), 0 2px 8px rgb(14 30 58 / .05);
+  --shadow-2: 0 2px 4px rgb(14 30 58 / .07), 0 10px 28px rgb(14 30 58 / .09);
+
+  /* ---------- Hosila ranglar (qo'lda yozilgan CSS uchun) ---------- */
+  --ink:        rgb(var(--ink-rgb));
+  --ink-deep:   rgb(var(--ink-deep-rgb));
+  --ink-soft:   rgb(var(--ink-soft-rgb));
+  --gold:       rgb(var(--gold-rgb));
+  --gold-dim:   rgb(var(--gold-dim-rgb));
+  --lapis:      rgb(var(--lapis-rgb));
+  --olive:      rgb(var(--olive-rgb));
+  --clay:       rgb(var(--clay-rgb));
+  --page:       rgb(var(--page-rgb));
+  --paper:      rgb(var(--paper-rgb));
+  --paper-2:    rgb(var(--paper-2-rgb));
+  --paper-3:    rgb(var(--paper-3-rgb));
+  --line:       rgb(var(--line-rgb));
+  --line-soft:  rgb(var(--line-soft-rgb));
+  --fg:         rgb(var(--fg-rgb));
+  --fg-muted:   rgb(var(--fg-muted-rgb));
+  --fg-faint:   rgb(var(--fg-faint-rgb));
+  --accent:     rgb(var(--accent-rgb));
+  --on-ink:     rgb(var(--on-ink-rgb));
+
+  /* ---------- Tipografika ---------- */
+  --font-display: Spectral, "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-sans:    "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ---------- Ritm ---------- */
+  --container: 1280px;                     /* YAGONA konteyner kengligi */
+  --gut: clamp(20px, 5vw, 64px);           /* Yon padding */
+  --measure: 68ch;                         /* Uzoq matn kengligi */
+  --header-h: 64px;                        /* Header balandligi — qo'lda takrorlanmaydi */
+
+  /* ---------- Radius (rol bo'yicha) ---------- */
+  --r-sm: 4px;    /* input, badge */
+  --r-md: 8px;    /* kartochka */
+  --r-lg: 14px;   /* modal, katta panel */
+
+  /* ---------- Harakat ---------- */
+  --e-out:   cubic-bezier(.16, 1, .3, 1);
+  --e-inout: cubic-bezier(.65, 0, .35, 1);
+  --d-1: 120ms;   /* javob: hover, bosish, fokus */
+  --d-2: 200ms;   /* o'tish: dropdown, tab, filtr */
+  --d-3: 320ms;   /* ochilish: modal, reveal */
+  --d-4: 560ms;   /* sahna: peshtoq, hero */
+}
+
+/* ---------- Tizim tungi rejimi (aniq opt-in) ----------
+   Faqat <html data-theme="system"> qo'yilganda ishlaydi. */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    --page-rgb:        8 18 39;
+    --paper-rgb:       8 18 39;
+    --paper-2-rgb:    14 30 58;
+    --paper-3-rgb:     6 14 30;
+    --line-rgb:       35 55 92;
+    --line-soft-rgb:  26 42 71;
+    --fg-rgb:        237 230 214;
+    --fg-muted-rgb:  169 180 199;
+    --fg-faint-rgb:  111 126 151;
+    --accent-rgb:     79 168 184;   /* lojuvard → feruza: to'q zaminda kontrast */
+    --gold-rgb:      217 183 106;
+    --gold-dim-rgb:  154 127 62;
+
+    --shadow-1: 0 1px 2px rgb(0 0 0 / .40);
+    --shadow-2: 0 2px 6px rgb(0 0 0 / .45), 0 14px 34px rgb(0 0 0 / .50);
+  }
+}
+
+/* ---------- Foydalanuvchi tanlagan tungi rejim ---------- */
+:root[data-theme="dark"] {
+  --page-rgb:        8 18 39;
+  --paper-rgb:       8 18 39;
+  --paper-2-rgb:    14 30 58;
+  --paper-3-rgb:     6 14 30;
+  --line-rgb:       35 55 92;
+  --line-soft-rgb:  26 42 71;
+  --fg-rgb:        237 230 214;
+  --fg-muted-rgb:  169 180 199;
+  --fg-faint-rgb:  111 126 151;
+  --accent-rgb:     79 168 184;
+  --gold-rgb:      217 183 106;
+  --gold-dim-rgb:  154 127 62;
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / .40);
+  --shadow-2: 0 2px 6px rgb(0 0 0 / .45), 0 14px 34px rgb(0 0 0 / .50);
+}

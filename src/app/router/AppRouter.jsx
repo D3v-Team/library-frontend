@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route } from "react-router-dom";
 import { Suspense } from "react";
 import PublicLayout from "../layout/PublicLayout";
 import MainLayout from "../layout/MainLayout";
@@ -22,17 +22,24 @@ export default function AppRouter() {
 
       {/* PUBLIC */}
       <Route element={<PublicLayout />}>
-        {ROUTES.map((r) => (
-          <Route
-            key={r.path}
-            path={r.path}
-            element={
-              <Suspense fallback={null}>
-                <r.component />
-              </Suspense>
-            }
-          />
-        ))}
+        {ROUTES.map((r) =>
+          // `redirect` li yozuv komponent yuklamaydi — yetim va dublikat
+          // yo'llarni tirik manzilga olib boradi (routes.config.js ga qarang).
+          // `replace` — orqaga tugmasi eski yo'lga qaytarib halqa yasamasin.
+          r.redirect ? (
+            <Route key={r.path} path={r.path} element={<Navigate to={r.redirect} replace />} />
+          ) : (
+            <Route
+              key={r.path}
+              path={r.path}
+              element={
+                <Suspense fallback={null}>
+                  <r.component />
+                </Suspense>
+              }
+            />
+          ),
+        )}
       </Route>
 
       {/* ADMIN */}

@@ -1,11 +1,7 @@
+import peshtoq from "./src/design/tailwind.preset.js";
+
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+export default {
+  presets: [peshtoq],
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
 };

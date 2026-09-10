@@ -1,0 +1,243 @@
+/* ============================================================
+   PESHTOQ — harakat qatlamining CSS bazasi
+
+   Hujjatdagi 12 naqsh. Bu ro'yxatdan tashqari animatsiya
+   yozilmaydi — shuning uchun har biri nomlangan va bir joyda.
+
+   Global `prefers-reduced-motion` o'chirgichi design/base.css da.
+   ============================================================ */
+
+/* ---------- Naqsh 1 — stagger reveal ----------
+   Yashirish holatini lib/useReveal.js JS orqali qo'yadi, markup
+   emas: JS ishlamasa kontent ko'rinib turishi kerak. */
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(10px);
+}
+[data-reveal="in"] {
+  animation: reveal var(--d-3) var(--e-out) both;
+}
+[data-reveal-group="pending"] > * {
+  opacity: 0;
+  transform: translateY(10px);
+}
+[data-reveal-group="in"] > * {
+  animation: reveal var(--d-3) var(--e-out) both;
+  /* animation-delay ni useReveal har bolaga alohida yozadi */
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Naqsh 2 — lift ----------
+   Faqat BOSILADIGAN obyektlarda. Oddiy kartochka ko'tarilmaydi. */
+.u-lift {
+  transition:
+    transform var(--d-1) var(--e-out),
+    box-shadow var(--d-1) var(--e-out),
+    border-color var(--d-1) var(--e-out);
+}
+.u-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-2);
+}
+
+/* ---------- Naqsh 3 — muqova tilt ----------
+   Kutubxonaning signatura mikro-harakati: kitob rasm emas,
+   qo'lga olinadigan narsa. */
+.u-tilt-wrap { perspective: 900px; }
+.u-tilt {
+  transform-style: preserve-3d;
+  transition:
+    transform var(--d-3) var(--e-out),
+    box-shadow var(--d-3) var(--e-out);
+}
+.u-tilt-wrap:hover .u-tilt,
+.u-tilt-wrap:focus-within .u-tilt {
+  transform: rotateY(-9deg) rotateX(3deg) translateZ(8px);
+  box-shadow: var(--shadow-2);
+}
+/* Muqova bo'ylab o'tadigan yorug'lik */
+.u-tilt-glint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 38%,
+    rgb(var(--on-ink-rgb) / 0.16) 50%,
+    transparent 62%
+  );
+  transition: opacity var(--d-3) var(--e-out);
+}
+.u-tilt-wrap:hover .u-tilt-glint,
+.u-tilt-wrap:focus-within .u-tilt-glint { opacity: 1; }
+
+/* ---------- Naqsh 4 — peshtoq ochilishi ----------
+   Ravoq maskasi ostidan rasm pastdan yuqoriga ochiladi. */
+.u-arch-veil {
+  position: absolute;
+  inset: 0;
+  transform: translateY(0);
+  transition: transform var(--d-4) var(--e-inout);
+}
+.u-arch:hover .u-arch-veil,
+.u-arch:focus-within .u-arch-veil,
+.u-arch[data-open="true"] .u-arch-veil {
+  transform: translateY(-101%);
+}
+
+/* ---------- Naqsh 5 — rule draw ----------
+   Bo'lim sarlavhasi ostidagi tilla chiziq chapdan o'ngga chiziladi. */
+.u-rule {
+  transform-origin: left center;
+}
+[data-reveal="pending"] .u-rule,
+[data-reveal-group="pending"] .u-rule { transform: scaleX(0); }
+[data-reveal="in"] .u-rule,
+[data-reveal-group="in"] .u-rule {
+  animation: ruleDraw var(--d-4) var(--e-inout) both;
+}
+@keyframes ruleDraw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ---------- Naqsh 3b — modal ochilishi ----------
+   Modallar ilgari BIR ZUMDA paydo bo'lib, bir zumda yo'qolardi
+   (`if (!open) return null`) — fon va panel hech qanday o'tishsiz
+   almashardi.
+
+   ATAYLAB `transition` emas, `animation`.
+   Sabab: transition ishga tushishi uchun brauzer avval boshlang'ich
+   holatni qayd etishi kerak, ya'ni React ikkinchi kadrda holatni
+   yoqishi kerak bo'ladi (`requestAnimationFrame`). Agar o'sha kadr
+   kelmasa — sahifa fonda yuklangan, ba'zi ichma-ich muhitlarda rAF
+   umuman ishga tushmaydi — modal `opacity: 0` da qolib, lekin fokus
+   tuzog'i va scroll bloki ishlab turadi. Ya'ni foydalanuvchi
+   ko'rinmas, lekin sahifani bloklab turgan modalga tushib qoladi.
+   Bu o'lchab tekshirildi.
+
+   Animatsiya esa boshlang'ich holatni o'z keyframe idan oladi va
+   birinchi kadrda ishga tushadi. Ikkinchi kadr kerak emas.
+
+   Kirish 320ms, chiqish 200ms — assimetrik: ochilish e'tiborni
+   tortadi, yopilish tez tugaydi. */
+.u-dialog-veil[data-open="true"] {
+  animation: dlgVeilIn var(--d-2) var(--e-out) both;
+}
+.u-dialog-veil[data-open="false"] {
+  animation: dlgVeilOut var(--d-2) var(--e-out) both;
+}
+@keyframes dlgVeilIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes dlgVeilOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.u-dialog-panel[data-open="true"] {
+  animation: dlgPanelIn var(--d-3) var(--e-out) both;
+}
+.u-dialog-panel[data-open="false"] {
+  animation: dlgPanelOut var(--d-2) var(--e-out) both;
+}
+@keyframes dlgPanelIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes dlgPanelOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(10px) scale(0.99); }
+}
+
+/* Mobilda pastdan chiqadigan varaq — panel ekran pastiga yopishgan,
+   shuning uchun siljish ham pastdan bo'ladi */
+@media (max-width: 639px) {
+  .u-dialog-panel[data-open="true"] {
+    animation: dlgSheetIn var(--d-3) var(--e-out) both;
+  }
+  .u-dialog-panel[data-open="false"] {
+    animation: dlgSheetOut var(--d-2) var(--e-out) both;
+  }
+}
+@keyframes dlgSheetIn {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes dlgSheetOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(100%); }
+}
+
+/* ---------- Naqsh 8 — rels inertsiyasi ----------
+   Marquee o'rnini shu oladi: foydalanuvchi boshqaradi. */
+.u-rail {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  /* Scrollbar yashiriladi — strelka tugmalari o'z vazifasini bajaradi */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.u-rail::-webkit-scrollbar { display: none; }
+.u-rail > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+/* ---------- Naqsh 9 — Ken Burns ----------
+   Saytdagi YAGONA ambient (o'z-o'zidan yuruvchi) harakat.
+   Hover da to'xtaydi — foydalanuvchi tafsilotga qarasa qimirlamaydi. */
+.u-kenburns {
+  animation: kenburns 8s var(--e-inout) both;
+}
+.u-kenburns:hover { animation-play-state: paused; }
+@keyframes kenburns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.05); }
+}
+
+/* ---------- Naqsh 10 — naqsh parallaksi ----------
+   Signatura sirtdagi girih to'ri scroll bilan sekinroq siljiydi.
+   `animation-timeline: scroll()` qo'llab-quvvatlanmasa naqsh
+   shunchaki qimirlamaydi — buzilish yo'q. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .u-parallax-tile {
+      animation: tileDrift linear both;
+      animation-timeline: scroll();
+    }
+  }
+}
+@keyframes tileDrift {
+  from { background-position: 0 0; }
+  to   { background-position: 0 -88px; }
+}
+
+/* ---------- Naqsh 12 — skeleton shimmer ----------
+   Hozirgi `bg-slate-300` qora blok effekti o'rniga iliq zamin
+   ustidan o'tadigan yengil tilla shu'la. */
+.u-shimmer {
+  background-color: var(--paper-3);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(var(--gold-rgb) / 0.14) 50%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1400ms linear infinite;
+}
+@keyframes shimmer {
+  from { background-position: -110% 0; }
+  to   { background-position: 210% 0; }
+}

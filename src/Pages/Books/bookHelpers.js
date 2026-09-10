@@ -1,4 +1,5 @@
 import { BASE_URL } from "../../store/api";
+import { getFormatters } from "../../lib/useLocalized";
 
 /** Absolute or relative media path → usable browser URL */
 export function resolveMediaUrl(url) {
@@ -62,15 +63,19 @@ export function formatBookYear(publishedDate) {
   return String(date.getFullYear());
 }
 
-export function formatBookDate(publishedDate) {
-  if (!publishedDate) return null;
-  const date = new Date(publishedDate);
-  if (Number.isNaN(date.getTime())) return String(publishedDate);
-  return date.toLocaleDateString("uz-UZ", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+/**
+ * Sanani o'zbekcha formatda beradi.
+ *
+ * Ilgari bu funksiya `toLocaleDateString("uz-UZ", { month: "long" })`
+ * ishlatardi — brauzerning o'zbek locale ma'lumoti yaroqsiz bo'lgani
+ * uchun natija "2026 M09 09" chiqardi (oy nomi o'rniga "M09").
+ * Endi markazlashgan formatterga topshiriladi.
+ *
+ * `lang` berilmasa lotin o'zbekcha ishlatiladi — bu funksiya React
+ * kontekstidan tashqarida ham chaqirilishi mumkin.
+ */
+export function formatBookDate(publishedDate, lang = "uz") {
+  return getFormatters(lang).formatDate(publishedDate);
 }
 
 /** Normalize date for <input type="date"> */

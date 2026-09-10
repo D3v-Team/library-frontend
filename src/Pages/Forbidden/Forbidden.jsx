@@ -1,34 +1,34 @@
-import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
+import { Button, EmptyState } from "../../ui";
+import { PageShell } from "../../patterns";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
 
+/** 403 — ruxsat yo'q */
 export default function Forbidden() {
+  const { t } = useTranslation();
+
   return (
-    <section className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center px-4 py-20 text-center sm:px-6 lg:px-8">
-      <SEO {...SEO_CONFIG.forbidden} noIndex />
-      <span className="text-sm font-semibold tracking-[0.12em] text-slate-400">
-        XATOLIK 403
-      </span>
+    <>
+      <SEO {...SEO_CONFIG.forbidden} />
 
-      <h1 className="mt-4 text-6xl font-semibold tracking-tight text-slate-900 sm:text-7xl">
-        403
-      </h1>
-
-      <h2 className="mt-4 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-        Kirish taqiqlangan
-      </h2>
-
-      <p className="mt-4 max-w-md text-sm leading-6 text-slate-500 sm:text-base">
-        Ushbu sahifani ko‘rish uchun sizda yetarli huquq yo‘q.
-      </p>
-
-      <Link
-        to="/"
-        className="mt-8 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
-      >
-        Bosh sahifaga qaytish
-      </Link>
-    </section>
+      <PageShell eyebrow="403" title={t("forbidden.heading")} lede={t("forbidden.description")}>
+        <EmptyState
+          title={t("forbidden.title")}
+          description={t("forbidden.hint")}
+          actions={
+            <>
+              <Button size="sm" variant="primary" to="/">
+                {t("header.home")}
+              </Button>
+              <Button size="sm" variant="secondary" to="/login">
+                {t("forbidden.login")}
+              </Button>
+            </>
+          }
+        />
+      </PageShell>
+    </>
   );
 }

@@ -16,8 +16,8 @@
     "openMenu": "Menyuni ochish",
     "closeMenu": "Menyuni yopish",
     "faq": "Ko'p so'raladigan savollar",
-  "privacy": "Maxfiylik siyosati",
-  "authors": "Mualliflar"
+    "privacy": "Maxfiylik siyosati",
+    "authors": "Mualliflar"
   },
   "hero": {
     "eyebrow": "CHINOZ AXBOROT-KUTUBXONA MARKAZI",
@@ -25,7 +25,7 @@
     "prev": "Oldingi slayd",
     "next": "Keyingi slayd"
   },
-   "announcements": {
+  "announcements": {
     "title": "YANGILIKLAR VA E'LONLAR",
     "heading": "E'lonlar",
     "description": "Kutubxona faoliyati, yangiliklari va muhim e'lonlar.",
@@ -54,7 +54,7 @@
     "error": "Yangi kitoblarni yuklashda xatolik yuz berdi.",
     "empty": "Hozircha yangi kitoblar mavjud emas."
   },
-   "books": {
+  "books": {
     "badge": "KUTUBXONA FONDI",
     "heading": "Kitoblar",
     "description": "Kutubxona fondidagi kitoblarni qidiring va saralang.",
@@ -65,11 +65,29 @@
     "error": "Kitoblarni yuklashda xatolik yuz berdi.",
     "empty": "Kitob topilmadi.",
     "unknown": "Nomsiz",
-    "unknownAuthor": "Muallif ko‘rsatilmagan"
+    "unknownAuthor": "Muallif ko‘rsatilmagan",
+    "metaAuthors": "muallif",
+    "metaGenres": "janr",
+    "clear": "Filtrni tozalash",
+    "view": "Ko'rinish",
+    "viewGrid": "To'r ko'rinishi",
+    "viewList": "Ro'yxat ko'rinishi",
+    "results": "{{count}} ta natija",
+    "pagination": "Sahifalar",
+    "emptyFiltered": "Tanlangan filtrlar birgalikda juda tor. Kengaytirib ko'ring.",
+    "emptyHint": "Fond ro'yxati hozircha bo'sh.",
+    "seo": {
+      "search": "\"{{term}}\" bo'yicha qidiruv",
+      "searchDesc": "\"{{term}}\" bo'yicha kutubxona fondidagi natijalar.",
+      "author": "{{name}} kitoblari",
+      "authorDesc": "{{name}} ning kutubxona fondidagi nashrlari.",
+      "genre": "{{name}} janridagi kitoblar",
+      "genreDesc": "{{name}} janridagi kutubxona nashrlari."
+    }
   },
-   "bookDetail": {
+  "bookDetail": {
     "back": "Kitoblar ro'yxatiga qaytish",
-    "loading": "Kitob yuklanmoqda",
+    "loading": "Yuklanmoqda…",
     "loadingDesc": "Kitob haqida ma'lumot yuklanmoqda.",
     "notFound": "Kitob topilmadi",
     "notFoundDesc": "Ushbu kitob mavjud emas yoki o'chirib yuborilgan.",
@@ -81,67 +99,114 @@
     "grade": "sinf",
     "nameCyril": "Nomi (kirill)",
     "nameRu": "Nomi (rus)",
-    "nationality": "Muallif millati",
+    "nationality": "Millati",
     "electronicCopy": "Elektron nusxa",
     "readOnline": "Onlayn o'qish",
     "download": "Yuklab olish",
     "file": "Fayl",
-    "downloadError": "Faylni yuklab olishda xatolik yuz berdi"
+    "downloadError": "Faylni yuklab olishda xatolik yuz berdi",
+    "year": "yil",
+    "files": "fayl",
+    "read": "O'qish",
+    "hasDigital": "Elektron nusxa bor",
+    "author": "Muallif",
+    "published": "Nashr sanasi",
+    "titleCyril": "Kirill yozuvida",
+    "titleRu": "Rus tilida",
+    "authorPage": "Muallif sahifasi",
+    "related": "Yonma-yon",
+    "sameAuthor": "{{name}} ning boshqa kitoblari",
+    "sameGenre": "{{name}} janridagi nashrlar",
+    "allByAuthor": "Barchasi",
+    "allByGenre": "Barchasi",
+    "notFoundHint": "Havola eskirgan yoki kitob fonddan chiqarilgan bo'lishi mumkin."
   },
   "events": {
-  "badge": "TADBIRLAR",
-  "heading": "Barcha tadbirlar",
-  "description": "Kutubxonamizda o‘tkaziladigan barcha madaniy-ma’rifiy tadbirlar va uchrashuvlar.",
-  "home": "Bosh sahifa",
-  "details": "Batafsil",
-  "category": "Tadbir",
-  "error": "Tadbirlarni yuklashda xatolik yuz berdi.",
-  "empty": "Hozircha tadbirlar mavjud emas.",
-  "noImage": "Rasm mavjud emas",
-  "back": "Tadbirlarga qaytish",
-  "loading": "Tadbir yuklanmoqda",
-  "loadingDesc": "Tadbir haqida ma'lumot yuklanmoqda.",
-  "notFound": "Tadbir topilmadi",
-  "notFoundDesc": "Ushbu tadbir mavjud emas yoki o‘chirib yuborilgan.",
-  "all": "Barcha tadbirlar"
-},
-"usefulLinks": {
-  "badge": "FOYDALI RESURSLAR",
-  "heading": "Foydali havolalar",
-  "description": "Ishonchli axborot resurslariga tezkor kirish.",
-  "source": "Rasmiy manba",
-  "footer": "Havolalar rasmiy tashkilot sahifalariga olib boradi.",
-  "error": "Foydali linklarni yuklashda xatolik yuz berdi."
-},
-"statistics": {
-  "badge": "Kutubxona raqamlarda",
-  "heading": "Kutubxonamiz faoliyati",
-  "headingSuffix": "raqamlarda",
-  "description": "Kutubxona fondi, kitobxonlar va asosiy faoliyatimiz haqida muhim statistik ma'lumotlar.",
-  "books": "Kitob fondi",
-  "booksDesc": "Kutubxona fondidagi nashrlar",
-  "readers": "Kitobxonlar",
-  "readersDesc": "Ro'yxatdan o'tgan foydalanuvchilar",
-  "resources": "Elektron resurslar",
-  "resourcesDesc": "Raqamli axborot resurslari",
-  "events": "Tadbirlar",
-  "eventsDesc": "Yil davomida o'tkazilgan tadbirlar"
-},
-"media": {
-  "badge": "MEDIA",
-  "heading": "Video va fotogalereya",
-  "description": "Kutubxona hayoti, tadbirlar va faoliyatimizdan foto va videolavhalar.",
-  "videos": "Videolar",
-  "photos": "Fotolar",
-  "play": "Videoni ko'rish",
-  "prev": "Oldingi media",
-  "next": "Keyingi media",
-  "all": "Barcha media",
-  "error": "Media ma'lumotlarini yuklashda xatolik yuz berdi.",
-  "noVideos": "Videolar mavjud emas",
-  "noPhotos": "Fotolar mavjud emas"
-},
-
+    "badge": "TADBIRLAR",
+    "heading": "Barcha tadbirlar",
+    "description": "Kutubxonamizda o‘tkaziladigan barcha madaniy-ma’rifiy tadbirlar va uchrashuvlar.",
+    "home": "Bosh sahifa",
+    "details": "Batafsil",
+    "category": "Tadbir",
+    "error": "Tadbirlarni yuklashda xatolik yuz berdi.",
+    "empty": "Hozircha tadbirlar mavjud emas.",
+    "noImage": "Rasm mavjud emas",
+    "back": "Tadbirlarga qaytish",
+    "loading": "Tadbir yuklanmoqda",
+    "loadingDesc": "Tadbir haqida ma'lumot yuklanmoqda.",
+    "notFound": "Tadbir topilmadi",
+    "notFoundDesc": "Ushbu tadbir mavjud emas yoki o‘chirib yuborilgan.",
+    "all": "Barcha tadbirlar",
+    "metaTotal": "tadbir",
+    "metaUpcoming": "yaqin",
+    "upcoming": "Kelayotgan",
+    "past": "O'tgan",
+    "emptyUpcoming": "Yaqin tadbirlar yo'q",
+    "emptyPast": "O'tgan tadbirlar yo'q",
+    "emptyHint": "Tadbirlar e'lon qilinganda shu yerda paydo bo'ladi.",
+    "date": "Sana",
+    "location": "Joy",
+    "otherTitle": "Boshqa tadbirlar",
+    "notFoundHint": "Havola eskirgan yoki tadbir o'chirilgan bo'lishi mumkin."
+  },
+  "usefulLinks": {
+    "badge": "FOYDALI RESURSLAR",
+    "heading": "Foydali havolalar",
+    "description": "Ishonchli axborot resurslariga tezkor kirish.",
+    "source": "Rasmiy manba",
+    "footer": "Havolalar rasmiy tashkilot sahifalariga olib boradi.",
+    "error": "Foydali linklarni yuklashda xatolik yuz berdi."
+  },
+  "statistics": {
+    "badge": "Kutubxona raqamlarda",
+    "heading": "Kutubxonamiz faoliyati",
+    "headingSuffix": "raqamlarda",
+    "description": "Kutubxona fondi, kitobxonlar va asosiy faoliyatimiz haqida muhim statistik ma'lumotlar.",
+    "books": "Kitob fondi",
+    "booksDesc": "Kutubxona fondidagi nashrlar",
+    "readers": "Kitobxonlar",
+    "readersDesc": "Ro'yxatdan o'tgan foydalanuvchilar",
+    "resources": "Elektron resurslar",
+    "resourcesDesc": "Raqamli axborot resurslari",
+    "events": "Tadbirlar",
+    "eventsDesc": "Yil davomida o'tkazilgan tadbirlar"
+  },
+  "media": {
+    "badge": "MEDIA",
+    "heading": "Video va fotogalereya",
+    "description": "Kutubxona hayoti, tadbirlar va faoliyatimizdan foto va videolavhalar.",
+    "videos": "Videolar",
+    "photos": "Fotolar",
+    "play": "Videoni ko'rish",
+    "prev": "Oldingi media",
+    "next": "Keyingi media",
+    "all": "Barcha media",
+    "error": "Media ma'lumotlarini yuklashda xatolik yuz berdi.",
+    "noVideos": "Videolar mavjud emas",
+    "noPhotos": "Fotolar mavjud emas",
+    "type": {
+      "photo": "Foto",
+      "video": "Video",
+      "presentation": "Taqdimot"
+    },
+    "metaAlbums": "albom",
+    "metaShown": "ko'rsatildi",
+    "metaItems": "fayl",
+    "metaDate": "sana",
+    "itemCount": "{{count}} fayl",
+    "untitled": "Nomsiz albom",
+    "empty": "Albomlar topilmadi",
+    "emptyHint": "Tanlangan tur bo'yicha albom yo'q. Barcha media'ni ko'rib chiqing.",
+    "emptyAlbum": "Bu albom hozircha bo'sh",
+    "emptyAlbumHint": "Fayllar yuklanganda shu yerda paydo bo'ladi.",
+    "errorHint": "Ulanishni tekshirib, qayta urinib ko'ring.",
+    "retry": "Qayta urinish",
+    "loading": "Yuklanmoqda…",
+    "notFound": "Albom topilmadi",
+    "notFoundHint": "Havola eskirgan yoki albom o'chirilgan bo'lishi mumkin.",
+    "prevPage": "Oldingi sahifa",
+    "nextPage": "Keyingi sahifa"
+  },
   "footer": {
     "brand": "Chinoz axborot-kutubxona markazi — kitobxonlar uchun axborot, ta'lim va madaniy xizmatlarni taqdim etuvchi zamonaviy markaz.",
     "navigation": "Sayt bo'limlari",
@@ -166,88 +231,89 @@
       "documents": "Hujjatlar",
       "privacy": "Maxfiylik siyosati"
     }
-  
-},
-
-"message": {
-  "title": "Biz bilan bog'laning",
-  "send": "Yuborish",
-  "sending": "Yuborilmoqda...",
-  "success": "Xabaringiz muvaffaqiyatli yuborildi",
-  "buttonLabel": "Xabar yuborish",
-  "placeholders": {
-    "name": "Ism familiya",
-    "email": "Email",
-    "phone": "Telefon raqam",
-    "message": "Xabaringiz"
   },
-  "errors": {
-    "name": "Ism familiyangizni kiriting",
-    "email": "Email kiriting",
-    "message": "Xabar kiriting",
-    "general": "Xabar yuborishda xatolik yuz berdi"
-  }
-},
-"documents": {
-  "badge": "HUJJATLAR",
-  "heading": "Rasmiy hujjatlar",
-  "description": "Kutubxona faoliyatiga oid qonun, qaror, buyruq va hisobotlar.",
-  "search": "Hujjat nomi bo'yicha qidirish...",
-  "download": "Yuklab olish",
-  "error": "Hujjatlarni yuklashda xatolik yuz berdi.",
-  "empty": "Hozircha hujjatlar mavjud emas.",
-  "notFound": "Hech narsa topilmadi.",
-  "categories": {
+  "message": {
+    "title": "Biz bilan bog'laning",
+    "send": "Yuborish",
+    "sending": "Yuborilmoqda...",
+    "success": "Xabaringiz muvaffaqiyatli yuborildi",
+    "buttonLabel": "Xabar yuborish",
+    "placeholders": {
+      "name": "Ism familiya",
+      "email": "Email",
+      "phone": "Telefon raqam",
+      "message": "Xabaringiz"
+    },
+    "errors": {
+      "name": "Ism familiyangizni kiriting",
+      "email": "Email kiriting",
+      "message": "Xabar kiriting",
+      "general": "Xabar yuborishda xatolik yuz berdi"
+    },
+    "description": "Savol, taklif yoki shikoyatingizni yozib qoldiring — kutubxonachi javob beradi."
+  },
+  "documents": {
+    "badge": "HUJJATLAR",
+    "heading": "Rasmiy hujjatlar",
+    "description": "Kutubxona faoliyatiga oid qonun, qaror, buyruq va hisobotlar.",
+    "search": "Hujjat nomi bo'yicha qidirish...",
+    "download": "Yuklab olish",
+    "error": "Hujjatlarni yuklashda xatolik yuz berdi.",
+    "empty": "Hujjatlar topilmadi",
+    "notFound": "Hech narsa topilmadi.",
+    "categories": "Kategoriyalar",
+    "metaTotal": "hujjat",
+    "metaCategories": "kategoriya",
     "all": "Barchasi",
-    "law": "Qonunlar",
-    "decision": "Qarorlar",
-    "order": "Buyruqlar",
-    "report": "Hisobotlar"
-  }
-},
-"management": {
-  "badge": "RAHBARIYAT",
-  "heading": "Rahbariyat",
-  "description": "Kutubxona rahbariyati va mas'ul xodimlar haqida ma'lumot.",
-  "error": "Ma'lumotlarni yuklashda xatolik yuz berdi.",
-  "empty": "Hozircha rahbariyat ma'lumotlari mavjud emas."
-},
-"authorDetail": {
-  "back": "Mualliflarga qaytish",
-  "pageTitle": "Muallif haqida",
-  "defaultDesc": "haqida ma'lumot",
-  "biography": "Tarjimai hol",
-  "birth": "Tug'ilgan",
-  "death": "Vafot",
-  "booksCount": "Kitoblari soni",
-  "notFound": "Muallif topilmadi yoki yuklashda xatolik yuz berdi.",
-  "clickToZoom": "Rasmni kattalashtirish uchun bosing"
-},
-
+    "emptyHint": "Hujjatlar yuklanganda shu yerda paydo bo'ladi.",
+    "emptyCategory": "Bu kategoriyada hujjat yo'q."
+  },
+  "management": {
+    "badge": "RAHBARIYAT",
+    "heading": "Rahbariyat",
+    "description": "Kutubxona rahbariyati va mas'ul xodimlar haqida ma'lumot.",
+    "error": "Ma'lumotlarni yuklashda xatolik yuz berdi.",
+    "empty": "Ma'lumot kiritilmagan",
+    "metaTotal": "xodim",
+    "reception": "Qabul kunlari",
+    "emptyHint": "Rahbariyat ro'yxati admin panelda to'ldiriladi."
+  },
+  "authorDetail": {
+    "back": "Mualliflarga qaytish",
+    "pageTitle": "Muallif haqida",
+    "defaultDesc": "haqida ma'lumot",
+    "biography": "Tarjimai hol",
+    "birth": "tug'ilgan",
+    "death": "vafot etgan",
+    "booksCount": "Kitoblari soni",
+    "notFound": "Muallif topilmadi",
+    "clickToZoom": "Rasmni kattalashtirish uchun bosing",
+    "books": "kitob",
+    "noBio": "Muallif haqida ma'lumot kiritilmagan.",
+    "booksTitle": "{{name}} ning kitoblari",
+    "noBooks": "Bu muallifning kitoblari topilmadi",
+    "noBooksHint": "Fondga kitob qo'shilganda shu yerda paydo bo'ladi.",
+    "loading": "Yuklanmoqda…",
+    "notFoundHint": "Havola eskirgan yoki yozuv o'chirilgan bo'lishi mumkin."
+  },
   "about": {
     "badge": "KUTUBXONA HAQIDA",
     "description": "Kutubxona haqida umumiy ma'lumot.",
     "noContent": "Hozircha ma'lumot mavjud emas.",
     "error": "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."
-},
-
+  },
   "faq": {
     "badge": "KO'P SO'RALADIGAN SAVOLLAR",
     "description": "Kutubxona haqida tez-tez beriladigan savollar va ularga javoblar.",
     "noContent": "Hozircha ma'lumot mavjud emas.",
     "error": "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."
-  
-},
-
+  },
   "policy": {
     "badge": "MAXFIYLIK SIYOSATI",
     "description": "Shaxsiy ma'lumotlarni himoya qilish siyosati.",
     "noContent": "Hozircha ma'lumot mavjud emas.",
     "error": "Sahifa ma'lumotlarini yuklashda xatolik yuz berdi."
-  
-},
-
-
+  },
   "author": {
     "badge": "KUTUBXONA MUALLIFLARI",
     "pageTitle": "Mualliflar",
@@ -255,10 +321,14 @@
     "empty": "Hozircha mualliflar mavjud emas.",
     "error": "Mualliflarni yuklashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
     "details": "Batafsil",
-    "unknownName": "Nomsiz"
-  
-},
-"contact": {
+    "unknownName": "Nomsiz",
+    "metaTotal": "muallif",
+    "metaLetters": "harf",
+    "alphabet": "Alifbo bo'yicha",
+    "all": "Barchasi",
+    "heading": "Mualliflar"
+  },
+  "contact": {
     "badge": "Bog‘lanish",
     "heading": "Biz bilan bog‘laning",
     "more": "Batafsil",
@@ -270,9 +340,141 @@
     "meta": {
       "title": "Kutubxona bilan bog‘lanish | Aloqa ma'lumotlari",
       "description": "Kutubxona manzili, telefon raqami, elektron pochta va ijtimoiy tarmoqlardagi sahifalarimiz."
+    },
+    "errorHint": "Aloqa ma'lumotlarini yuklashda xatolik yuz berdi.",
+    "ctaTitle": "Kutubxona xizmatlari",
+    "ctaLede": "Kitobga buyurtma, savol-javob va rasmiy hujjatlar.",
+    "notFound": "Aloqa ma'lumotlari topilmadi",
+    "mapTitle": "Kutubxona joylashuvi"
+  },
+  "brand": {
+    "short": "Chinoz kutubxonasi",
+    "kind": "Axborot-kutubxona markazi"
+  },
+  "nav": {
+    "primary": "Asosiy navigatsiya",
+    "searchLabel": "Kutubxona fondidan qidirish",
+    "searchPlaceholder": "Kitob yoki muallif nomi…",
+    "newsAndEvents": "Yangilik va tadbir",
+    "media": "Media galereya",
+    "newBooks": "Yangi kelganlar",
+    "latestBooks": "Oxirgi kelganlar",
+    "fondSize": "fondda {{count}} kitob",
+    "groupNote": "Kutubxona xizmatlari, hujjatlari va aloqa ma'lumotlari shu bo'limda to'plangan.",
+    "hint": {
+      "about": "Markaz tarixi, vazifasi va bugungi faoliyati",
+      "management": "Rahbariyat va bo'lim mudirlari",
+      "documents": "Nizom, buyruq va hisobotlar",
+      "books": "Fonddagi barcha nashrlar — janr, muallif va yil bo'yicha",
+      "newBooks": "Shu oyda fondga qo'shilgan kitoblar",
+      "authors": "Alifbo bo'yicha muallif ko'rsatkichi",
+      "news": "E'lonlar va kutubxona yangiliklari",
+      "events": "Kelayotgan va o'tgan tadbirlar",
+      "media": "Foto, video va taqdimotlar",
+      "bookOrder": "Kitobni oldindan buyurtma qilish",
+      "message": "Savol yoki taklifingizni yuborish",
+      "faq": "Ko'p so'raladigan savollarga javoblar",
+      "contact": "Manzil, telefon va ish vaqti",
+      "privacy": "Shaxsiy ma'lumotlar bilan ishlash qoidalari"
     }
+  },
+  "bookOrder": {
+    "description": "Kerakli kitobni tanlab, ma'lumotlaringizni qoldiring — kutubxonachi siz bilan bog'lanadi.",
+    "chooseBook": "Kitobni tanlang",
+    "untitled": "Nomsiz",
+    "fullName": "Ism-familiya",
+    "phone": "Telefon raqam",
+    "email": "Elektron pochta",
+    "message": "Qo'shimcha izoh",
+    "messageHint": "Ixtiyoriy",
+    "submit": "Buyurtma yuborish",
+    "sending": "Yuborilmoqda…",
+    "cancel": "Bekor qilish",
+    "prev": "Oldingi",
+    "next": "Keyingi",
+    "success": "Buyurtmangiz qabul qilindi!",
+    "error": "Buyurtma yuborishda xatolik",
+    "noBooks": "Kitoblar topilmadi",
+    "noBooksHint": "Hozircha fond ro'yxati bo'sh yoki yuklanmadi.",
+    "errors": {
+      "fullName": "Ism-familiya kiriting",
+      "phone": "Telefon raqam kiriting",
+      "email": "Elektron pochta kiriting",
+      "emailInvalid": "To'g'ri pochta manzilini kiriting",
+      "book": "Kitob tanlang"
+    }
+  },
+  "home": {
+    "hero": {
+      "titleLead": "Bilim sari",
+      "titleAccent": "yangi qadam",
+      "titleTail": "— kutubxona fondi qo'lingizda.",
+      "lede": "Kitoblar katalogi, mualliflar ko'rsatkichi, tadbirlar taqvimi va elektron nusxalar — barchasi bitta joyda.",
+      "cta": "Katalogdan izlash"
+    },
+    "stat": {
+      "books": "Fonddagi kitob",
+      "authors": "Muallif",
+      "genres": "Janr",
+      "events": "Tadbir"
+    },
+    "search": {
+      "title": "Kutubxona fondidan izlash",
+      "lede": "Kitob nomi yoki muallifni yozing. Yoki janrdan boshlang.",
+      "submit": "Izlash",
+      "genresLabel": "Janrlar:"
+    },
+    "fond": {
+      "title": "Yangi kelgan kitoblar",
+      "lede": "Fondga oxirgi qo'shilgan nashrlar."
+    },
+    "news": {
+      "all": "Barcha yangiliklar"
+    },
+    "events": {
+      "title": "Yaqin tadbirlar",
+      "lede": "Kutubxonada o'tkaziladigan madaniy-ma'rifiy tadbirlar.",
+      "all": "Barcha tadbirlar",
+      "allMonths": "Barchasi"
+    },
+    "maarifat": {
+      "motto": "Bilimga yo'l, ma'rifatga qadam",
+      "lede": "Chinoz axborot-kutubxona markazi aholining kitobxonlik madaniyatini rivojlantirish va ma'naviy-ma'rifiy bilimlarini oshirishga xizmat qiladi.",
+      "links": {
+        "history": "Kutubxona tarixi",
+        "management": "Rahbariyat",
+        "documents": "Hujjatlar"
+      }
+    },
+    "contact": {
+      "lede": "Manzil, telefon va ish vaqti. Savolingiz bo'lsa — online murojaat qoldiring."
+    }
+  },
+  "news": {
+    "metaTotal": "yozuv",
+    "published": "e'lon qilingan",
+    "more": "Yana",
+    "moreTitle": "Boshqa yangiliklar",
+    "notFoundHint": "Havola eskirgan yoki yozuv o'chirilgan bo'lishi mumkin."
+  },
+  "cms": {
+    "empty": "Sahifa matni kiritilmagan",
+    "emptyHint": "Bu sahifa admin panelda to'ldiriladi.",
+    "error": "Sahifani yuklashda xatolik",
+    "errorHint": "Ulanishni tekshirib, qayta urinib ko'ring.",
+    "updated": "yangilangan"
+  },
+  "notFound": {
+    "heading": "Sahifa topilmadi",
+    "description": "Bu manzilda sahifa yo'q.",
+    "title": "Bu yerda hech narsa yo'q",
+    "hint": "Havola eskirgan bo'lishi mumkin. Katalogdan boshlab ko'ring."
+  },
+  "forbidden": {
+    "heading": "Ruxsat yo'q",
+    "description": "Bu sahifani ko'rish uchun huquqingiz yetarli emas.",
+    "title": "Kirish taqiqlangan",
+    "hint": "Agar bu xato bo'lsa, kutubxona administratoriga murojaat qiling.",
+    "login": "Kirish"
   }
-
-
-  
 }

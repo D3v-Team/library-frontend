@@ -283,7 +283,7 @@ export default function Announcements() {
                         : "bg-slate-100 text-slate-500"
                     }`}
                   >
-                    {item.is_public === true ? "Faol" : "Yopiq"}
+                    {item.is_public === true ? "Faol" : "Nofaol"}
                   </button>
                 </div>
 

@@ -43,4 +43,22 @@ i18n
     },
   });
 
+// <html lang> ni tanlangan tilga sinxronlaydi.
+// Bu ekran o'qish dasturlari uchun (to'g'ri talaffuz), brauzerning
+// tire bilan bo'lish qoidalari va SEO uchun kerak.
+// Audit topilmasi: index.html da lang doim "en" edi.
+const HTML_LANG = {
+  uz: "uz",
+  ru: "ru",
+  cyrl: "uz-Cyrl",
+};
+
+function syncHtmlLang(lng) {
+  if (typeof document === "undefined") return;
+  document.documentElement.lang = HTML_LANG[lng] || "uz";
+}
+
+syncHtmlLang(i18n.language);
+i18n.on("languageChanged", syncHtmlLang);
+
 export default i18n;

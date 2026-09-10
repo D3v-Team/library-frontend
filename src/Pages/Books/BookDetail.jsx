@@ -1,341 +1,269 @@
-// src/pages/BookDetail.jsx
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, BookOpen, Download, FileText } from "lucide-react";
-import toast from "react-hot-toast";
+import { BookOpen, Download, FileText, User } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { useLocalized } from "../../lib/useLocalized";
+import { useGetBookByIdQuery, useGetBooksQuery } from "../../store/services/books.api";
 import {
-  useGetBookByIdQuery,
-  downloadBookFile,
-} from "../../store/services/books.api";
-import {
-  formatBookDate,
   formatBookYear,
   getBookCoverUrl,
   getBookFiles,
+  getBookGenreIds,
   getBookGenreNames,
   getFileViewUrl,
   isPdfFile,
 } from "./bookHelpers";
+import { Badge, Button, EmptyState, Rail, Skeleton } from "../../ui";
+import { BookCard, PageMeta, PageShell, SectionHeader } from "../../patterns";
 import SEO from "../../seo/SEO";
-import { truncateForMeta } from "../../seo/seoUtils";
 
+/**
+ * Kitob sahifasi.
+ *
+ * "Boylik retsepti" ning ikkinchi qoidasi bu yerda ko'rinadi: sahifa
+ * boshi berk ko'cha bo'lmaydi. Pastda ikki tavsiya relsi —
+ * shu muallifning boshqa kitoblari va shu janrdagi nashrlar.
+ * Ilgari kitob sahifasi tugagach hech qayerga yo'l qolmasdi.
+ */
 export default function BookDetail() {
-  const { t, i18n } = useTranslation();
   const { id } = useParams();
+  const { t } = useTranslation();
+  const { pick, formatDate } = useLocalized();
 
   const { data: book, isLoading, error } = useGetBookByIdQuery(id);
 
-  const getBookName = () => {
-    if (!book) return "";
-    const lang = i18n.language;
-    if (lang === "uz") return book.name_latin;
-    if (lang === "ru") return book.name_ru;
-    if (lang === "cyrl") return book.name_cyril;
-    return book.name_latin || "Nomsiz";
-  };
+  const authorId = book?.author?.id || book?.author_id;
+  const genreIds = getBookGenreIds(book ?? {});
 
-  const getAuthorName = () => {
-    if (!book?.author) return t("bookDetail.unknownAuthor");
-    const lang = i18n.language;
-    if (lang === "uz") return book.author.full_name_latin;
-    if (lang === "ru") return book.author.full_name_ru;
-    if (lang === "cyrl") return book.author.full_name_cyril;
-    return book.author.full_name_latin || t("bookDetail.unknownAuthor");
-  };
+  /* Tavsiyalar — faqat kitob kelgandan keyin so'raladi */
+  const byAuthor = useGetBooksQuery(
+    { page: 1, limit: 12, author_id: authorId },
+    { skip: !authorId },
+  );
+  const byGenre = useGetBooksQuery(
+    { page: 1, limit: 12, genre_id: genreIds[0] },
+    { skip: !genreIds[0] },
+  );
 
-  const getDescription = () => {
-    if (!book) return "";
-    const lang = i18n.language;
-    if (lang === "uz") return book.description_latin;
-    if (lang === "ru") return book.description_ru;
-    if (lang === "cyrl") return book.description_cyril;
-    return book.description_latin || "";
-  };
+  const sameAuthor = (byAuthor.data?.data ?? []).filter((b) => b.id !== id);
+  const sameGenre = (byGenre.data?.data ?? []).filter(
+    (b) => b.id !== id && !sameAuthor.some((a) => a.id === b.id),
+  );
 
-  const getNationality = () => {
-    if (!book?.author) return "";
-    const lang = i18n.language;
-    if (lang === "uz") return book.author.nationality_latin;
-    if (lang === "ru") return book.author.nationality_ru;
-    if (lang === "cyrl") return book.author.nationality_cyril;
-    return book.author.nationality_latin || "";
-  };
-
-  const files = getBookFiles(book);
-  const genres = getBookGenreNames(book, i18n.language);
-  const cover = getBookCoverUrl(book);
-  const bookName = getBookName();
-  const authorName = getAuthorName();
-  const description = getDescription();
-
-  const handleDownload = async (file) => {
-    try {
-      await downloadBookFile(id, file.id, file.name || file.original_name || "fayl");
-    } catch {
-      toast.error(t("bookDetail.downloadError"));
-    }
-  };
-
-  // ===== SKELETON =====
   if (isLoading) {
     return (
-      <section className="bg-white">
-        <SEO title={t("bookDetail.loading")} description={t("bookDetail.loadingDesc")} />
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <div className="animate-pulse">
-            <div className="mb-8 h-4 w-24 rounded bg-slate-300" />
-            <div className="grid gap-10 lg:grid-cols-[400px_1fr]">
-              {/* Rasm */}
-              <div className="aspect-[3/4] w-full rounded-2xl bg-slate-300 lg:max-h-[540px] lg:aspect-auto" />
-              {/* Kontent */}
-              <div className="space-y-5">
-                <div className="flex gap-2">
-                  <div className="h-6 w-20 rounded-full bg-slate-300" />
-                  <div className="h-6 w-16 rounded-full bg-slate-300" />
-                </div>
-                <div className="h-9 w-3/4 rounded-lg bg-slate-300" />
-                <div className="h-5 w-1/3 rounded bg-slate-300" />
-                <div className="space-y-2 pt-1">
-                  <div className="h-4 w-full rounded bg-slate-300" />
-                  <div className="h-4 w-full rounded bg-slate-300" />
-                  <div className="h-4 w-4/5 rounded bg-slate-300" />
-                </div>
-                <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="space-y-1.5">
-                      <div className="h-3 w-20 rounded bg-slate-300" />
-                      <div className="h-5 w-24 rounded bg-slate-300" />
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t border-slate-100 pt-6 space-y-2">
-                  <div className="h-4 w-32 rounded bg-slate-300" />
-                  <div className="flex items-center gap-3 rounded-lg border border-slate-100 p-3">
-                    <div className="h-10 w-10 shrink-0 rounded-lg bg-slate-300" />
-                    <div className="flex-1 h-4 rounded bg-slate-300" />
-                    <div className="h-8 w-24 rounded-lg bg-slate-300" />
-                  </div>
-                </div>
-              </div>
-            </div>
+      <PageShell breadcrumbs={[{ label: t("books.heading"), to: "/books" }]} title={t("bookDetail.loading")}>
+        <div className="grid gap-10 lg:grid-cols-[280px_1fr]">
+          <Skeleton className="aspect-[2/3] w-full" rounded="card" />
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-6 w-2/3" />
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-24 w-full" />
           </div>
         </div>
-      </section>
+      </PageShell>
     );
   }
 
-  // ===== ERROR =====
   if (error || !book) {
     return (
-      <section className="bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <SEO
-            title={t("bookDetail.notFound")}
-            description={t("bookDetail.notFoundDesc")}
-            noIndex
-          />
-          <Link
-            to="/books"
-            className="group mb-10 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
-          >
-            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-            {t("bookDetail.back")}
-          </Link>
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-20 text-center">
-            <BookOpen size={36} className="mx-auto mb-4 text-slate-300" />
-            <p className="text-sm text-slate-500">{t("bookDetail.notFoundError")}</p>
-          </div>
-        </div>
-      </section>
+      <PageShell breadcrumbs={[{ label: t("books.heading"), to: "/books" }]} title={t("bookDetail.notFound")}>
+        <EmptyState
+          title={t("bookDetail.notFound")}
+          description={t("bookDetail.notFoundHint")}
+          actions={
+            <Button size="sm" variant="primary" to="/books">
+              {t("books.heading")}
+            </Button>
+          }
+        />
+      </PageShell>
     );
   }
 
-  // ===== CONTENT =====
+  const title = pick(book, "name") || t("books.unknown");
+  const author = pick(book?.author, "full_name");
+  const description = pick(book, "description");
+  const cover = getBookCoverUrl(book);
+  const genres = getBookGenreNames(book);
+  const files = getBookFiles(book);
+  const pdf = files.find(isPdfFile);
+  const year = formatBookYear(book.published_date);
+
   return (
-    <section className="bg-white">
-      <SEO
-        title={bookName}
-        description={truncateForMeta(description || `${bookName} — ${authorName}`)}
-        image={cover}
-        type="book"
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "Book",
-          name: bookName,
-          author: authorName ? { "@type": "Person", name: authorName } : undefined,
-          image: cover || undefined,
-          description: truncateForMeta(description),
-        }}
-      />
+    <>
+      <SEO title={title} description={description || t("books.description")} image={cover} />
 
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        {/* Back */}
-        <Link
-          to="/books"
-          className="group mb-10 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
-        >
-          <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-          {t("bookDetail.back")}
-        </Link>
-
-        <div className={`grid gap-10 lg:gap-14 ${cover ? "lg:grid-cols-[400px_1fr]" : ""}`}>
-          {/* ── Chap: muqova ── */}
-          {cover && (
-            <div className="lg:sticky lg:top-24 lg:self-start">
-              <div className="overflow-hidden rounded-2xl bg-slate-100 shadow-md">
-                <img
-                  src={cover}
-                  alt={bookName}
-                  loading="lazy"
-                  className="w-full object-cover transition duration-500 hover:scale-105"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* ── O'ng: kontent ── */}
-          <div>
-            {/* Genre teglar */}
-            {genres.length > 0 && (
-              <div className="mb-4 flex flex-wrap gap-1.5">
-                {genres.map((name) => (
-                  <span
-                    key={name}
-                    className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-                  >
-                    {name}
+      <PageShell
+        breadcrumbs={[{ label: t("books.heading"), to: "/books" }, { label: title }]}
+        eyebrow={author || t("books.badge")}
+        title={title}
+        meta={
+          <>
+            <PageMeta label={t("bookDetail.year")} value={year ?? "—"} />
+            {book.grade_level != null && (
+              <PageMeta label={t("bookDetail.grade")} value={book.grade_level} />
+            )}
+            <PageMeta label={t("bookDetail.files")} value={files.length || "—"} />
+          </>
+        }
+        actions={
+          pdf ? (
+            <Button
+              variant="primary"
+              href={getFileViewUrl(pdf)}
+              target="_blank"
+              rel="noopener noreferrer"
+              iconStart={<BookOpen size={16} />}
+            >
+              {t("bookDetail.read")}
+            </Button>
+          ) : null
+        }
+      >
+        <div className="grid gap-10 lg:grid-cols-[280px_1fr] lg:gap-14">
+          {/* ---------- Muqova ---------- */}
+          <div className="u-tilt-wrap mx-auto w-full max-w-[280px] lg:mx-0">
+            <span className="u-tilt relative block aspect-[2/3] overflow-hidden rounded-card bg-ink-deep shadow-s2">
+              {cover ? (
+                <img src={cover} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center p-6">
+                  <span className="text-center font-display text-[1rem] leading-snug text-on-ink/80">
+                    {title}
                   </span>
+                </span>
+              )}
+              <span
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 w-2 bg-gradient-to-b from-transparent via-gold to-transparent"
+              />
+              <span className="u-tilt-glint" />
+            </span>
+          </div>
+
+          {/* ---------- Ma'lumot ---------- */}
+          <div className="flex flex-col gap-8">
+            {genres.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {genres.map((g) => (
+                  <Badge key={g}>{g}</Badge>
                 ))}
+                {pdf && <Badge tone="olive">{t("bookDetail.hasDigital")}</Badge>}
               </div>
             )}
 
-            {/* Sarlavha */}
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-              {bookName}
-            </h1>
-
-            {/* Muallif */}
-            <p className="mt-3 text-base font-medium text-slate-500">
-              {authorName}
-            </p>
-
-            {/* Tavsif */}
             {description && (
-              <p className="mt-5 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">
-                {description}
-              </p>
+              <div className="prose">
+                <p>{description}</p>
+              </div>
             )}
 
-            {/* Meta */}
-            <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-slate-100 pt-7 sm:grid-cols-3">
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  {t("bookDetail.publishDate")}
-                </dt>
-                <dd className="mt-1.5 text-sm font-semibold text-slate-800">
-                  {formatBookDate(book.published_date) || "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  {t("bookDetail.publishYear")}
-                </dt>
-                <dd className="mt-1.5 text-sm font-semibold text-slate-800">
-                  {formatBookYear(book.published_date) || "—"}
-                </dd>
-              </div>
-              {book.grade_level != null && (
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {t("bookDetail.gradeLevel")}
-                  </dt>
-                  <dd className="mt-1.5 text-sm font-semibold text-slate-800">
-                    {book.grade_level}-{t("bookDetail.grade")}
-                  </dd>
-                </div>
-              )}
-              {getNationality() && (
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {t("bookDetail.nationality")}
-                  </dt>
-                  <dd className="mt-1.5 text-sm font-semibold text-slate-800">
-                    {getNationality()}
-                  </dd>
-                </div>
-              )}
-              {book.name_cyril && (
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {t("bookDetail.nameCyril")}
-                  </dt>
-                  <dd className="mt-1.5 text-sm font-semibold text-slate-800">
-                    {book.name_cyril}
-                  </dd>
-                </div>
-              )}
-              {book.name_ru && (
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {t("bookDetail.nameRu")}
-                  </dt>
-                  <dd className="mt-1.5 text-sm font-semibold text-slate-800">
-                    {book.name_ru}
-                  </dd>
-                </div>
-              )}
+            {/* Kontekst metadata — mono, ustunda tekislangan */}
+            <dl className="grid gap-x-10 gap-y-4 border-t border-line pt-6 sm:grid-cols-2">
+              {[
+                { label: t("bookDetail.author"), value: author },
+                { label: t("bookDetail.nationality"), value: pick(book?.author, "nationality") },
+                { label: t("bookDetail.published"), value: formatDate(book.published_date) },
+                { label: t("bookDetail.titleCyril"), value: book.name_cyril },
+                { label: t("bookDetail.titleRu"), value: book.name_ru },
+              ]
+                .filter((row) => row.value)
+                .map((row) => (
+                  <div key={row.label} className="flex flex-col gap-1">
+                    <dt className="font-sans text-[0.72rem] uppercase tracking-[0.1em] text-fg-faint">
+                      {row.label}
+                    </dt>
+                    <dd className="font-display text-[0.95rem] text-fg">{row.value}</dd>
+                  </div>
+                ))}
             </dl>
 
-            {/* Elektron nusxa */}
+            {/* Fayllar */}
             {files.length > 0 && (
-              <div className="mt-8 border-t border-slate-100 pt-7">
-                <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-900">
-                  {t("bookDetail.electronicCopy")}
+              <div>
+                <h2 className="font-sans text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-gold-dim">
+                  {t("bookDetail.files")}
                 </h2>
-                <div className="space-y-2">
-                  {files.map((file) => {
-                    const viewUrl = getFileViewUrl(file);
-                    const canView = Boolean(viewUrl) || isPdfFile(file);
 
-                    return (
-                      <div
-                        key={file.id}
-                        className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:border-slate-300"
+                <ul className="mt-4 border-t border-line">
+                  {files.map((file, i) => (
+                    <li key={file.id ?? i} className="border-b border-line-soft">
+                      <a
+                        href={getFileViewUrl(file)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 py-3.5 transition-colors duration-1 ease-out-soft hover:text-accent"
                       >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-500">
-                          <FileText size={18} />
-                        </div>
-                        <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">
-                          {file.name || file.original_name || t("bookDetail.file")}
-                        </p>
-                        {canView && viewUrl && (
-                          <a
-                            href={viewUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
-                          >
-                            {t("bookDetail.readOnline")}
-                          </a>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleDownload(file)}
-                          className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800"
-                        >
-                          <Download size={13} />
-                          {t("bookDetail.download")}
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+                        <FileText size={16} strokeWidth={1.8} className="shrink-0 text-gold-dim" />
+                        <span className="min-w-0 flex-1 truncate font-sans text-[0.88rem] text-fg">
+                          {file.name || file.original_name || file.filename || t("bookDetail.file")}
+                        </span>
+                        <Download size={15} strokeWidth={1.8} className="shrink-0 text-fg-faint" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {authorId && (
+              <div>
+                <Button variant="secondary" to={`/authors/${authorId}`} iconStart={<User size={15} />}>
+                  {t("bookDetail.authorPage")}
+                </Button>
               </div>
             )}
           </div>
         </div>
-      </div>
-    </section>
+
+        {/* ---------- Yonma-yon havolalar: sahifa berk ko'cha bo'lmaydi ---------- */}
+        {sameAuthor.length > 0 && (
+          <div className="mt-20 border-t border-line pt-14">
+            <SectionHeader
+              eyebrow={t("bookDetail.related")}
+              title={t("bookDetail.sameAuthor", { name: author })}
+              action={
+                <Button variant="secondary" to={`/books?author=${authorId}`}>
+                  {t("bookDetail.allByAuthor")}
+                </Button>
+              }
+            />
+            <div className="mt-8">
+              <Rail label={t("bookDetail.sameAuthor", { name: author })}>
+                {sameAuthor.map((b) => (
+                  <div key={b.id} className="w-40">
+                    <BookCard book={b} />
+                  </div>
+                ))}
+              </Rail>
+            </div>
+          </div>
+        )}
+
+        {sameGenre.length > 0 && (
+          <div className="mt-16 border-t border-line pt-14">
+            <SectionHeader
+              eyebrow={t("bookDetail.related")}
+              title={t("bookDetail.sameGenre", { name: genres[0] })}
+              action={
+                <Button variant="secondary" to={`/books?genre=${genreIds[0]}`}>
+                  {t("bookDetail.allByGenre")}
+                </Button>
+              }
+            />
+            <div className="mt-8">
+              <Rail label={t("bookDetail.sameGenre", { name: genres[0] })}>
+                {sameGenre.map((b) => (
+                  <div key={b.id} className="w-40">
+                    <BookCard book={b} />
+                  </div>
+                ))}
+              </Rail>
+            </div>
+          </div>
+        )}
+      </PageShell>
+    </>
   );
 }

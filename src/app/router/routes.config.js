@@ -24,20 +24,15 @@ export const ROUTES = [
     component: lazy(() => import("../../Pages/Services/Policy.jsx")),
     roles: null,
   },
-  {
-    path: "/about/history",
-    component: lazy(() => import("../../Pages/About/About.jsx")),
-    roles: null,
-  },
  
   {
     path: "/authors",
-    component: lazy(() => import("../../Pages/Home/Author.jsx")),
+    component: lazy(() => import("../../Pages/Authors/Authors.jsx")),
     roles: null,
   },
   {
     path: "/authors/:id",
-    component: lazy(() => import("../../Pages/Home/AuthorDetail.jsx")),
+    component: lazy(() => import("../../Pages/Authors/AuthorDetail.jsx")),
     roles: null,
   },
 
@@ -49,11 +44,6 @@ export const ROUTES = [
   // --- Books ---
   {
     path: "/books",
-    component: lazy(() => import("../../Pages/Books/Books.jsx")),
-    roles: null,
-  },
-  {
-    path: "/books/new",
     component: lazy(() => import("../../Pages/Books/Books.jsx")),
     roles: null,
   },
@@ -99,11 +89,6 @@ export const ROUTES = [
  
 
 
-  {
-    path: "/services/faq",
-    component: lazy(() => import("../../Pages/Services/FAQ.jsx")),
-    roles: null,
-  },
   
   // --- Media ---
 
@@ -118,7 +103,7 @@ export const ROUTES = [
   },
   {
     path: "/about/management",
-    component: lazy(() => import("../../Pages/Home/Manegement")),
+    component: lazy(() => import("../../Pages/Management/Management.jsx")),
     roles: null,
   },
 
@@ -130,6 +115,40 @@ export const ROUTES = [
   {
     path: "/contact",
     component: lazy(() => import("../../Pages/Contact/Contact.jsx")),
+    roles: null,
+  },
+
+  // --- Media ---
+  // Audit topilmasi: bu route MAVJUD EMAS edi. Admin panelda media
+  // albomlari boshqariladi va bosh sahifada media bo'limi bor, lekin
+  // ochiladigan public sahifa yo'q edi.
+  {
+    path: "/media",
+    component: lazy(() => import("../../Pages/Media/Media.jsx")),
+    roles: null,
+  },
+  {
+    path: "/media/:id",
+    component: lazy(() => import("../../Pages/Media/MediaDetail.jsx")),
+    roles: null,
+  },
+
+  // --- Yetim va dublikat yo'llar uchun yo'naltirishlar ---
+  // Bu yo'llar avval mavjud bo'lgan (yoki tashqi manbalarda havola
+  // qilingan) bo'lishi mumkin, shuning uchun 404 emas, redirect:
+  //   /services/faq  → /faq            (bir komponent, ikki yo'l)
+  //   /books/new     → /books?sort=new (avval /books ning dublikati edi)
+  //   /about/history → /about          (avval /about ning dublikati edi)
+  { path: "/services/faq", redirect: "/faq", roles: null },
+  { path: "/books/new", redirect: "/books?sort=new", roles: null },
+  { path: "/about/history", redirect: "/about", roles: null },
+
+  // --- Dizayn stansiyasi ko'rgazmasi (faqat ishlab chiqish uchun) ---
+  // Navigatsiyada yo'q va sayt xaritasiga kirmaydi. Kerak bo'lmasa
+  // shu yozuvni va src/dev/ papkasini o'chirish kifoya.
+  {
+    path: "/__ui",
+    component: lazy(() => import("../../dev/UiGallery.jsx")),
     roles: null,
   },
 
@@ -166,11 +185,7 @@ export const ADMIN_ROUTES = [
   },
 
  
-  {
-    path: "/admin/books",
-    component: lazy(() => import("../../Pages/Admin/Books.jsx")),
-    roles: ADMIN_ROLES,
-  },
+
   {
     path: "/admin/books/:id",
     component: lazy(() => import("../../Pages/Admin/BookDetail.jsx")),
@@ -179,6 +194,11 @@ export const ADMIN_ROUTES = [
   {
     path: "/admin/genres",
     component: lazy(() => import("../../Pages/Admin/Genres.jsx")),
+    roles: ADMIN_ROLES,
+  },
+  {
+    path: "/admin/books",
+    component: lazy(() => import("../../Pages/Admin/Books.jsx")),
     roles: ADMIN_ROLES,
   },
   {
