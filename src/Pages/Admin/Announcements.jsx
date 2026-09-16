@@ -27,6 +27,7 @@ import {
 } from "../../store/services/announcements.api";
 
 import { BASE_URL } from "../../store/api";
+import apiError from "../../lib/apiError";
 
 const emptyForm = {
   title_latin: "",
@@ -179,7 +180,7 @@ export default function Announcements() {
       closeModal();
       refetch();
     } catch (err) {
-      const backendError = err?.data?.message;
+      const backendError = apiError(err);
       if (typeof backendError === 'string') {
         toast.error(backendError);
       } else if (err?.data?.errors) {
@@ -202,7 +203,7 @@ export default function Announcements() {
       setDeleteTarget(null);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "O'chirishda xatolik");
+      toast.error(apiError(err, "O'chirishda xatolik"));
     }
   };
 
@@ -214,7 +215,7 @@ export default function Announcements() {
       }).unwrap();
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Holatni o'zgartirib bo'lmadi");
+      toast.error(apiError(err, "Holatni o'zgartirib bo'lmadi"));
     }
   };
 

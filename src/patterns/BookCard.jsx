@@ -69,7 +69,13 @@ export default function BookCard({ book, variant = "grid" }) {
           ) : (
             // Muqovasiz yozuv — kulrang ikonka emas, tipografik plagin
             <span className="flex h-full w-full items-center justify-center p-3">
-              <span className="line-clamp-4 text-center font-display text-[0.8rem] leading-snug text-on-ink/80">
+              {/* `w-full` + `overflow-wrap:anywhere` — ikkalasi ham kerak:
+                  matn flex elementi bo'lgani uchun `min-width: auto` bilan
+                  kontentidan kichrayolmaydi, shuning uchun uzluksiz sarlavha
+                  ("TESTTESTTEST...") umuman o'ralmay, muqovadan chiqib
+                  ketardi. `anywhere` faqat zarurat bo'lganda sindiradi —
+                  oddiy sarlavhalar so'z chegarasida o'raladi. */}
+              <span className="line-clamp-4 w-full [overflow-wrap:anywhere] text-center font-display text-[0.8rem] leading-snug text-on-ink/80">
                 {title}
               </span>
             </span>
@@ -83,12 +89,12 @@ export default function BookCard({ book, variant = "grid" }) {
           <span className="u-tilt-glint" />
         </span>
 
-        <h3 className={cx("mt-2.5 line-clamp-2 font-display font-semibold leading-snug text-fg", "text-[0.86rem]")}>
+        <h3 className={cx("mt-2.5 line-clamp-2 [overflow-wrap:anywhere] font-display font-semibold leading-snug text-fg", "text-[0.86rem]")}>
           {title}
         </h3>
 
         {author && (
-          <p className="mt-0.5 line-clamp-1 font-sans text-[0.76rem] text-fg-muted">{author}</p>
+          <p className="mt-0.5 line-clamp-1 [overflow-wrap:anywhere] font-sans text-[0.76rem] text-fg-muted">{author}</p>
         )}
 
         <p className="mt-1 flex items-center gap-2 font-mono text-[0.7rem] text-fg-faint tabular">

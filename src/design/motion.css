@@ -237,6 +237,24 @@
   background-repeat: no-repeat;
   animation: shimmer 1400ms linear infinite;
 }
+/* To'q sirt uchun variant.
+   `.u-shimmer` qog'oz zaminli (--paper-3) va siyoh hero ustida u
+   oq to'rtburchak bo'lib ko'rinadi. Bu yerda zamin siyoh, shu'la esa
+   kuchsizroq — chunki to'q fonda bir xil yorqinlikdagi gradient
+   ancha keskin ko'rinadi. */
+.u-shimmer-ink {
+  background-color: var(--ink-deep);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(var(--gold-rgb) / 0.10) 50%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1400ms linear infinite;
+}
+
 @keyframes shimmer {
   from { background-position: -110% 0; }
   to   { background-position: 210% 0; }

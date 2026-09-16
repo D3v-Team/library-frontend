@@ -35,6 +35,9 @@
   --lapis-lift-rgb: 79 168 184;    /* Feruza — tungi interaktiv */
   --olive-rgb:      95 112 72;     /* Zaytun — muvaffaqiyat */
   --clay-rgb:      162 84 47;      /* Terrakota — xato/ogohlantirish */
+  --clay-tint-rgb: 246 234 229;    /* Terrakotaning och pardasi */
+  --olive-tint-rgb: 235 239 229;   /* Zaytunning och pardasi */
+  --gold-tint-rgb: 249 242 226;    /* Tillaning och pardasi */
 
   /* ---------- Sirtlar va matn (yorug' rejim) ---------- */
   --paper-rgb:     246 241 230;    /* Asosiy zamin */
@@ -46,6 +49,7 @@
   --fg-muted-rgb:   91 85 72;      /* Ikkilamchi matn */
   --fg-faint-rgb:  138 130 113;    /* Uchlamchi matn */
   --accent-rgb:     28 110 130;    /* Havola, birlamchi tugma */
+  --accent-tint-rgb: 225 238 241;  /* Lojuvardning eng och pardasi — admin badge zamini */
   --on-ink-rgb:    246 241 230;    /* Siyoh ustidagi matn */
 
   /* Sahifa zamini — brauzer chizadigan eng orqa qatlam.
@@ -71,6 +75,9 @@
   --lapis:      rgb(var(--lapis-rgb));
   --olive:      rgb(var(--olive-rgb));
   --clay:       rgb(var(--clay-rgb));
+  --clay-tint:  rgb(var(--clay-tint-rgb));
+  --olive-tint: rgb(var(--olive-tint-rgb));
+  --gold-tint:  rgb(var(--gold-tint-rgb));
   --page:       rgb(var(--page-rgb));
   --paper:      rgb(var(--paper-rgb));
   --paper-2:    rgb(var(--paper-2-rgb));
@@ -81,6 +88,7 @@
   --fg-muted:   rgb(var(--fg-muted-rgb));
   --fg-faint:   rgb(var(--fg-faint-rgb));
   --accent:     rgb(var(--accent-rgb));
+  --accent-tint: rgb(var(--accent-tint-rgb));
   --on-ink:     rgb(var(--on-ink-rgb));
 
   /* ---------- Tipografika ---------- */
@@ -121,9 +129,17 @@
     --fg-rgb:        237 230 214;
     --fg-muted-rgb:  169 180 199;
     --fg-faint-rgb:  111 126 151;
-    --accent-rgb:     79 168 184;   /* lojuvard → feruza: to'q zaminda kontrast */
+    --accent-rgb:     79 168 184;
+  --accent-tint-rgb: 20 58 68;   /* lojuvard → feruza: to'q zaminda kontrast */
+    --accent-tint-rgb: 20 58 68;
     --gold-rgb:      217 183 106;
     --gold-dim-rgb:  154 127 62;
+  --clay-tint-rgb:  58 26 16;
+  --olive-tint-rgb: 30 38 22;
+  --gold-tint-rgb:  48 38 16;
+    --clay-tint-rgb:  58 26 16;
+    --olive-tint-rgb: 30 38 22;
+    --gold-tint-rgb:  48 38 16;
 
     --shadow-1: 0 1px 2px rgb(0 0 0 / .40);
     --shadow-2: 0 2px 6px rgb(0 0 0 / .45), 0 14px 34px rgb(0 0 0 / .50);

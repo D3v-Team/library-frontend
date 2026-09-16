@@ -29,6 +29,15 @@ export default function ImageUploadField({
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isRemoved, setIsRemoved] = useState(false);
 
+  /* Boshqa yozuv tahrirlanganda "o'chirildi" holati tiklanadi.
+     Ilgari u bir marta true bo'lsa shundayligicha qolardi: agar
+     komponent unmount bo'lmasa (masalan, modal yopilmasdan boshqa
+     yozuvga o'tilsa), keyingi xodimning mavjud surati ham
+     yashirilib qolardi. */
+  useEffect(() => {
+    setIsRemoved(false);
+  }, [existingUrl]);
+
  useEffect(() => {
   if (isRemoved) {
     setPreviewUrl(null);

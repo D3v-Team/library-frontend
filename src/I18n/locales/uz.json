@@ -357,26 +357,7 @@
     "searchPlaceholder": "Kitob yoki muallif nomi…",
     "newsAndEvents": "Yangilik va tadbir",
     "media": "Media galereya",
-    "newBooks": "Yangi kelganlar",
-    "latestBooks": "Oxirgi kelganlar",
-    "fondSize": "fondda {{count}} kitob",
-    "groupNote": "Kutubxona xizmatlari, hujjatlari va aloqa ma'lumotlari shu bo'limda to'plangan.",
-    "hint": {
-      "about": "Markaz tarixi, vazifasi va bugungi faoliyati",
-      "management": "Rahbariyat va bo'lim mudirlari",
-      "documents": "Nizom, buyruq va hisobotlar",
-      "books": "Fonddagi barcha nashrlar — janr, muallif va yil bo'yicha",
-      "newBooks": "Shu oyda fondga qo'shilgan kitoblar",
-      "authors": "Alifbo bo'yicha muallif ko'rsatkichi",
-      "news": "E'lonlar va kutubxona yangiliklari",
-      "events": "Kelayotgan va o'tgan tadbirlar",
-      "media": "Foto, video va taqdimotlar",
-      "bookOrder": "Kitobni oldindan buyurtma qilish",
-      "message": "Savol yoki taklifingizni yuborish",
-      "faq": "Ko'p so'raladigan savollarga javoblar",
-      "contact": "Manzil, telefon va ish vaqti",
-      "privacy": "Shaxsiy ma'lumotlar bilan ishlash qoidalari"
-    }
+    "newBooks": "Yangi kelganlar"
   },
   "bookOrder": {
     "description": "Kerakli kitobni tanlab, ma'lumotlaringizni qoldiring — kutubxonachi siz bilan bog'lanadi.",

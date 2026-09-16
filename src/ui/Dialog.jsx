@@ -146,7 +146,13 @@ export default function Dialog({
         className={cx(
           "u-dialog-panel flex max-h-[92dvh] w-full flex-col overflow-hidden bg-paper-2 shadow-s2",
           "rounded-t-panel sm:rounded-panel border border-line",
-          size === "lg" ? "sm:max-w-2xl" : size === "sm" ? "sm:max-w-md" : "sm:max-w-lg",
+          // `xl` admin formalari uchun: ular ko'p maydonli va uch tilda
+          {
+            sm: "sm:max-w-md",
+            md: "sm:max-w-lg",
+            lg: "sm:max-w-2xl",
+            xl: "sm:max-w-4xl",
+          }[size] ?? "sm:max-w-lg",
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-line-soft px-5 py-4 sm:px-6">

@@ -15,6 +15,7 @@ import {
   useGetContactMessageByIdQuery,
   useDeleteContactMessageMutation,
 } from "../../store/services/message.js";
+import apiError from "../../lib/apiError";
 
 export default function ContactMessages() {
   // ================= FILTER =================
@@ -75,7 +76,7 @@ export default function ContactMessages() {
 
       setDeleteTarget(null);
     } catch (error) {
-      toast.error(error?.data?.message || "Xabarni o‘chirishda xatolik");
+      toast.error(apiError(error, "Xabarni o‘chirishda xatolik"));
     }
   };
 

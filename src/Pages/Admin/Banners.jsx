@@ -26,6 +26,7 @@ import {
   useToggleBannerActiveMutation,
 } from "../../store/services/banners.api";
 import { BASE_URL } from "../../store/api";
+import apiError from "../../lib/apiError";
 
 const LANGS = [
   { key: "latin", label: "Lotin" },
@@ -136,7 +137,7 @@ export default function Banners() {
       return;
     }
 
-    const payload = { ...form, image_file: imageFile  };
+    const payload = { ...form, image_file: imageFile };
 
     try {
       if (editing) {
@@ -148,7 +149,7 @@ export default function Banners() {
       }
       setModalOpen(false);
     } catch (err) {
-      toast.error(err?.data?.message || "Saqlashda xatolik yuz berdi");
+      toast.error(apiError(err, "Saqlashda xatolik yuz berdi"));
     }
   };
 
@@ -156,7 +157,7 @@ export default function Banners() {
     try {
       await toggleActive({ id: item.id, is_active: !item.is_active }).unwrap();
     } catch (err) {
-      toast.error(err?.data?.message || "Holatni o‘zgartirib bo‘lmadi");
+      toast.error(apiError(err, "Holatni o‘zgartirib bo‘lmadi"));
     }
   };
 
@@ -167,7 +168,7 @@ export default function Banners() {
       toast.success("Banner o‘chirildi");
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.data?.message || "O‘chirishda xatolik yuz berdi");
+      toast.error(apiError(err, "O‘chirishda xatolik yuz berdi"));
     }
   };
 
@@ -191,7 +192,7 @@ export default function Banners() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border-slate-200 shadow-sm">
         {isLoading ? (
           <div className="space-y-3 p-4">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -306,11 +307,10 @@ py-1
 text-xs
 font-medium
 
-${
-  item.is_active
-    ? "bg-green-50 text-green-700 border-green-200"
-    : "bg-slate-100 text-slate-500 border-slate-200"
-}
+${item.is_active
+                              ? "bg-green-50 text-green-700 border-green-200"
+                              : "bg-slate-100 text-slate-500 border-slate-200"
+                            }
 
 `}
                         >
@@ -421,11 +421,10 @@ transition
                 key={lang.key}
                 type="button"
                 onClick={() => setActiveLang(lang.key)}
-                className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-                  activeLang === lang.key
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
-                }`}
+                className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${activeLang === lang.key
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+                  }`}
               >
                 {lang.label}
               </button>

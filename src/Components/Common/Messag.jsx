@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { useCreateContactMessageMutation } from "../../store/services/message";
 import { Button, Dialog, Field, Input, Textarea } from "../../ui";
+import apiError from "../../lib/apiError";
 
 /**
  * Online murojaat.
@@ -68,7 +69,7 @@ export default function Message({ open, onOpen, onClose }) {
       toast.success(t("message.success"));
       onClose?.();
     } catch (error) {
-      toast.error(error?.data?.message || t("message.errors.general"));
+      toast.error(apiError(error, t("message.errors.general")));
     }
   };
 

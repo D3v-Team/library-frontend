@@ -90,7 +90,7 @@ export default function FondRail() {
                         ) : (
                           // Muqova yo'q — kulrang ikonka emas, tipografik plagin
                           <span className="flex h-full w-full items-center justify-center p-4">
-                            <span className="font-display text-[0.85rem] leading-snug text-on-ink/80">
+                            <span className="line-clamp-4 w-full [overflow-wrap:anywhere] text-center font-display text-[0.85rem] leading-snug text-on-ink/80">
                               {pick(book, "name")}
                             </span>
                           </span>
@@ -104,7 +104,7 @@ export default function FondRail() {
                         <span className="u-tilt-glint" />
                       </span>
 
-                      <h3 className="mt-3 line-clamp-2 font-display text-[0.92rem] font-semibold leading-snug text-fg">
+                      <h3 className="mt-3 line-clamp-2 [overflow-wrap:anywhere] font-display text-[0.92rem] font-semibold leading-snug text-fg">
                         {pick(book, "name") || t("books.unknown")}
                       </h3>
 

@@ -28,8 +28,10 @@ import {
 
 import { useGetAuthorsQuery } from "../../store/services/avtors.api";
 import { useGetGenresQuery } from "../../store/services/genres";
+import { getBookGenreIds, getBookGenreLabel } from "../Books/bookHelpers";
 
 import { BASE_URL } from "../../store/api";
+import apiError from "../../lib/apiError";
 
 const LANGS = [
   {
@@ -184,7 +186,13 @@ export default function Books() {
 
       ...book,
 
-      genreIds: book.genres?.map((g) => g.id) ?? [],
+      /* `book.genres` — bu BOG'LANISH qatorlari massivi:
+           { id: <bog'lanish id>, bookId, genreId: <haqiqiy janr id>, genre: {...} }
+         Ilgari bu yerdan `g.id` olinardi, ya'ni bog'lanish qatorining
+         ID'si — backend bunday janrni topa olmay 404 qaytarardi:
+         "Belgilangan janrlardan ba'zilari topilmadi".
+         Yaratishda xato chiqmasdi, chunki u yerda ID ro'yxatdan tanlanadi. */
+      genreIds: getBookGenreIds(book),
     });
 
     setErrors({});
@@ -250,7 +258,7 @@ export default function Books() {
 
       setModalOpen(false);
     } catch (err) {
-      toast.error(err?.data?.message || "Saqlashda xatolik");
+      toast.error(apiError(err, "Saqlashda xatolik"));
     }
   };
 
@@ -264,7 +272,7 @@ export default function Books() {
 
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.data?.message || "O‘chirishda xatolik");
+      toast.error(apiError(err, "O‘chirishda xatolik"));
     }
   };
 
@@ -504,7 +512,7 @@ text-xs
 text-slate-600
 "
                         >
-                          {g.name_latin || g.genre.name_latin}
+                          {getBookGenreLabel(g)}
                         </span>
                       ))}
                     </div>

@@ -23,6 +23,15 @@ import {
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import AdminEmptyState from "./components/AdminEmptyState";
+import apiError from "../../lib/apiError";
+import FormField from "./components/FormField";
+import {
+  isValidEmail,
+  isValidPhone,
+  minLength,
+  required,
+  validateForm,
+} from "./utils/validators";
 
 const emptyForm = {
   phone_number: "",
@@ -69,12 +78,19 @@ export default function UsersPage() {
 
   const isSaving = isCreating || isUpdating;
 
+  const [errors, setErrors] = useState({});
+
   const handleChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
 
       [field]: value,
     }));
+
+    // Foydalanuvchi tuzatishni boshlashi bilan xato yo'qoladi
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const openCreate = () => {
@@ -109,12 +125,48 @@ export default function UsersPage() {
     setEditing(null);
 
     setForm(emptyForm);
+
+    setErrors({});
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isSaving) return;
+
+    /* Bu sahifada validatsiya UMUMAN yo'q edi: bo'sh ism, bo'sh pochta
+       va bo'sh parol bilan ham so'rov to'g'ridan-to'g'ri serverga
+       ketardi. Backend 400 qaytarardi, lekin foydalanuvchi qaysi
+       maydon xato ekanini bilmasdi.
+
+       Parol faqat YARATISHDA majburiy: tahrirlashda bo'sh qoldirilsa
+       "o'zgartirmayman" degani (pastdagi changedData shu mantiqda). */
+    const schema = [
+      { field: "full_name", validators: [(v) => required(v, "F.I.SH")] },
+      {
+        field: "phone_number",
+        validators: [(v) => required(v, "Telefon raqam"), isValidPhone],
+      },
+      {
+        field: "email",
+        validators: [(v) => required(v, "Elektron pochta"), isValidEmail],
+      },
+    ];
+
+    if (!editing) {
+      schema.push({
+        field: "password",
+        validators: [(v) => required(v, "Parol"), (v) => minLength(v, 6, "Parol")],
+      });
+    }
+
+    const nextErrors = validateForm(form, schema);
+    setErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      toast.error("Formada xatolar bor, tekshirib chiqing");
+      return;
+    }
 
     try {
       if (editing) {
@@ -143,7 +195,7 @@ export default function UsersPage() {
 
       closeModal();
     } catch (err) {
-      toast.error(err?.data?.message || "Xatolik yuz berdi");
+      toast.error(apiError(err, "Xatolik yuz berdi"));
     }
   };
 
@@ -159,7 +211,7 @@ export default function UsersPage() {
 
       toast.success("Status yangilandi");
     } catch (err) {
-      toast.error("Statusni o'zgartirishda xatolik");
+      toast.error(apiError(err, "Statusni o'zgartirishda xatolik"));
     }
   };
 
@@ -173,7 +225,7 @@ export default function UsersPage() {
 
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.data?.message || "O'chirishda xatolik");
+      toast.error(apiError(err, "O'chirishda xatolik"));
     }
   };
 
@@ -596,129 +648,45 @@ hover:text-slate-700
 space-y-4
 "
             >
-              <div>
-                <label
-                  className="
-mb-1.5
-block
-text-sm
-font-medium
-text-slate-700
-"
-                >
-                  F.I.SH
-                </label>
+              <FormField
+                label="F.I.SH"
+                required
+                error={errors.full_name}
+                value={form.full_name}
+                onChange={(e) => handleChange("full_name", e.target.value)}
+              />
 
-                <input
-                  value={form.full_name}
-                  onChange={(e) => handleChange("full_name", e.target.value)}
-                  className="
-w-full
-rounded-lg
-border
-border-slate-200
-px-3
-py-2.5
-text-sm
-outline-none
-focus:border-slate-400
-"
-                />
-              </div>
+              <FormField
+                label="Telefon"
+                required
+                type="tel"
+                placeholder="+998901234567"
+                error={errors.phone_number}
+                value={form.phone_number}
+                onChange={(e) => handleChange("phone_number", e.target.value)}
+              />
 
-              <div>
-                <label
-                  className="
-mb-1.5
-block
-text-sm
-font-medium
-text-slate-700
-"
-                >
-                  Telefon
-                </label>
+              <FormField
+                label="Elektron pochta"
+                required
+                type="email"
+                placeholder="nom@domen.uz"
+                error={errors.email}
+                value={form.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+              />
 
-                <input
-                  type="tel"
-                  value={form.phone_number}
-                  onChange={(e) => handleChange("phone_number", e.target.value)}
-                  className="
-w-full
-rounded-lg
-border
-border-slate-200
-px-3
-py-2.5
-text-sm
-outline-none
-focus:border-slate-400
-"
-                />
-              </div>
-
-              <div>
-                <label
-                  className="
-mb-1.5
-block
-text-sm
-font-medium
-text-slate-700
-"
-                >
-                  Email
-                </label>
-
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  className="
-w-full
-rounded-lg
-border
-border-slate-200
-px-3
-py-2.5
-text-sm
-outline-none
-focus:border-slate-400
-"
-                />
-              </div>
-
+              {/* Parol faqat yaratishda: tahrirlashda bo'sh qoldirilsa
+                  o'zgartirilmaydi */}
               {!editing && (
-                <div>
-                  <label
-                    className="
-mb-1.5
-block
-text-sm
-font-medium
-text-slate-700
-"
-                  >
-                    Parol
-                  </label>
-
-                  <input
-                    type="password"
-                    value={form.password}
-                    onChange={(e) => handleChange("password", e.target.value)}
-                    className="
-w-full
-rounded-lg
-border
-border-slate-200
-px-3
-py-2.5
-text-sm
-outline-none
-focus:border-slate-400
-"
-                  />
-                </div>
+                <FormField
+                  label="Parol"
+                  required
+                  type="password"
+                  error={errors.password}
+                  value={form.password}
+                  onChange={(e) => handleChange("password", e.target.value)}
+                />
               )}
 
               <label

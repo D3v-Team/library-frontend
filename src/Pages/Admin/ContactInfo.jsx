@@ -32,7 +32,16 @@ import {
   useDeleteSocialLinkMutation,
 } from "../../store/services/contact.info";
 import { safeHref } from "../../utils/url";
-import { required, isValidUrl } from "./utils/validators";
+import {
+  isValidEmail,
+  isValidLatitude,
+  isValidLongitude,
+  isValidPhone,
+  isValidUrl,
+  required,
+  validateForm,
+} from "./utils/validators";
+import apiError from "../../lib/apiError";
 
 const emptyContactForm = {
   address_latin: "",
@@ -114,6 +123,8 @@ export default function ContactInfo() {
 
   const [contactForm, setContactForm] = useState(emptyContactForm);
 
+  const [contactErrors, setContactErrors] = useState({});
+
   // ================= SOCIAL MODAL =================
 
   const [socialModalOpen, setSocialModalOpen] = useState(false);
@@ -157,10 +168,31 @@ export default function ContactInfo() {
       ...prev,
       [field]: value,
     }));
+  
+    // Tuzatish boshlanishi bilan xato yo'qoladi
+    setContactErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
   };
 
   const submitContactHandler = async (e) => {
     e.preventDefault();
+
+    /* Bu formada validatsiya yo'q edi: noto'g'ri pochta, yarim telefon
+       raqam va chegaradan tashqari koordinata to'g'ridan-to'g'ri saqlanardi.
+       Koordinata ayniqsa muhim — u public saytdagi xaritani boshqaradi,
+       xato qiymat kutubxonani boshqa joyda ko'rsatadi. */
+    const nextErrors = validateForm(contactForm, [
+      { field: "address_latin", validators: [(v) => required(v, "Manzil (lotin)")] },
+      { field: "phone", validators: [(v) => required(v, "Telefon"), isValidPhone] },
+      { field: "email", validators: [(v) => required(v, "Email"), isValidEmail] },
+      { field: "latitude", validators: [isValidLatitude] },
+      { field: "longitude", validators: [isValidLongitude] },
+    ]);
+    setContactErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
+      toast.error("Formada xatolar bor, tekshirib chiqing");
+      return;
+    }
 
     try {
       await updateContactInfo({
@@ -183,7 +215,7 @@ export default function ContactInfo() {
 
       setContactModalOpen(false);
     } catch (err) {
-      toast.error(err?.data?.message || "Xatolik yuz berdi");
+      toast.error(apiError(err, "Xatolik yuz berdi"));
     }
   };
 
@@ -272,7 +304,7 @@ export default function ContactInfo() {
 
       setSocialModalOpen(false);
     } catch (err) {
-      toast.error(err?.data?.message || "Xatolik yuz berdi");
+      toast.error(apiError(err, "Xatolik yuz berdi"));
     }
   };
 
@@ -286,7 +318,7 @@ export default function ContactInfo() {
 
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.data?.message || "O‘chirishda xatolik");
+      toast.error(apiError(err, "O‘chirishda xatolik"));
     }
   };
 
@@ -506,9 +538,16 @@ export default function ContactInfo() {
                             gap-3
                             "
                       >
+                        {/* `min-w-0` MAJBURIY: flex elementi standart
+                            bo'yicha `min-width: auto` bo'ladi va uzun
+                            uzluksiz matn (URL) undan kichrayolmaydi —
+                            natijada u yonidagi tugmalarni kartochkadan
+                            tashqariga itarib yuboradi. */}
                         <div
                           className="
                               flex
+                              min-w-0
+                              flex-1
                               items-center
                               gap-3
                               "
@@ -518,6 +557,7 @@ export default function ContactInfo() {
                                 flex
                                 h-11
                                 w-11
+                                shrink-0
                                 items-center
                                 justify-center
                                 rounded-xl
@@ -528,9 +568,10 @@ export default function ContactInfo() {
                             <Icon size={20} />
                           </div>
 
-                          <div>
+                          <div className="min-w-0">
                             <h3
                               className="
+                                  truncate
                                   font-semibold
                                   text-slate-900
                                   "
@@ -542,7 +583,10 @@ export default function ContactInfo() {
                               href={safeHref(item.url)}
                               target="_blank"
                               rel="noopener noreferrer"
+                              title={item.url}
                               className="
+                                  block
+                                  truncate
                                   text-xs
                                   text-blue-600
                                   hover:underline
@@ -556,6 +600,7 @@ export default function ContactInfo() {
                         <div
                           className="
                               flex
+                              shrink-0
                               gap-2
                               "
                         >
@@ -612,6 +657,7 @@ export default function ContactInfo() {
             onChange={(e) =>
               changeContactField("address_latin", e.target.value)
             }
+            error={contactErrors.address_latin}
           />
 
           <FormField
@@ -620,12 +666,14 @@ export default function ContactInfo() {
             onChange={(e) =>
               changeContactField("address_cyril", e.target.value)
             }
+            error={contactErrors.address_cyril}
           />
 
           <FormField
             label="Manzil (Rus)"
             value={contactForm.address_ru}
             onChange={(e) => changeContactField("address_ru", e.target.value)}
+            error={contactErrors.address_ru}
           />
 
           <div
@@ -639,12 +687,14 @@ export default function ContactInfo() {
               label="Telefon"
               value={contactForm.phone}
               onChange={(e) => changeContactField("phone", e.target.value)}
+              error={contactErrors.phone}
             />
 
             <FormField
               label="Email"
               value={contactForm.email}
               onChange={(e) => changeContactField("email", e.target.value)}
+              error={contactErrors.email}
             />
           </div>
 
@@ -659,12 +709,14 @@ export default function ContactInfo() {
               label="Latitude"
               value={contactForm.latitude}
               onChange={(e) => changeContactField("latitude", e.target.value)}
+              error={contactErrors.latitude}
             />
 
             <FormField
               label="Longitude"
               value={contactForm.longitude}
               onChange={(e) => changeContactField("longitude", e.target.value)}
+              error={contactErrors.longitude}
             />
           </div>
 

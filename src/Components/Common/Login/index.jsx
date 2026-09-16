@@ -102,7 +102,7 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-slate-100 p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/70">
+      <div className="w-full max-w-md rounded-panel border border-line bg-paper-2 p-8 shadow-s2">
         <h1 className="text-center text-2xl font-semibold text-slate-900">
           Admin panel
         </h1>
@@ -125,7 +125,7 @@ export default function Login() {
               disabled={isLoading}
               onChange={handlePhoneChange}
               placeholder="+998901234567"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900 disabled:bg-slate-100"
+              className="w-full rounded-field border border-line bg-paper-3 px-4 py-3 outline-none transition-colors duration-1 ease-out-soft hover:border-gold-dim disabled:opacity-60"
             />
           </div>
 
@@ -141,12 +141,12 @@ export default function Login() {
               disabled={isLoading}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="********"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900 disabled:bg-slate-100"
+              className="w-full rounded-field border border-line bg-paper-3 px-4 py-3 outline-none transition-colors duration-1 ease-out-soft hover:border-gold-dim disabled:opacity-60"
             />
           </div>
 
           {formError && (
-            <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+            <div className="rounded-field border border-clay/35 bg-clay/10 px-4 py-3 text-sm text-clay">
               {formError}
             </div>
           )}
@@ -154,7 +154,9 @@ export default function Login() {
           <button
             disabled={isLoading}
             type="submit"
-            className="w-full rounded-xl border border-slate-300 bg-white py-3 font-medium text-slate-900 transition hover:bg-slate-100 disabled:opacity-50"
+            /* Birlamchi amal — siyoh zamin. Ilgari oq/chegarali edi va
+               ikkilamchi (yoki o'chirilgan) tugmadek ko'rinardi. */
+            className="w-full rounded-field border border-ink bg-ink py-3 font-semibold text-on-ink transition-colors duration-1 ease-out-soft hover:border-ink-soft hover:bg-ink-soft disabled:opacity-45"
           >
             {isLoading ? "Kirilmoqda..." : "Kirish"}
           </button>

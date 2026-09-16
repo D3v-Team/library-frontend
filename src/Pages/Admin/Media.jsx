@@ -32,6 +32,7 @@ import {
   useToggleMediaPublicMutation,
   useAddMediaItemMutation, // <- TO'G'RI NOM
 } from "../../store/services/media";
+import apiError from "../../lib/apiError";
 
 // ================= CONSTANTS =================
 const MEDIA_TYPES = [
@@ -251,7 +252,7 @@ export default function Media() {
         closeModal();
         refetch();
       } catch (err) {
-        toast.error(err?.data?.message || "Xatolik yuz berdi");
+        toast.error(apiError(err, "Xatolik yuz berdi"));
       }
     },
     [form, editItem, createMediaAlbum, updateMediaAlbum, closeModal, refetch],
@@ -266,7 +267,7 @@ export default function Media() {
       setDeleteTarget(null);
       refetch();
     } catch (err) {
-      toast.error("O'chirishda xatolik yuz berdi");
+      toast.error(apiError(err, "O'chirishda xatolik yuz berdi"));
     }
   }, [deleteTarget, deleteMediaAlbum, refetch]);
 
@@ -280,7 +281,7 @@ export default function Media() {
         toast.success("Holat yangilandi");
         refetch();
       } catch (err) {
-        toast.error("Holatni o'zgartirishda xatolik");
+        toast.error(apiError(err, "Holatni o'zgartirishda xatolik"));
       }
     },
     [toggleMediaPublic, refetch],
@@ -338,7 +339,7 @@ const handleUploadSubmit = useCallback(async () => {
       refetch();
       return;
     } catch (err) {
-      toast.error("Rasmlarni yuklashda xatolik yuz berdi");
+      toast.error(apiError(err, "Rasmlarni yuklashda xatolik yuz berdi"));
       return;
     }
   } 
@@ -360,7 +361,7 @@ const handleUploadSubmit = useCallback(async () => {
       refetch();
       return;
     } catch (err) {
-      toast.error("Videoni yuklashda xatolik yuz berdi");
+      toast.error(apiError(err, "Videoni yuklashda xatolik yuz berdi"));
       return;
     }
   } 
@@ -383,7 +384,7 @@ const handleUploadSubmit = useCallback(async () => {
       refetch();
       return;
     } catch (err) {
-      toast.error("Taqdimotni yuklashda xatolik yuz berdi");
+      toast.error(apiError(err, "Taqdimotni yuklashda xatolik yuz berdi"));
       return;
     }
   }
@@ -610,7 +611,7 @@ const handleUploadSubmit = useCallback(async () => {
               type="checkbox"
               checked={form.is_public}
               onChange={(e) => changeField("is_public", e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+              className="h-4 w-4 rounded border-slate-300 text-slate-900"
             />
             Ochiq ko'rsatish
           </label>

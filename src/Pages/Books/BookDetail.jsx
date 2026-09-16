@@ -129,7 +129,7 @@ export default function BookDetail() {
                 <img src={cover} alt="" className="h-full w-full object-cover" />
               ) : (
                 <span className="flex h-full w-full items-center justify-center p-6">
-                  <span className="text-center font-display text-[1rem] leading-snug text-on-ink/80">
+                  <span className="line-clamp-6 w-full [overflow-wrap:anywhere] text-center font-display text-[1rem] leading-snug text-on-ink/80">
                     {title}
                   </span>
                 </span>

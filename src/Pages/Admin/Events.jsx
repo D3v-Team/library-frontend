@@ -21,6 +21,7 @@ import {
 } from "../../store/services/events";
 
 import { BASE_URL } from "../../store/api";
+import apiError from "../../lib/apiError";
 
 const emptyForm = {
   title_latin: "",
@@ -79,7 +80,7 @@ export default function Events() {
       }).unwrap();
       toast.success(!item.is_public ? "Tadbir faollashtirildi" : "Tadbir yashirildi");
     } catch (err) {
-      toast.error(err?.data?.message || "Status o‘zgarmadi");
+      toast.error(apiError(err, "Status o‘zgarmadi"));
     }
   };
 
@@ -194,7 +195,7 @@ export default function Events() {
       }
       closeModal();
     } catch (err) {
-      toast.error(err?.data?.message || "Xatolik yuz berdi");
+      toast.error(apiError(err, "Xatolik yuz berdi"));
     }
   };
 
@@ -205,7 +206,7 @@ export default function Events() {
       toast.success("Tadbir o‘chirildi");
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.data?.message || "O‘chirishda xatolik");
+      toast.error(apiError(err, "O‘chirishda xatolik"));
     }
   };
 

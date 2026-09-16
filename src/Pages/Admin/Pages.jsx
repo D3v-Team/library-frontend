@@ -16,6 +16,7 @@ import {
   useUpdatePageMutation,
   useDeletePageMutation,
 } from "../../store/services/pages";
+import apiError from "../../lib/apiError";
 
 const LANGS = [
   { key: "latin", label: "Lotin" },
@@ -119,7 +120,7 @@ export default function Pages() {
       closeModal();
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Saqlashda xatolik yuz berdi");
+      toast.error(apiError(err, "Saqlashda xatolik yuz berdi"));
     }
   };
 
@@ -131,7 +132,7 @@ export default function Pages() {
       setDeleteTarget(null);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "O'chirishda xatolik yuz berdi");
+      toast.error(apiError(err, "O'chirishda xatolik yuz berdi"));
     }
   };
 

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import { useLocalized } from "../../lib/useLocalized";
 import { useGetDepartmentsQuery } from "../../store/services/departament";
+import { BASE_URL } from "../../store/api";
 import { EmptyState, Reveal, Skeleton } from "../../ui";
 import { PageMeta, PageShell } from "../../patterns";
 import SEO from "../../seo/SEO";
@@ -14,6 +15,23 @@ import SEO from "../../seo/SEO";
  * telefon raqamlarini solishtirish oson bo'ladi. Faol bo'lmagan
  * yozuvlar (`is_active === false`) public saytda ko'rinmaydi.
  */
+/**
+ * Xodim surati.
+ *
+ * Backend `member_photo` maydonini qaytaradi (Swagger:
+ * Create/UpdateDepartmentDto, multipart, binary). Admin panelda u
+ * ImageUploadField orqali yuklanadi, o'chirish esa alohida endpoint:
+ * DELETE /departments/:id/remove-photo
+ *
+ * Surat yo'q bo'lsa kulrang bo'sh doira emas, tipografik plagin
+ * ko'rinadi — ismning bosh harfi girih naqsh ustida.
+ */
+const photoOf = (person) => {
+  const raw = person?.member_photo;
+  if (!raw) return null;
+  return raw.startsWith("http") ? raw : `${BASE_URL}${raw.startsWith("/") ? "" : "/"}${raw}`;
+};
+
 export default function Management() {
   const { t } = useTranslation();
   const { pick } = useLocalized();
@@ -50,6 +68,7 @@ export default function Management() {
             {people.map((person) => {
               const name = pick(person, "full_name");
               const position = pick(person, "position");
+              const photo = photoOf(person);
 
               const contacts = [
                 { icon: Phone, value: person.phone, href: `tel:${person.phone}` },
@@ -62,7 +81,29 @@ export default function Management() {
                   key={person.id}
                   className="grid gap-4 border-b border-line-soft py-6 sm:grid-cols-[1.3fr_1fr] sm:gap-8"
                 >
-                  <div>
+                  <div className="flex items-start gap-4">
+                    {/* Surat ataylab KICHIK: rahbariyat ro'yxati — ma'lumot
+                        jadvali, portret galereyasi emas. 56px da ism va
+                        lavozim asosiy bo'lib qoladi. */}
+                    <span className="relative mt-0.5 h-20 w-20 shrink-0 overflow-hidden rounded-card border border-line bg-ink-deep">
+                      {photo ? (
+                        <img
+                          src={photo}
+                          alt=""
+                          loading="lazy"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <span aria-hidden="true" className="girih-tile absolute inset-0" />
+                          <span className="absolute inset-0 flex items-center justify-center font-display text-[1.1rem] font-semibold text-gold/80">
+                            {name?.trim().charAt(0)}
+                          </span>
+                        </>
+                      )}
+                    </span>
+
+                  <div className="min-w-0">
                     <h2 className="font-display text-[1.05rem] font-semibold text-fg">{name}</h2>
 
                     {position && (
@@ -74,6 +115,7 @@ export default function Management() {
                         {t("management.reception")}: {person.reception_days}
                       </p>
                     )}
+                  </div>
                   </div>
 
                   {contacts.length > 0 && (

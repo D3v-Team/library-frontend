@@ -24,6 +24,7 @@ import {
   useDeleteDocumentMutation,
   useToggleDocumentPublicMutation,
 } from "../../store/services/documents.api";
+import apiError from "../../lib/apiError";
 
 const LANGS = [
   {
@@ -229,7 +230,7 @@ export default function Documents() {
 
       setModalOpen(false);
     } catch (err) {
-      toast.error(err?.data?.message || "Saqlashda xatolik");
+      toast.error(apiError(err, "Saqlashda xatolik"));
     }
   };
 
@@ -240,7 +241,7 @@ export default function Documents() {
         is_public: !item.is_public,
       }).unwrap();
     } catch (err) {
-      toast.error(err?.data?.message || "Holatni o‘zgartirib bo‘lmadi");
+      toast.error(apiError(err, "Holatni o‘zgartirib bo‘lmadi"));
     }
   };
 
@@ -254,7 +255,7 @@ export default function Documents() {
 
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.data?.message || "O‘chirishda xatolik");
+      toast.error(apiError(err, "O‘chirishda xatolik"));
     }
   };
 

@@ -30,6 +30,7 @@ import {
   useUpdateOnlineRequestMutation,
   useDeleteOnlineRequestMutation,
 } from "../../store/services/requests";
+import apiError from "../../lib/apiError";
 
 // ================= CONSTANTS =================
 const REQUEST_TYPES = [
@@ -169,7 +170,7 @@ export default function Requests() {
       closeModal();
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Yangilashda xatolik yuz berdi");
+      toast.error(apiError(err, "Yangilashda xatolik yuz berdi"));
     }
   };
 
@@ -182,7 +183,7 @@ export default function Requests() {
       setDeleteTarget(null);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "O'chirishda xatolik yuz berdi");
+      toast.error(apiError(err, "O'chirishda xatolik yuz berdi"));
     }
   };
 

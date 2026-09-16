@@ -39,10 +39,6 @@ export default function AdminPageHeader({
             hover:bg-slate-50
             hover:text-slate-900
             active:scale-[0.98]
-            focus-visible:outline-none
-            focus-visible:ring-2
-            focus-visible:ring-slate-300
-            focus-visible:ring-offset-2
           "
         >
           <Plus size={16} strokeWidth={2} />

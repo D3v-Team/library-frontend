@@ -7,6 +7,7 @@ import { useCreateOnlineRequestMutation } from "../store/services/requests";
 import { useGetBooksQuery } from "../store/services/books.api";
 import { useLocalized } from "../lib/useLocalized";
 import { Button, Dialog, EmptyState, Field, Input, Skeleton, Textarea } from "../ui";
+import apiError from "../lib/apiError";
 
 /**
  * Kitobga buyurtma modali.
@@ -92,7 +93,7 @@ export default function BookOrderModal({ open, onClose }) {
       toast.success(t("bookOrder.success"));
       onClose?.();
     } catch (err) {
-      toast.error(err?.data?.message || t("bookOrder.error"));
+      toast.error(apiError(err, t("bookOrder.error")));
     }
   };
 

@@ -7,7 +7,7 @@ import useReducedMotion from "../../../lib/useReducedMotion";
 import { useLocalized } from "../../../lib/useLocalized";
 import { useGetBannersQuery } from "../../../store/services/banners.api";
 import { BASE_URL } from "../../../store/api";
-import { ArchFrame, Button, GirihSurface, Rule, Skeleton } from "../../../ui";
+import { ArchFrame, Button, GirihSurface, Rule } from "../../../ui";
 import GirihStar from "../../../design/motifs/GirihStar";
 import StatRibbon from "./StatRibbon";
 
@@ -114,7 +114,15 @@ export default function HeroBand() {
           onBlurCapture={() => setPaused(false)}
         >
           {isLoading ? (
-            <Skeleton className="aspect-[3/4] w-full" rounded="card" />
+            /* Yuklanish holati ham PESHTOQ shaklida va siyoh zaminda.
+               Ilgari bu `Skeleton` edi: qog'oz rangli to'rtburchak
+               siyoh hero ustida oq blok bo'lib ko'rinardi, ustiga
+               nisbati ham boshqa edi (3/4 va 4/5) — rasm kelganda
+               shakl ham, o'lcham ham sakrardi. */
+            <ArchFrame ratio="4 / 5">
+              <span aria-hidden="true" className="u-shimmer-ink absolute inset-0" />
+              <span aria-hidden="true" className="girih-tile absolute inset-0 opacity-60" />
+            </ArchFrame>
           ) : count === 0 ? (
             // Banner yo'q — bo'sh joy emas, naqshli ravoq qoladi
             <ArchFrame ratio="4 / 5">

@@ -13,7 +13,8 @@ import {
   useDeleteBookFileMutation,
   downloadBookFile,
 } from "../../store/services/books.api";
-import { formatBookDate, formatBookYear } from "../../Pages/Books/bookHelpers";
+import { formatBookDate, formatBookYear, getBookGenreLabel } from "../../Pages/Books/bookHelpers";
+import apiError from "../../lib/apiError";
 
 export default function BookDetail() {
   const { id } = useParams();
@@ -43,7 +44,7 @@ export default function BookDetail() {
       toast.success("Rasm yuklandi");
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Rasm yuklashda xatolik");
+      toast.error(apiError(err, "Rasm yuklashda xatolik"));
     }
   };
 
@@ -53,7 +54,7 @@ export default function BookDetail() {
       toast.success("Rasm o‘chirildi");
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Rasmni o‘chirishda xatolik");
+      toast.error(apiError(err, "Rasmni o‘chirishda xatolik"));
     }
   };
 
@@ -63,7 +64,7 @@ export default function BookDetail() {
       toast.success("Asosiy rasm belgilandi");
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Amalni bajarib bo‘lmadi");
+      toast.error(apiError(err, "Amalni bajarib bo‘lmadi"));
     }
   };
 
@@ -73,7 +74,7 @@ export default function BookDetail() {
       toast.success("Fayl yuklandi");
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Fayl yuklashda xatolik");
+      toast.error(apiError(err, "Fayl yuklashda xatolik"));
       throw err;
     }
   };
@@ -84,7 +85,7 @@ export default function BookDetail() {
       toast.success("Fayl o‘chirildi");
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Faylni o‘chirishda xatolik");
+      toast.error(apiError(err, "Faylni o‘chirishda xatolik"));
     }
   };
 
@@ -156,7 +157,7 @@ export default function BookDetail() {
                       key={g.id}
                       className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"
                     >
-                      {g.name_latin || g.name}
+                      {getBookGenreLabel(g)}
                     </span>
                   ))}
                 </div>

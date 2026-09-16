@@ -23,6 +23,7 @@ import {
   useDeleteAuthorImageMutation,
   useSetMainAuthorImageMutation,
 } from "../../store/services/avtors.api";
+import apiError from "../../lib/apiError";
 
 const LANGS = [
   { key: "latin", label: "Lotin" },
@@ -155,7 +156,7 @@ export default function Avtors() {
       // refetchImages();
     } catch (err) {
       // Xatolikni o‘zbekcha ko‘rsatish
-      const msg = err?.data?.message || "Rasm yuklashda xatolik yuz berdi";
+      const msg = apiError(err, "Rasm yuklashda xatolik yuz berdi");
       toast.error(msg);
       // Xatolikni yuqoriga uzatamiz, shunda handleSubmit catch qismi ishlaydi
       throw new Error(msg);
@@ -170,7 +171,7 @@ export default function Avtors() {
       toast.success("Rasm o'chirildi");
       refetchImages();
     } catch (err) {
-      toast.error(err?.data?.message || "Rasmni o'chirishda xatolik");
+      toast.error(apiError(err, "Rasmni o'chirishda xatolik"));
     }
   };
 
@@ -181,7 +182,7 @@ export default function Avtors() {
       refetchImages();
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Amalni bajarib bo'lmadi");
+      toast.error(apiError(err, "Amalni bajarib bo'lmadi"));
     }
   };
 
@@ -228,7 +229,7 @@ export default function Avtors() {
       refetch();
     } catch (err) {
       // Xatolikni o‘zbekcha ko‘rsatish
-      const message = err?.data?.message || err?.message || "Saqlashda xatolik yuz berdi";
+      const message = apiError(err, "Saqlashda xatolik yuz berdi");
       toast.error(message);
     }
   };
@@ -241,7 +242,7 @@ export default function Avtors() {
       setDeleteTarget(null);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "O'chirishda xatolik yuz berdi");
+      toast.error(apiError(err, "O'chirishda xatolik yuz berdi"));
     }
   };
 

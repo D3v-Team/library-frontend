@@ -51,6 +51,44 @@ export function isValidUrl(value) {
   return null;
 }
 
+export function isValidEmail(value) {
+  if (!value) return null; // bo'sh bo'lsa required() hal qiladi
+  const trimmed = String(value).trim();
+  // Ataylab qat'iy emas: RFC ga to'liq mos regex amalda foyda bermaydi,
+  // asosiy maqsad — xato yozilgan manzilni (bo'sh joy, @ yo'q, nuqta yo'q)
+  // serverga yuborishdan oldin tutish.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmed)) {
+    return "Elektron pochta formati noto‘g‘ri. Masalan: nom@domen.uz";
+  }
+  return null;
+}
+
+export function isValidPhone(value) {
+  if (!value) return null;
+  const digits = String(value).replace(/[^\d]/g, "");
+  if (digits.length < 9) {
+    return "Telefon raqam to‘liq emas. Masalan: +998901234567";
+  }
+  return null;
+}
+
+/** Kenglik/uzunlik chegaralari — xarita koordinatalari uchun */
+export function isValidLatitude(value) {
+  if (value === "" || value === undefined || value === null) return null;
+  const n = Number(value);
+  if (Number.isNaN(n)) return "Faqat raqam kiritish mumkin";
+  if (n < -90 || n > 90) return "Kenglik -90 va 90 orasida bo‘lishi kerak";
+  return null;
+}
+
+export function isValidLongitude(value) {
+  if (value === "" || value === undefined || value === null) return null;
+  const n = Number(value);
+  if (Number.isNaN(n)) return "Faqat raqam kiritish mumkin";
+  if (n < -180 || n > 180) return "Uzunlik -180 va 180 orasida bo‘lishi kerak";
+  return null;
+}
+
 export function isValidNumber(value) {
   if (value === "" || value === undefined || value === null) return null;
   if (Number.isNaN(Number(value))) return "Faqat raqam kiritish mumkin";

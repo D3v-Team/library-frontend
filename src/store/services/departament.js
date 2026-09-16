@@ -1,6 +1,34 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../baseQuary/axiosBaseQuery";
 
+/**
+ * Departament endpointi `multipart/form-data` qabul qiladi
+ * (Swagger: CreateDepartmentDto / UpdateDepartmentDto).
+ *
+ * `member_photo` FAQAT haqiqiy File bo'lganda qo'shiladi. Aks holda
+ * tahrirlashda admin yangi rasm tanlamagan bo'lsa ham bo'sh qiymat
+ * yuborilib, mavjud surat o'chib ketardi.
+ *
+ * Suratni butunlay olib tashlash uchun alohida endpoint bor:
+ * DELETE /departments/:id/remove-photo
+ */
+function toFormData(fields) {
+  const formData = new FormData();
+
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+
+    if (key === "member_photo") {
+      if (value instanceof File) formData.append(key, value);
+      return;
+    }
+
+    formData.append(key, value);
+  });
+
+  return formData;
+}
+
 export const departmentsApi = createApi({
   reducerPath: "departmentsApi",
 
@@ -77,7 +105,7 @@ export const departmentsApi = createApi({
 
         method: "POST",
 
-        data,
+        data: toFormData(data),
       }),
 
       invalidatesTags: [
@@ -96,10 +124,32 @@ export const departmentsApi = createApi({
 
         method: "PATCH",
 
-        data,
+        data: toFormData(data),
       }),
 
       invalidatesTags: (result, error, { id }) => [
+        {
+          type: "Departments",
+          id,
+        },
+
+        {
+          type: "Departments",
+          id: "LIST",
+        },
+      ],
+    }),
+
+    // REMOVE PHOTO
+
+    removeDepartmentPhoto: builder.mutation({
+      query: (id) => ({
+        url: `/departments/${id}/remove-photo`,
+
+        method: "DELETE",
+      }),
+
+      invalidatesTags: (result, error, id) => [
         {
           type: "Departments",
           id,
@@ -141,4 +191,6 @@ export const {
   useUpdateDepartmentMutation,
 
   useDeleteDepartmentMutation,
+
+  useRemoveDepartmentPhotoMutation,
 } = departmentsApi;

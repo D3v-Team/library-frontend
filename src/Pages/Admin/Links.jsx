@@ -19,6 +19,7 @@ import {
 } from "../../store/services/links";
 import { safeHref } from "../../utils/url";
 import { required, isValidUrl, validateForm } from "./utils/validators";
+import apiError from "../../lib/apiError";
 
 
 const emptyForm = {
@@ -178,7 +179,7 @@ export default function Links() {
 
       closeModal();
     } catch (err) {
-      toast.error(err?.data?.message || "Xatolik yuz berdi");
+      toast.error(apiError(err, "Xatolik yuz berdi"));
     }
   };
 
@@ -192,7 +193,7 @@ export default function Links() {
 
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.data?.message || "O‘chirishda xatolik");
+      toast.error(apiError(err, "O‘chirishda xatolik"));
     }
   };
 
@@ -207,7 +208,7 @@ export default function Links() {
         item.is_active ? "Link nofaol qilindi" : "Link faol qilindi",
       );
     } catch (err) {
-      toast.error(err?.data?.message || "Holatni o‘zgartirib bo‘lmadi");
+      toast.error(apiError(err, "Holatni o‘zgartirib bo‘lmadi"));
     }
   };
 

@@ -72,29 +72,6 @@ export const documentsApi = createApi({
       sortBy,
       sortOrder,
       category,
-
-    },
-  }),
-}),
-
-   getAdminDocuments: builder.query({
-  query: ({
-    page = 1,
-    limit = 10,
-    search = "",
-    sortBy,
-    sortOrder,
-    category,
-  } = {}) => ({
-    url: "/documents/admin",
-    method: "GET",
-    params: {
-      page,
-      limit,
-      search,
-      sortBy,
-      sortOrder,
-      category,
     },
   }),
 

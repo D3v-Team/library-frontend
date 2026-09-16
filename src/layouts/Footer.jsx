@@ -42,8 +42,12 @@ export default function Footer() {
       youtube: Youtube,
     })[platform] ?? Globe;
 
+  /* `inline-block py-1` — bosish nishonini kattalashtirish uchun.
+     O'lchandi: 375px ekranda havolalar 18px balandlikda edi, ya'ni
+     barmoq uchun tor (tavsiya 44px). Vertikal padding vizual ritmni
+     o'zgartirmaydi, chunki ro'yxatdagi `gap` allaqachon bor. */
   const linkCls =
-    "font-sans text-[0.84rem] text-on-ink/60 transition-colors duration-1 ease-out-soft hover:text-gold";
+    "inline-block py-1 font-sans text-[0.84rem] text-on-ink/60 transition-colors duration-1 ease-out-soft hover:text-gold";
 
   return (
     <GirihSurface as="footer" tone="deep" className="mt-auto">
@@ -104,7 +108,7 @@ export default function Footer() {
                   {t(group.label)}
                 </h3>
 
-                <ul className="mt-4 flex flex-col gap-2.5">
+                <ul className="mt-3 flex flex-col gap-1">
                   {group.items.map((item) => (
                     <li key={item.path || item.action}>
                       {/* Modal ochadigan bandlar footer da havola bo'la olmaydi —
@@ -175,7 +179,7 @@ export default function Footer() {
               <Link
                 key={item.path}
                 to={item.path}
-                className="font-sans text-[0.76rem] text-on-ink/45 transition-colors duration-1 ease-out-soft hover:text-gold"
+                className="inline-block py-1 font-sans text-[0.76rem] text-on-ink/45 transition-colors duration-1 ease-out-soft hover:text-gold"
               >
                 {t(item.label)}
               </Link>

@@ -17,10 +17,14 @@ import {
   useCreateDepartmentMutation,
   useUpdateDepartmentMutation,
   useDeleteDepartmentMutation,
+  useRemoveDepartmentPhotoMutation,
 } from "../../store/services/departament";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import AdminEmptyState from "./components/AdminEmptyState";
+import apiError from "../../lib/apiError";
+import ImageUploadField from "./components/ImageUploadField";
+import { BASE_URL } from "../../store/api";
 
 const emptyForm = {
   full_name_latin: "",
@@ -40,6 +44,10 @@ const emptyForm = {
   reception_days: "",
 
   is_active: true,
+
+  // Swagger: multipart, `member_photo` (binary). Faqat yangi File
+  // tanlanganda yuboriladi — toFormData shu mantiqni bajaradi.
+  member_photo: null,
 };
 
 export default function Departament() {
@@ -78,6 +86,12 @@ export default function Departament() {
   const [deleteDepartment, { isLoading: isDeleting }] =
     useDeleteDepartmentMutation();
 
+  const [removeDepartmentPhoto] = useRemoveDepartmentPhotoMutation();
+
+  // Admin mavjud suratni o'chirmoqchi bo'lsa — saqlashda alohida
+  // endpointga so'rov ketadi (DELETE /departments/:id/remove-photo)
+  const [photoRemoved, setPhotoRemoved] = useState(false);
+
   const departments = data?.data ?? [];
 
   const totalPages = data?.meta?.totalPages ?? 1;
@@ -99,6 +113,8 @@ export default function Departament() {
       ...emptyForm,
     });
 
+    setPhotoRemoved(false);
+
     setModalOpen(true);
   };
 
@@ -109,7 +125,12 @@ export default function Departament() {
       ...emptyForm,
 
       ...item,
+
+      // Serverdan kelgan yo'lni File deb yubormaymiz
+      member_photo: null,
     });
+
+    setPhotoRemoved(false);
 
     setModalOpen(true);
   };
@@ -122,6 +143,8 @@ export default function Departament() {
     setForm({
       ...emptyForm,
     });
+
+    setPhotoRemoved(false);
   };
 
   const handleSubmit = async (e) => {
@@ -145,11 +168,24 @@ export default function Departament() {
           }
         });
 
+        /* Surat alohida ko'rib chiqiladi. `member_photo` faqat yangi
+           File tanlanganda yuboriladi — aks holda mavjud surat o'chib
+           ketardi (toFormData shu qoidani bajaradi, bu yerda esa
+           o'zgarmagan holatda uni umuman yubormaymiz). */
+        if (!(form.member_photo instanceof File)) {
+          delete changedData.member_photo;
+        }
+
         await updateDepartment({
           id: editing.id,
 
           data: changedData,
         }).unwrap();
+
+        // Admin mavjud suratni o'chirgan bo'lsa — alohida endpoint
+        if (photoRemoved && !(form.member_photo instanceof File)) {
+          await removeDepartmentPhoto(editing.id).unwrap();
+        }
 
         toast.success("Xodim yangilandi");
       } else {
@@ -160,7 +196,7 @@ export default function Departament() {
 
       closeModal();
     } catch (err) {
-      toast.error(err?.data?.message || "Xatolik yuz berdi");
+      toast.error(apiError(err, "Xatolik yuz berdi"));
     }
   };
 
@@ -174,7 +210,7 @@ export default function Departament() {
 
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err?.data?.message || "O‘chirishda xatolik");
+      toast.error(apiError(err, "O‘chirishda xatolik"));
     }
   };
 
@@ -190,7 +226,7 @@ export default function Departament() {
 
       toast.success("Status yangilandi");
     } catch (err) {
-      toast.error(err?.data?.message || "Statusni o‘zgartirishda xatolik");
+      toast.error(apiError(err, "Statusni o‘zgartirishda xatolik"));
     }
   };
   return (
@@ -587,6 +623,29 @@ export default function Departament() {
           sm:grid-cols-2
         "
             >
+              {/* Surat — ikki ustunni egallaydi. Swagger: multipart,
+                  `member_photo` (binary). Tahrirlashda serverdagi
+                  mavjud surat `existingUrl` orqali ko'rsatiladi. */}
+              <div className="sm:col-span-2">
+                <ImageUploadField
+                  label="Surat"
+                  value={form.member_photo}
+                  existingUrl={
+                    editing?.member_photo && !photoRemoved
+                      ? `${BASE_URL}${String(editing.member_photo).startsWith("/") ? "" : "/"}${editing.member_photo}`
+                      : null
+                  }
+                  onChange={(file) => {
+                    handleChange("member_photo", file);
+                    if (file) setPhotoRemoved(false);
+                  }}
+                  onRemove={() => {
+                    handleChange("member_photo", null);
+                    setPhotoRemoved(true);
+                  }}
+                />
+              </div>
+
               {[
                 ["full_name_latin", "F.I.SH (Lotin)", "text"],
                 ["full_name_cyril", "F.I.SH (Kirill)", "text"],

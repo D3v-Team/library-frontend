@@ -15,6 +15,7 @@ import {
 } from "../../store/services/genres";
 import AdminPageHeader from "./components/AdminPageHeader";
 import AdminEmptyState from "./components/AdminEmptyState";
+import apiError from "../../lib/apiError";
 
 export default function Genres() {
   const [page, setPage] = useState(1);
@@ -131,7 +132,7 @@ export default function Genres() {
 
       closeModal();
     } catch (error) {
-      toast.error(error?.data?.message || "Saqlashda xatolik yuz berdi");
+      toast.error(apiError(error, "Saqlashda xatolik yuz berdi"));
     }
   };
 
@@ -151,7 +152,7 @@ export default function Genres() {
 
       setSelectedGenre(null);
     } catch (error) {
-      toast.error(error?.data?.message || "O'chirishda xatolik yuz berdi");
+      toast.error(apiError(error, "O'chirishda xatolik yuz berdi"));
     }
   };
 
