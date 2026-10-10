@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 import cx from "../lib/cx";
 import { useLocalized } from "../lib/useLocalized";
-import { formatBookYear, getBookCoverUrl, getBookGenreNames } from "../Pages/Books/bookHelpers";
+import { formatBookYear, getBookCoverUrl, getBookGenreNames, isExcelBook } from "../Pages/Books/bookHelpers";
 
 /**
  * Kitob kartochkasi — katalog, rels va tavsiyalarda bitta shakl.
@@ -16,6 +16,10 @@ import { formatBookYear, getBookCoverUrl, getBookGenreNames } from "../Pages/Boo
  * 6 ustunga o'tadi → ~186×279px, bir ekranda 18 kitob.
  *
  * `variant="row"` — ro'yxat ko'rinishi: skanerlash uchun.
+ *
+ * Excel importidan kelgan kitobning sahifasi yo'q — kartochka havola
+ * bo'lmaydi (ro'yxatlar ularni odatda o'zi chiqarib tashlaydi, bu
+ * himoya qatlami).
  */
 export default function BookCard({ book, variant = "grid" }) {
   const { pick } = useLocalized();
@@ -26,14 +30,21 @@ export default function BookCard({ book, variant = "grid" }) {
   const year = formatBookYear(book.published_date);
   const genre = getBookGenreNames(book)[0];
 
+  const linkable = !isExcelBook(book);
+  const Wrap = linkable ? Link : "div";
+  const wrapProps = linkable ? { to: `/books/${book.id}` } : {};
+
   if (variant === "row") {
     return (
       // Ajratgich chizig'i tashqi o'ramda: hover foni ichkariga surilgan
       // va burchagi yumaloq bo'lgani uchun chegara u bilan to'qnashadi.
       <div className="border-b border-line-soft">
-        <Link
-          to={`/books/${book.id}`}
-          className="-mx-3 flex items-center gap-4 rounded-field px-3 py-3 transition-colors duration-1 ease-out-soft hover:bg-paper-3"
+        <Wrap
+          {...wrapProps}
+          className={cx(
+            "-mx-3 flex items-center gap-4 rounded-field px-3 py-3",
+            linkable && "transition-colors duration-1 ease-out-soft hover:bg-paper-3",
+          )}
         >
           <span className="relative h-16 w-11 shrink-0 overflow-hidden rounded-field bg-ink-deep">
             {cover ? (
@@ -54,14 +65,14 @@ export default function BookCard({ book, variant = "grid" }) {
             {genre && <span className="max-w-32 truncate">{genre}</span>}
             {year && <span>{year}</span>}
           </span>
-        </Link>
+        </Wrap>
       </div>
     );
   }
 
   return (
     <article className="u-tilt-wrap">
-      <Link to={`/books/${book.id}`} className="group block">
+      <Wrap {...wrapProps} className="group block">
         {/* 2:3 — kitobning haqiqiy proporsiyasi */}
         <span className="u-tilt relative block aspect-[2/3] overflow-hidden rounded-card bg-ink-deep shadow-s1">
           {cover ? (
@@ -101,7 +112,7 @@ export default function BookCard({ book, variant = "grid" }) {
           {year && <span>{year}</span>}
           {genre && <span className="truncate">{genre}</span>}
         </p>
-      </Link>
+      </Wrap>
     </article>
   );
 }

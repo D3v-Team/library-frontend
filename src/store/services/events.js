@@ -17,6 +17,16 @@ function toFormData(fields) {
       return;
     }
 
+    // CreateEventsDto.images — bir nechta rasm, har biri alohida
+    // "images" kaliti bilan (10 tagacha)
+    if (key === "images") {
+      (Array.isArray(value) ? value : [value])
+        .filter((file) => file instanceof File)
+        .forEach((file) => formData.append("images", file));
+
+      return;
+    }
+
     formData.append(key, value);
   });
 
@@ -206,6 +216,59 @@ export const eventsApi = createApi({
 
 }),
 
+    // Admin uchun bitta tadbir (yashirin tadbirlar ham) — rasmlar
+    // boshqaruvi shu yerdan o'qiydi
+    getAdminEventById: builder.query({
+      query: (id) => ({
+        url: `/events/admin/${id}`,
+        method: "GET",
+      }),
+      providesTags: (result, error, id) => [{ type: "Events", id }],
+    }),
+
+    // --- Rasmlar (10 tagacha) ---
+
+    uploadEventImages: builder.mutation({
+      query: ({ id, files }) => {
+        const formData = new FormData();
+
+        // UploadEventImagesDto.files
+        files.filter(Boolean).forEach((file) => formData.append("files", file));
+
+        return {
+          url: `/events/${id}/images`,
+          method: "POST",
+          data: formData,
+        };
+      },
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Events", id },
+        { type: "Events", id: "LIST" },
+      ],
+    }),
+
+    setMainEventImage: builder.mutation({
+      query: ({ id, imageId }) => ({
+        url: `/events/${id}/images/${imageId}/set-main`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Events", id },
+        { type: "Events", id: "LIST" },
+      ],
+    }),
+
+    deleteEventImage: builder.mutation({
+      query: ({ id, imageId }) => ({
+        url: `/events/${id}/images/${imageId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Events", id },
+        { type: "Events", id: "LIST" },
+      ],
+    }),
+
     deleteEvent: builder.mutation({
       query: (id) => ({
         url: `/events/${id}`,
@@ -231,4 +294,8 @@ export const {
   useUpdateEventMutation,
   useDeleteEventMutation,
   useToggleEventPublicMutation,
+  useGetAdminEventByIdQuery,
+  useUploadEventImagesMutation,
+  useSetMainEventImageMutation,
+  useDeleteEventImageMutation,
 } = eventsApi;

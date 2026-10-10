@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
-import { BookOpen, ChevronLeft, ChevronRight, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { BookOpen, Check, ChevronLeft, ChevronRight, Loader2, Search, Send, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 
 import { useCreateOnlineRequestMutation } from "../store/services/requests";
 import { useGetBooksQuery } from "../store/services/books.api";
 import { useLocalized } from "../lib/useLocalized";
+import useDebouncedValue from "../lib/useDebouncedValue";
+import { getBookAuthorName } from "../Pages/Books/bookHelpers";
 import { Button, Dialog, EmptyState, Field, Input, Skeleton, Textarea } from "../ui";
 import apiError from "../lib/apiError";
 
@@ -21,9 +23,19 @@ import apiError from "../lib/apiError";
  * EmptyState. Ilgari modalda label lar umuman yo'q edi — faqat
  * placeholder, ya'ni ekran o'qish dasturi maydon nima uchun ekanini
  * aytmasdi.
+ *
+ * Kitob tanlash: fond katta (Excel importi minglab kitob qo'shadi),
+ * varaqlab kerakli kitobni topib bo'lmaydi. Shuning uchun ro'yxat
+ * umuman ko'rsatilmaydi — faqat nomi bo'yicha qidiruv natijalari.
+ * So'rov backend `search` ga, kamida 2 harfdan keyin va yozish
+ * to'xtagach 400 ms o'tib ketadi (har harfga so'rov ketmaydi).
+ * Tanlangan kitob alohida eslab qolinadi: qidiruv o'zgarib u
+ * natijalardan chiqib ketsa ham tanlov yo'qolmaydi.
  */
 
 const BOOK_LIMIT = 5;
+const SEARCH_DELAY = 400;
+const SEARCH_MIN = 2;
 
 const emptyForm = {
   full_name: "",
@@ -40,17 +52,37 @@ export default function BookOrderModal({ open, onClose }) {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [page, setPage] = useState(1);
+  const [query, setQuery] = useState("");
+  const [selectedBook, setSelectedBook] = useState(null);
+
+  const search = useDebouncedValue(query.trim(), SEARCH_DELAY);
+  const canSearch = search.length >= SEARCH_MIN;
+  const isTyping = query.trim() !== search && query.trim().length >= SEARCH_MIN;
 
   const [createOnlineRequest, { isLoading }] = useCreateOnlineRequestMutation();
 
-  // Kitoblar faqat modal ochilganda so'raladi
-  const { data, isFetching } = useGetBooksQuery(
-    { page, limit: BOOK_LIMIT, sortBy: "", sortOrder: "desc" },
-    { skip: !open },
+  // Faqat qidiruv bo'lganda so'raladi — bo'sh modalda ro'yxat yo'q
+  const { currentData, isFetching } = useGetBooksQuery(
+    { page, limit: BOOK_LIMIT, search, sortBy: "", sortOrder: "desc" },
+    { skip: !open || !canSearch },
   );
 
-  const books = data?.data ?? [];
-  const totalPages = data?.meta?.totalPages ?? 1;
+  /* Ko'rsatiladigan natija. Yangi qidiruvda eski natija ko'rinmaydi
+     (`currentData` bo'sh), lekin SHU qidiruv ichida sahifa almashganda
+     oldingi sahifa xiralashib turadi — ro'yxat skeletonga sakramaydi. */
+  const lastResult = useRef(null);
+  if (currentData) lastResult.current = { search, data: currentData };
+  const result =
+    currentData ?? (lastResult.current?.search === search ? lastResult.current.data : undefined);
+
+  const books = canSearch ? result?.data ?? [] : [];
+  const totalPages = canSearch ? result?.meta?.totalPages ?? 1 : 1;
+  const busy = isTyping || isFetching;
+
+  // Yangi qidiruv — birinchi sahifadan
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   // Modal har ochilganda toza holatdan boshlanadi
   useEffect(() => {
@@ -58,7 +90,19 @@ export default function BookOrderModal({ open, onClose }) {
     setForm(emptyForm);
     setErrors({});
     setPage(1);
+    setQuery("");
+    setSelectedBook(null);
   }, [open]);
+
+  const chooseBook = (book) => {
+    setSelectedBook(book);
+    setField("book_id", book.id);
+  };
+
+  const clearBook = () => {
+    setSelectedBook(null);
+    setField("book_id", "");
+  };
 
   const setField = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -130,54 +174,136 @@ export default function BookOrderModal({ open, onClose }) {
             <span className="ml-1 text-clay" aria-hidden="true">*</span>
           </legend>
 
-          {isFetching ? (
-            <div className="flex flex-col gap-2">
-              {Array.from({ length: BOOK_LIMIT }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" rounded="field" />
-              ))}
-            </div>
-          ) : books.length === 0 ? (
-            <EmptyState
-              title={t("bookOrder.noBooks")}
-              description={t("bookOrder.noBooksHint")}
-              className="py-8"
-            />
-          ) : (
-            <div
-              role="radiogroup"
-              aria-label={t("bookOrder.chooseBook")}
-              aria-invalid={errors.book_id ? true : undefined}
-              className="flex flex-col gap-1.5"
-            >
-              {books.map((book) => {
-                const selected = String(form.book_id) === String(book.id);
-                const title = pick(book, "name") || t("bookOrder.untitled");
-
-                return (
-                  <label
-                    key={book.id}
-                    className={`flex cursor-pointer items-center gap-3 rounded-field border px-3.5 py-2.5 transition-colors duration-1 ease-out-soft ${
-                      selected
-                        ? "border-gold bg-gold/10"
-                        : "border-line bg-paper-3 hover:border-gold-dim"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="book_id"
-                      value={book.id}
-                      checked={selected}
-                      onChange={() => setField("book_id", book.id)}
-                      className="h-4 w-4 shrink-0 accent-ink"
-                    />
-                    <span className="font-display text-[0.92rem] font-medium text-fg">
-                      {title}
-                    </span>
-                  </label>
-                );
-              })}
+          {/* Tanlangan kitob — qidiruv o'zgarsa ham ko'rinib turadi */}
+          {selectedBook && (
+            <div className="flex items-center gap-3 rounded-field border border-gold bg-gold/10 px-3.5 py-2.5">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ink text-gold">
+                <Check size={13} strokeWidth={2.4} aria-hidden="true" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-sans text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-gold-dim">
+                  {t("bookOrder.selected")}
+                </span>
+                <span className="block truncate font-display text-[0.92rem] font-medium text-fg">
+                  {pick(selectedBook, "name") || t("bookOrder.untitled")}
+                </span>
+              </span>
+              <Button size="sm" variant="ghost" onClick={clearBook} iconStart={<X size={14} />}>
+                {t("bookOrder.change")}
+              </Button>
             </div>
           )}
+
+          {/* Qidiruv */}
+          <div className="relative">
+            <Search
+              size={16}
+              strokeWidth={1.9}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-fg-faint"
+            />
+            <label htmlFor="book-order-search" className="sr-only">
+              {t("bookOrder.searchLabel")}
+            </label>
+            <Input
+              id="book-order-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              // Enter formani yubormasin — bu yerda u faqat qidiruv
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.preventDefault();
+              }}
+              placeholder={t("bookOrder.search")}
+              autoComplete="off"
+              className="pl-10 pr-10"
+              aria-controls="book-order-results"
+            />
+            {busy && (
+              <Loader2
+                size={16}
+                strokeWidth={2}
+                aria-label={t("bookOrder.searching")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-fg-faint"
+              />
+            )}
+          </div>
+
+          <div id="book-order-results" aria-live="polite" aria-busy={busy}>
+            {!canSearch && !isTyping ? (
+              // Hali qidirilmagan — ro'yxat o'rniga yo'l-yo'riq
+              <p className="rounded-field border border-dashed border-line px-4 py-5 text-center font-sans text-[0.84rem] text-fg-muted">
+                {query.trim() ? (
+                  t("bookOrder.searchMin", { count: SEARCH_MIN })
+                ) : (
+                  <>
+                    <span className="block font-display text-[0.95rem] font-medium text-fg">
+                      {t("bookOrder.searchPrompt")}
+                    </span>
+                    <span className="mt-0.5 block">{t("bookOrder.searchPromptHint")}</span>
+                  </>
+                )}
+              </p>
+            ) : !result ? (
+              <div className="flex flex-col gap-1.5">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" rounded="field" />
+                ))}
+              </div>
+            ) : books.length === 0 ? (
+              <EmptyState
+                title={t("bookOrder.notFound", { term: search })}
+                description={t("bookOrder.notFoundHint")}
+                className="py-8"
+              />
+            ) : (
+              <div
+                role="radiogroup"
+                aria-label={t("bookOrder.chooseBook")}
+                aria-invalid={errors.book_id ? true : undefined}
+                // Qayta so'rov paytida ro'yxat o'chib-yonmaydi, faqat xiralashadi
+                className={`flex flex-col gap-1.5 transition-opacity duration-1 ease-out-soft ${
+                  isFetching ? "opacity-60" : ""
+                }`}
+              >
+                {books.map((book) => {
+                  const selected = String(form.book_id) === String(book.id);
+                  const title = pick(book, "name") || t("bookOrder.untitled");
+                  const author = getBookAuthorName(book, pick);
+
+                  return (
+                    <label
+                      key={book.id}
+                      className={`flex cursor-pointer items-center gap-3 rounded-field border px-3.5 py-2.5 transition-colors duration-1 ease-out-soft ${
+                        selected
+                          ? "border-gold bg-gold/10"
+                          : "border-line bg-paper-3 hover:border-gold-dim"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="book_id"
+                        value={book.id}
+                        checked={selected}
+                        onChange={() => chooseBook(book)}
+                        className="h-4 w-4 shrink-0 accent-ink"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-display text-[0.92rem] font-medium text-fg">
+                          {title}
+                        </span>
+                        {author && (
+                          <span className="block truncate font-sans text-[0.76rem] text-fg-muted">
+                            {author}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {errors.book_id && (
             <p className="text-[0.78rem] text-clay">{errors.book_id}</p>
@@ -190,7 +316,7 @@ export default function BookOrderModal({ open, onClose }) {
                 size="sm"
                 variant="secondary"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
+                disabled={page <= 1 || isFetching}
                 iconStart={<ChevronLeft size={15} />}
               >
                 {t("bookOrder.prev")}
@@ -204,7 +330,7 @@ export default function BookOrderModal({ open, onClose }) {
                 size="sm"
                 variant="secondary"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
+                disabled={page >= totalPages || isFetching}
                 iconEnd={<ChevronRight size={15} />}
               >
                 {t("bookOrder.next")}

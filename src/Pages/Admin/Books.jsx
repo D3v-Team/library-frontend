@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, BookOpen, Eye } from "lucide-react";
+import { Pencil, Trash2, BookOpen, Eye, FileSpreadsheet } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
@@ -11,11 +11,12 @@ import MultiSelect from "./components/MultiSelect";
 import Pagination from "./components/Pagination";
 import { SearchInput, FilterSelect } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
+import ExcelImportModal from "./components/ExcelImportModal";
 
 import {
   required,
   minLength,
-  isValidDate,
+  isValidYear,
   validateForm,
 } from "./utils/validators";
 
@@ -28,7 +29,7 @@ import {
 
 import { useGetAuthorsQuery } from "../../store/services/avtors.api";
 import { useGetGenresQuery } from "../../store/services/genres";
-import { getBookGenreIds, getBookGenreLabel } from "../Books/bookHelpers";
+import { formatBookYear, getBookGenreIds, getBookGenreLabel, isExcelBook } from "../Books/bookHelpers";
 
 import { BASE_URL } from "../../store/api";
 import apiError from "../../lib/apiError";
@@ -78,7 +79,7 @@ const formSchema = [
 
   {
     field: "published_date",
-    validators: [(v) => required(v, "Nashr sanasi"), isValidDate],
+    validators: [(v) => required(v, "Nashr yili"), isValidYear],
   },
 ];
 
@@ -104,6 +105,8 @@ export default function Books() {
   const [activeLang, setActiveLang] = useState("latin");
 
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const [excelOpen, setExcelOpen] = useState(false);
 
   const { data, isLoading, isFetching, error } = useGetBooksQuery({
     page,
@@ -193,6 +196,9 @@ export default function Books() {
          "Belgilangan janrlardan ba'zilari topilmadi".
          Yaratishda xato chiqmasdi, chunki u yerda ID ro'yxatdan tanlanadi. */
       genreIds: getBookGenreIds(book),
+
+      // Formada faqat yil: "1962-01-01T00:00:00.000Z" -> "1962"
+      published_date: formatBookYear(book.published_date) ?? "",
     });
 
     setErrors({});
@@ -240,6 +246,10 @@ export default function Books() {
       ...form,
 
       grade_level: form.grade_level ? Number(form.grade_level) : undefined,
+
+      // Backend sana kutadi (published_date: string) — faqat yil
+      // kiritiladi, oy va kun 1-yanvar bo'lib ketadi
+      published_date: `${form.published_date}-01-01`,
     };
 
     try {
@@ -283,7 +293,19 @@ export default function Books() {
         description="Kutubxona fondidagi kitoblarni boshqaring."
         actionLabel="Kitob qo‘shish"
         onAction={openCreate}
+        extraActions={
+          <button
+            type="button"
+            onClick={() => setExcelOpen(true)}
+            className="inline-flex w-fit items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-semibold text-green-800 shadow-sm transition-all duration-200 hover:border-green-300 hover:bg-green-100 active:scale-[0.98]"
+          >
+            <FileSpreadsheet size={16} strokeWidth={2} />
+            Excel yuklash
+          </button>
+        }
       />
+
+      <ExcelImportModal open={excelOpen} onClose={() => setExcelOpen(false)} />
 
       {/* FILTER */}
 
@@ -489,6 +511,7 @@ text-slate-500
 "
                     >
                       {book.author?.full_name_latin ||
+                        book.author_name ||
                         authorNameById(book.author_id)}
                     </p>
 
@@ -500,6 +523,17 @@ flex-wrap
 gap-1
 "
                     >
+                      {isExcelBook(book) && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+                          <FileSpreadsheet size={12} />
+                          Excel
+                        </span>
+                      )}
+                      {book.quantity != null && (
+                        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                          {book.quantity} nusxa
+                        </span>
+                      )}
                       {(book.genres ?? []).map((g) => (
                         <span
                           key={g.id}
@@ -537,7 +571,7 @@ text-slate-500
 "
                   >
                     <p>
-                      Sana:
+                      Nashr yili:
                       <span
                         className="
 ml-1
@@ -545,7 +579,7 @@ font-medium
 text-slate-700
 "
                       >
-                        {book.published_date?.slice(0, 10) || "—"}
+                        {formatBookYear(book.published_date) || "—"}
                       </span>
                     </p>
 
@@ -751,15 +785,17 @@ hover:bg-red-50
             </FormField>
           </div>
 
-          {/* DATE */}
+          {/* NASHR YILI — oy va kun kerak emas */}
 
           <FormField
-            type="date"
-            label="Nashr sanasi"
+            label="Nashr yili"
             required
+            inputMode="numeric"
+            maxLength={4}
+            placeholder="Masalan: 1926"
             value={form.published_date}
             onChange={(e) =>
-              handleFieldChange("published_date", e.target.value)
+              handleFieldChange("published_date", e.target.value.replace(/\D/g, "").slice(0, 4))
             }
             error={errors.published_date}
           />

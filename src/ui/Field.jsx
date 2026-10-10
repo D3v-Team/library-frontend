@@ -2,16 +2,7 @@ import { useId } from "react";
 
 import cx from "../lib/cx";
 
-/**
- * Forma maydoni uchun umumiy qobiq: label + xato + izoh.
- *
- * Audit topilmasi: hozirgi formalarda label ko'pincha `placeholder`
- * bilan almashtirilgan. Placeholder yozuv boshlanishi bilan
- * yo'qoladi — foydalanuvchi maydon nima uchun ekanini eslay olmaydi,
- * ekran o'qish dasturi esa uni umuman aytmaydi.
- *
- * `htmlFor` va `aria-describedby` avtomatik ulanadi.
- */
+
 export default function Field({
   label,
   hint,
@@ -40,7 +31,7 @@ export default function Field({
         </label>
       )}
 
-      {/* Bola elementga id va aria bog'lanishlari uzatiladi */}
+   
       {typeof children === "function"
         ? children({
             id,

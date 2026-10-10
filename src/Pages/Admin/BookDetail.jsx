@@ -13,7 +13,7 @@ import {
   useDeleteBookFileMutation,
   downloadBookFile,
 } from "../../store/services/books.api";
-import { formatBookDate, formatBookYear, getBookGenreLabel } from "../../Pages/Books/bookHelpers";
+import { formatBookYear, getBookGenreLabel } from "../../Pages/Books/bookHelpers";
 import apiError from "../../lib/apiError";
 
 export default function BookDetail() {
@@ -165,12 +165,6 @@ export default function BookDetail() {
             </div>
 
             <dl className="mt-6 grid grid-cols-2 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-3">
-              <div>
-                <dt className="text-xs text-slate-400">Nashr sanasi</dt>
-                <dd className="mt-1 text-sm font-medium text-slate-800">
-                  {formatBookDate(book.published_date) || "—"}
-                </dd>
-              </div>
               <div>
                 <dt className="text-xs text-slate-400">Nashr yili</dt>
                 <dd className="mt-1 text-sm font-medium text-slate-800">

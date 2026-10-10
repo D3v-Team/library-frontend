@@ -14,6 +14,18 @@ function toUploadFormData(fileOrFiles) {
   return formData;
 }
 
+/**
+ * Backend kitob manbasi bo'yicha filtr qo'llab-quvvatlaydimi.
+ *
+ * `true` bo'lsa kitoblar sahifasi har bo'limni alohida, 20 tadan
+ * so'raydi: `GET /books?source=manual|excel&page=N&limit=20`.
+ * Hozir backendda bu filtr YO'Q — shuning uchun `false`.
+ */
+export const BOOK_SOURCE_FILTER = false;
+
+/** Backend `limit` ni shu songa qirqadi (o'lchab tekshirilgan) */
+const BACKEND_MAX_LIMIT = 100;
+
 export const booksApi = createApi({
   reducerPath: "booksApi",
 
@@ -33,6 +45,7 @@ export const booksApi = createApi({
         grade_level,
         sortBy,
         sortOrder,
+        source,
       } = {}) => ({
         url: "/books",
         method: "GET",
@@ -45,6 +58,7 @@ export const booksApi = createApi({
           grade_level,
           sortBy,
           sortOrder,
+          source,
         },
       }),
       providesTags: (result) =>
@@ -54,6 +68,45 @@ export const booksApi = createApi({
               { type: "Books", id: "LIST" },
             ]
           : [{ type: "Books", id: "LIST" }],
+    }),
+
+    // Filtrga mos BARCHA kitoblar — VAQTINCHALIK yechim.
+    //
+    // Katalog (qo'lda kiritilgan) va kartoteka (Excel importi) ni
+    // backend ajratib bera olmaydi: `source` kabi filtr yo'q (tekshirildi
+    // — noma'lum parametrlar jim e'tiborsiz qoldiriladi). Shuning uchun
+    // hammasi olinib klientda ajratiladi. Backend `limit` ni 100 ga
+    // cheklaydi, ya'ni bitta so'rovga ishonib bo'lmaydi: birinchi
+    // sahifadan `meta.total` olinadi va qolganlari 100 tadan so'raladi.
+    //
+    // Backend `source=excel|manual` filtrini qo'shgach `BOOK_SOURCE_FILTER`
+    // ni yoqing — kitoblar sahifasi 20 tadan server paginatsiyasiga o'tadi
+    // va bu endpoint kerak bo'lmay qoladi.
+    getAllBooks: builder.query({
+      async queryFn(params = {}, _api, _extra, baseQuery) {
+        const fetchPage = (page) =>
+          baseQuery({
+            url: "/books",
+            method: "GET",
+            params: { ...params, page, limit: BACKEND_MAX_LIMIT },
+          });
+
+        const first = await fetchPage(1);
+        if (first.error) return { error: first.error };
+
+        const total = first.data?.meta?.total ?? first.data?.data?.length ?? 0;
+        const pages = Math.ceil(total / BACKEND_MAX_LIMIT);
+
+        const rest = await Promise.all(
+          Array.from({ length: Math.max(0, pages - 1) }, (_, i) => fetchPage(i + 2)),
+        );
+        const failed = rest.find((r) => r.error);
+        if (failed) return { error: failed.error };
+
+        const data = [first, ...rest].flatMap((r) => r.data?.data ?? []);
+        return { data: { data, meta: { total } } };
+      },
+      providesTags: [{ type: "Books", id: "LIST" }],
     }),
 
     getBookById: builder.query({
@@ -193,6 +246,23 @@ export const booksApi = createApi({
       ],
     }),
 
+    // Excel (.xlsx) dan ommaviy import. Backend faqat matnli maydonlarni
+    // oladi: name_latin, name_cyril, name_ru, author_name, quantity —
+    // rasm va janrsiz. Javob shakli OpenAPI da hujjatlashtirilmagan.
+    importBooksExcel: builder.mutation({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        return {
+          url: "/books/import-excel",
+          method: "POST",
+          data: formData,
+        };
+      },
+      invalidatesTags: [{ type: "Books", id: "LIST" }],
+    }),
+
     recalculateBookScores: builder.mutation({
       query: () => ({
         url: "/books/admin/recalculate-scores",
@@ -221,6 +291,7 @@ export async function downloadBookFile(bookId, fileId, fileName = "fayl") {
 
 export const {
   useGetBooksQuery,
+  useGetAllBooksQuery,
   useGetBookByIdQuery,
   useCreateBookMutation,
   useUpdateBookMutation,
@@ -232,5 +303,6 @@ export const {
   useUploadBookImageMutation,
   useDeleteBookImageMutation,
   useSetMainBookImageMutation,
+  useImportBooksExcelMutation,
   useRecalculateBookScoresMutation,
 } = booksApi;

@@ -26,7 +26,7 @@ import apiError from "../../lib/apiError";
 const initialForm = {
   full_name: "",
   email: "",
-  phone: "",
+  phone: "+998",
   message: "",
 };
 
@@ -122,11 +122,12 @@ export default function Message({ open, onOpen, onClose }) {
             )}
           </Field>
 
-          <Field label={t("message.placeholders.phone")}>
+          <Field required label={t("message.placeholders.phone")}>
             {(a) => (
               <Input
                 {...a}
-                type="tel"
+                required
+                type="phone"
                 value={form.phone}
                 onChange={(e) => setField("phone", e.target.value)}
                 autoComplete="tel"

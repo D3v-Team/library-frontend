@@ -30,6 +30,35 @@ export function getBookCoverUrl(book) {
   );
 }
 
+/**
+ * Kitob Excel importidan kelganmi?
+ *
+ * Kitob ikki yo'l bilan qo'shiladi:
+ *   1. qo'lda — rasm, muallif, janr va tavsif bilan to'liq
+ *   2. Excel (.xlsx) dan — faqat name_latin/cyril/ru, author_name, quantity
+ *
+ * Backend manbani alohida maydonda qaytarmaydi, shuning uchun belgi:
+ * rasm ham, janr ham yo'q. Qo'lda kiritishda janr majburiy
+ * (CreateBookDto.genreIds required), ya'ni janrsiz kitob faqat
+ * importdan keladi. Agar backend keyinchalik `source`/`is_imported`
+ * qaytarsa — o'sha ustun turadi.
+ */
+export function isExcelBook(book) {
+  if (!book) return false;
+  if (typeof book.is_imported === "boolean") return book.is_imported;
+  if (book.source) return String(book.source).toLowerCase() === "excel";
+
+  const noImages = !Array.isArray(book.images) || book.images.length === 0;
+  const noGenres = !Array.isArray(book.genres) || book.genres.length === 0;
+
+  return noImages && noGenres;
+}
+
+/** Excel kitobida muallif obyekti bo'lmasligi mumkin — matnli nomga tushamiz */
+export function getBookAuthorName(book, pick) {
+  return (book?.author && pick(book.author, "full_name")) || book?.author_name || "";
+}
+
 export function getBookGenreLabel(genreEntry) {
   if (!genreEntry) return "";
   if (genreEntry.genre) {

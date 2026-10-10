@@ -31,19 +31,30 @@ function windowed(page, total, span = 1) {
   return out;
 }
 
-export default function Pagination({ page, totalPages, onChange, disabled, labels }) {
+export default function Pagination({
+  page,
+  totalPages,
+  onChange,
+  disabled,
+  labels,
+  scrollToTop = true,
+  size = "md",
+}) {
   if (!totalPages || totalPages <= 1) return null;
 
   const go = (p) => {
     if (p < 1 || p > totalPages || p === page) return;
     onChange(p);
     // Sahifa almashganda tepaga qaytamiz — aks holda foydalanuvchi
-    // yangi ro'yxatning o'rtasida qolib ketadi
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // yangi ro'yxatning o'rtasida qolib ketadi. Sahifa ichidagi
+    // kichik bloklar (galereya, jadval) buni o'zi boshqaradi.
+    if (scrollToTop) window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const cell =
-    "inline-flex h-10 min-w-10 items-center justify-center rounded-field border px-3 font-mono text-[0.82rem] tabular transition-colors duration-1 ease-out-soft";
+  const cell = cx(
+    "inline-flex items-center justify-center rounded-field border font-mono tabular transition-colors duration-1 ease-out-soft",
+    size === "sm" ? "h-9 min-w-9 px-2.5 text-[0.78rem]" : "h-10 min-w-10 px-3 text-[0.82rem]",
+  );
 
   return (
     <nav aria-label={labels?.nav ?? "Sahifalar"} className="flex flex-wrap items-center justify-center gap-2">

@@ -1,5 +1,6 @@
 import HeroBand from "./sections/HeroBand";
 import FondRail from "./sections/FondRail";
+import StatsBand from "./sections/StatsBand";
 import NewsEditorial from "./sections/NewsEditorial";
 import EventsCalendar from "./sections/EventsCalendar";
 import MaarifatBand from "./sections/MaarifatBand";
@@ -21,6 +22,7 @@ import { useLazySection } from "../../hooks/useLazySection";
  *
  *   01 Peshtoq hero        signatura sirt + haqiqiy statistika
  *   02 Fond relsi          marquee o'rniga boshqariladigan rels
+ *   02b Raqamlarda         admin kiritgan rasmiy statistika
  *   03 Yangiliklar         redaksion ierarxiya: yetakchi + qatorlar
  *   04 Tadbirlar           taqvim ohangi, oy lentasi bilan
  *   05 Ma'rifat bloki      ikkinchi signatura sirt
@@ -62,6 +64,10 @@ export default function Home() {
       {/* Darhol render — ekranning yuqori qismi */}
       <HeroBand />
       <FondRail />
+
+      <LazySection minHeight="420px">
+        <StatsBand />
+      </LazySection>
 
       <LazySection minHeight="420px">
         <NewsEditorial />

@@ -5,13 +5,15 @@ import { useTranslation } from "react-i18next";
 
 import cx from "../../lib/cx";
 import { useLocalized } from "../../lib/useLocalized";
-import { useGetBooksQuery } from "../../store/services/books.api";
 import { useGetAuthorsQuery } from "../../store/services/avtors.api";
 import { useGetGenresQuery } from "../../store/services/genres";
 import { Button, EmptyState, Input, Reveal, Select, Skeleton } from "../../ui";
 import { BookCard, PageMeta, PageShell, Pagination } from "../../patterns";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
+import FondRegister from "./FondRegister";
+import ShelfSwitch from "./ShelfSwitch";
+import useShelfBooks from "./useShelfBooks";
 
 /**
  * Kitoblar katalogi.
@@ -25,8 +27,15 @@ import { SEO_CONFIG } from "../../seo/seoConfig";
  * Ustiga: ro'yxat ko'rinishi (skanerlash uchun), butun filtr holati
  * URL da (havola ulashiladi, orqaga tugmasi ishlaydi) va oyna
  * paginatsiyasi (ilgari 100 sahifa = 100 tugma edi).
+ *
+ * Ikki bo'lim — tepada tortmalar (ShelfSwitch):
+ *   Katalog          qo'lda kiritilgan kitoblar, muqova gridi
+ *   Fond kartotekasi Excel importi, jadval (sahifasi yo'q)
+ * Har birining o'z sahifa raqami bor (`page` / `rpage`), ochiq
+ * tortma `shelf` da — hammasi URL da. Ma'lumot useShelfBooks dan.
  */
 const LIMIT = 24;
+const REGISTER_LIMIT = 20;
 
 export default function Books() {
   const { t } = useTranslation();
@@ -44,6 +53,8 @@ export default function Books() {
   const view = params.get("view") === "list" ? "list" : "grid";
   const sort = params.get("sort");
   const page = Math.max(1, Number(params.get("page")) || 1);
+  const registerPage = Math.max(1, Number(params.get("rpage")) || 1);
+  const shelfParam = params.get("shelf");
 
   const update = (patch, { resetPage = true } = {}) => {
     const next = new URLSearchParams(params);
@@ -52,27 +63,51 @@ export default function Books() {
       if (value) next.set(key, value);
       else next.delete(key);
     }
-    if (resetPage) next.delete("page");
+    if (resetPage) {
+      next.delete("page");
+      next.delete("rpage");
+    }
 
     // replace: qidiruvda har harf uchun tarix yozuvi yaratilmaydi
     setParams(next, { replace: resetPage });
   };
 
-  const { data, isLoading, isFetching, error } = useGetBooksQuery({
-    page,
-    limit: LIMIT,
-    search,
-    author_id: author || undefined,
-    genre_id: genre || undefined,
-    ...(sort === "new" ? { sortBy: "created_at", sortOrder: "desc" } : {}),
+  const { catalog, register, isLoading, isFetching, error } = useShelfBooks({
+    filters: {
+      search,
+      author_id: author || undefined,
+      genre_id: genre || undefined,
+      ...(sort === "new" ? { sortBy: "created_at", sortOrder: "desc" } : {}),
+    },
+    catalogPage: page,
+    catalogSize: LIMIT,
+    registerPage,
+    registerSize: REGISTER_LIMIT,
   });
 
   const { data: authorsData } = useGetAuthorsQuery({ page: 1, limit: 100 });
   const { data: genresData } = useGetGenresQuery({ page: 1, limit: 100 });
 
-  const books = data?.data ?? [];
-  const total = data?.meta?.total;
-  const totalPages = data?.meta?.totalPages ?? 1;
+  /* Ochiq tortma. Parametr yo'q bo'lsa — katalog; lekin katalog bo'sh,
+     kartotekada esa kitob bo'lsa, tashrifchi bo'sh sahifa ko'rmasin. */
+  const shelf =
+    shelfParam === "kartoteka" ||
+    (!shelfParam && !isLoading && catalog.total === 0 && register.total > 0)
+      ? "register"
+      : "catalog";
+
+  const active = shelf === "catalog" ? catalog : register;
+  const other = shelf === "catalog" ? register : catalog;
+  const otherKey = shelf === "catalog" ? "register" : "catalog";
+  const total = isLoading ? null : catalog.total + register.total;
+
+  // Kartotekada janr yo'q — tortma almashganda janr filtri tushiriladi,
+  // aks holda kartoteka doim bo'sh ko'rinardi
+  const setShelf = (next) =>
+    update(
+      next === "register" ? { shelf: "kartoteka", genre: "" } : { shelf: "katalog" },
+      { resetPage: false },
+    );
 
   /* `?? []` har renderda yangi massiv qaytaradi — uni useMemo
      bog'liqligiga bersak memo hech qachon ishlamaydi. */
@@ -159,19 +194,22 @@ export default function Books() {
                 ))}
               </Select>
 
-              <Select
-                aria-label={t("books.allGenres")}
-                value={genre}
-                onChange={(e) => update({ genre: e.target.value })}
-                className="sm:w-44"
-              >
-                <option value="">{t("books.allGenres")}</option>
-                {genres.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {pick(g, "name")}
-                  </option>
-                ))}
-              </Select>
+              {/* Kartotekada janr yo'q — filtr ham ko'rsatilmaydi */}
+              {shelf === "catalog" && (
+                <Select
+                  aria-label={t("books.allGenres")}
+                  value={genre}
+                  onChange={(e) => update({ genre: e.target.value })}
+                  className="sm:w-44"
+                >
+                  <option value="">{t("books.allGenres")}</option>
+                  {genres.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {pick(g, "name")}
+                    </option>
+                  ))}
+                </Select>
+              )}
             </div>
 
             <div className="flex items-center gap-2 lg:ml-auto">
@@ -180,7 +218,7 @@ export default function Books() {
                   xil sonni takrorlardi. Filtr yonida esa u kontekstda —
                   filtr o'zgarganda darhol ko'zga tashlanadi. */}
               <span className="mr-1 hidden font-mono text-[0.78rem] text-fg-muted tabular sm:inline">
-                {t("books.results", { count: formatNumber(total ?? books.length) })}
+                {t("books.results", { count: formatNumber(active.total) })}
               </span>
 
               {hasFilter && (
@@ -194,104 +232,150 @@ export default function Books() {
                 </Button>
               )}
 
-              {/* Grid ↔ ro'yxat — ro'yxat skanerlash uchun */}
-              <div
-                role="group"
-                aria-label={t("books.view")}
-                className="flex overflow-hidden rounded-field border border-line"
-              >
-                {[
-                  { key: "grid", icon: LayoutGrid, label: t("books.viewGrid") },
-                  { key: "list", icon: List, label: t("books.viewList") },
-                ].map(({ key, icon: Icon, label }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => update({ view: key === "grid" ? "" : key }, { resetPage: false })}
-                    aria-pressed={view === key}
-                    aria-label={label}
-                    className={cx(
-                      "inline-flex h-11 w-11 items-center justify-center transition-colors duration-1 ease-out-soft",
-                      view === key
-                        ? "bg-ink text-on-ink"
-                        : "text-fg-muted hover:bg-paper-3 hover:text-fg",
-                    )}
-                  >
-                    <Icon size={16} strokeWidth={1.9} />
-                  </button>
-                ))}
-              </div>
+              {/* Grid ↔ ro'yxat — ro'yxat skanerlash uchun. Kartoteka
+                  o'zi jadval, unga ko'rinish tanlash kerak emas. */}
+              {shelf === "catalog" && (
+                <div
+                  role="group"
+                  aria-label={t("books.view")}
+                  className="flex overflow-hidden rounded-field border border-line"
+                >
+                  {[
+                    { key: "grid", icon: LayoutGrid, label: t("books.viewGrid") },
+                    { key: "list", icon: List, label: t("books.viewList") },
+                  ].map(({ key, icon: Icon, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => update({ view: key === "grid" ? "" : key }, { resetPage: false })}
+                      aria-pressed={view === key}
+                      aria-label={label}
+                      className={cx(
+                        "inline-flex h-11 w-11 items-center justify-center transition-colors duration-1 ease-out-soft",
+                        view === key
+                          ? "bg-ink text-on-ink"
+                          : "text-fg-muted hover:bg-paper-3 hover:text-fg",
+                      )}
+                    >
+                      <Icon size={16} strokeWidth={1.9} />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         }
       >
-        {error ? (
-          <EmptyState
-            title={t("books.error")}
-            actions={
-              <Button size="sm" variant="primary" onClick={() => window.location.reload()}>
-                {t("media.retry")}
-              </Button>
-            }
-          />
-        ) : isLoading ? (
-          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-2.5">
-                <Skeleton className="aspect-[2/3] w-full" rounded="card" />
-                <Skeleton className="h-3.5 w-4/5" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
-            ))}
-          </div>
-        ) : books.length === 0 ? (
-          <EmptyState
-            title={t("books.empty")}
-            description={hasFilter ? t("books.emptyFiltered") : t("books.emptyHint")}
-            actions={
-              hasFilter ? (
-                <>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    onClick={() => setParams(new URLSearchParams(), { replace: true })}
-                  >
-                    {t("books.clear")}
-                  </Button>
-                  <Button size="sm" variant="secondary" to="/authors">
-                    {t("header.authors")}
-                  </Button>
-                </>
-              ) : null
-            }
-          />
-        ) : (
-          <>
-            {view === "list" ? (
-              <div className="border-t border-line">
-                {books.map((book) => (
-                  <BookCard key={book.id} book={book} variant="row" />
-                ))}
-              </div>
-            ) : (
-              <Reveal className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6">
-                {books.map((book) => (
-                  <BookCard key={book.id} book={book} />
-                ))}
-              </Reveal>
-            )}
+        <ShelfSwitch
+          value={shelf}
+          onChange={setShelf}
+          loading={isLoading}
+          counts={{ catalog: catalog.total, register: register.total }}
+          panelId="shelf-panel"
+        />
 
-            <div className="mt-14">
-              <Pagination
-                page={page}
-                totalPages={totalPages}
-                disabled={isFetching}
-                onChange={(p) => update({ page: p > 1 ? String(p) : "" }, { resetPage: false })}
-                labels={{ nav: t("books.pagination"), prev: t("media.prevPage"), next: t("media.nextPage") }}
-              />
-            </div>
-          </>
-        )}
+        <div
+          id="shelf-panel"
+          role="tabpanel"
+          aria-labelledby={`shelf-tab-${shelf}`}
+          className="mt-8"
+        >
+          {error ? (
+            <EmptyState
+              title={t("books.error")}
+              actions={
+                <Button size="sm" variant="primary" onClick={() => window.location.reload()}>
+                  {t("media.retry")}
+                </Button>
+              }
+            />
+          ) : isLoading ? (
+            shelf === "register" ? (
+              <Skeleton className="h-[420px] w-full" rounded="card" />
+            ) : (
+              <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="flex flex-col gap-2.5">
+                    <Skeleton className="aspect-[2/3] w-full" rounded="card" />
+                    <Skeleton className="h-3.5 w-4/5" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            )
+          ) : active.total === 0 && other.total > 0 ? (
+            // Bu tortma bo'sh, qo'shnisida esa natija bor — o'sha yoqqa yo'l
+            <EmptyState
+              title={t("books.shelfEmpty")}
+              description={t("books.shelfFoundThere", {
+                shelf: t(otherKey === "register" ? "books.shelfRegister" : "books.shelfCatalog"),
+                count: formatNumber(other.total),
+              })}
+              actions={
+                <Button size="sm" variant="primary" onClick={() => setShelf(otherKey)}>
+                  {t("books.shelfGo")}
+                </Button>
+              }
+            />
+          ) : active.total === 0 ? (
+            <EmptyState
+              title={t("books.empty")}
+              description={hasFilter ? t("books.emptyFiltered") : t("books.emptyHint")}
+              actions={
+                hasFilter ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={() => setParams(new URLSearchParams(), { replace: true })}
+                    >
+                      {t("books.clear")}
+                    </Button>
+                    <Button size="sm" variant="secondary" to="/authors">
+                      {t("header.authors")}
+                    </Button>
+                  </>
+                ) : null
+              }
+            />
+          ) : shelf === "register" ? (
+            <FondRegister
+              books={register.items}
+              total={register.total}
+              page={registerPage}
+              pageSize={REGISTER_LIMIT}
+              totalPages={register.totalPages}
+              disabled={isFetching}
+              onPageChange={(p) => update({ rpage: p > 1 ? String(p) : "" }, { resetPage: false })}
+            />
+          ) : (
+            <>
+              {view === "list" ? (
+                <div className="border-t border-line">
+                  {catalog.items.map((book) => (
+                    <BookCard key={book.id} book={book} variant="row" />
+                  ))}
+                </div>
+              ) : (
+                <Reveal className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6">
+                  {catalog.items.map((book) => (
+                    <BookCard key={book.id} book={book} />
+                  ))}
+                </Reveal>
+              )}
+
+              <div className="mt-14">
+                <Pagination
+                  page={page}
+                  totalPages={catalog.totalPages}
+                  disabled={isFetching}
+                  onChange={(p) => update({ page: p > 1 ? String(p) : "" }, { resetPage: false })}
+                  labels={{ nav: t("books.pagination"), prev: t("media.prevPage"), next: t("media.nextPage") }}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </PageShell>
     </>
   );

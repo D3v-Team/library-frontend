@@ -35,8 +35,10 @@ export const NAV_GROUPS = [
     id: "fond",
     label: "header.books",
     items: [
-      { label: "header.books", path: "/books" },
-      { label: "nav.newBooks", path: "/books?sort=new" },
+      // Kitoblar sahifasining ikki tortmasi: "Kitoblar" — Excel importidan
+      // kelgan butun fond (kartoteka), "Yangi kelganlar" — muqovali katalog
+      { label: "header.books", path: "/books?shelf=kartoteka" },
+      { label: "nav.newBooks", path: "/books?shelf=katalog&sort=new" },
       { label: "header.authors", path: "/authors" },
     ],
   },

@@ -27,6 +27,17 @@ export function isValidDate(value) {
   return null;
 }
 
+// Nashr yili: faqat 4 xonali yil, kelajak emas.
+export function isValidYear(value) {
+  if (!value) return null;
+  if (!/^\d{4}$/.test(String(value))) return "Yilni 4 ta raqam bilan kiriting (masalan, 1926)";
+  const year = Number(value);
+  if (year < 1000 || year > new Date().getFullYear()) {
+    return `Yil 1000 va ${new Date().getFullYear()} oralig‘ida bo‘lishi kerak`;
+  }
+  return null;
+}
+
 // Havola faqat http(s) bo'lishi mumkin. javascript:, data:, vbscript: kabi
 // sxemalar admin kiritgan havola sifatida saqlanib, keyin public sahifada
 // bosilganda kod bajarilishiga olib keladi — shuning uchun allowlist.

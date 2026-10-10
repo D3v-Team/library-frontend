@@ -1,13 +1,14 @@
 // src/pages/admin/Events.jsx
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, CalendarDays, MapPin, ImageIcon } from "lucide-react";
+import { Pencil, Trash2, CalendarDays, MapPin, Images } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
 import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
 import ImageUploadField from "./components/ImageUploadField";
+import { ImageGalleryManager, MultiImagePicker } from "./components/MultiImageField";
 import Pagination from "./components/Pagination";
 
 import { SearchInput } from "./components/ListControls";
@@ -18,6 +19,10 @@ import {
   useUpdateEventMutation,
   useDeleteEventMutation,
   useGetAdminEventsQuery,
+  useGetAdminEventByIdQuery,
+  useUploadEventImagesMutation,
+  useSetMainEventImageMutation,
+  useDeleteEventImageMutation,
 } from "../../store/services/events";
 
 import { BASE_URL } from "../../store/api";
@@ -52,6 +57,7 @@ export default function Events() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ ...emptyForm });
   const [file, setFile] = useState(null);
+  const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activeLang, setActiveLang] = useState("latin");
@@ -67,6 +73,46 @@ export default function Events() {
   const [createEvent, { isLoading: isCreating }] = useCreateEventMutation();
   const [updateEvent, { isLoading: isUpdating }] = useUpdateEventMutation();
   const [deleteEvent, { isLoading: isDeleting }] = useDeleteEventMutation();
+
+  // Tahrirlashda rasmlar serverdan jonli o'qiladi: yuklash/o'chirishdan
+  // keyin tag invalidatsiyasi bilan darhol yangilanadi
+  // `currentData` — boshqa tadbirga o'tilganda oldingisining rasmlari
+  // bir lahza ham ko'rinmasin (`data` eski natijani ushlab turadi)
+  const { currentData: editingData, isFetching: isEditingFetching } = useGetAdminEventByIdQuery(
+    editing?.id,
+    { skip: !editing?.id },
+  );
+  const editingEvent = editingData?.data ?? editingData ?? editing;
+  const [uploadEventImages] = useUploadEventImagesMutation();
+  const [setMainEventImage] = useSetMainEventImageMutation();
+  const [deleteEventImage] = useDeleteEventImageMutation();
+
+  const handleUploadImages = async (files) => {
+    try {
+      await uploadEventImages({ id: editing.id, files }).unwrap();
+    } catch (err) {
+      toast.error(apiError(err, "Rasmlarni yuklashda xatolik"));
+      throw err;
+    }
+  };
+
+  const handleSetMainImage = async (imageId) => {
+    try {
+      await setMainEventImage({ id: editing.id, imageId }).unwrap();
+      toast.success("Muqova o‘zgartirildi");
+    } catch (err) {
+      toast.error(apiError(err, "Muqovani o‘zgartirib bo‘lmadi"));
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    try {
+      await deleteEventImage({ id: editing.id, imageId }).unwrap();
+      toast.success("Rasm o‘chirildi");
+    } catch (err) {
+      toast.error(apiError(err, "Rasmni o‘chirishda xatolik"));
+    }
+  };
 
   const items = data?.data ?? [];
   const totalPages = data?.meta?.totalPages ?? 1;
@@ -100,6 +146,7 @@ export default function Events() {
       event_time: time,
     });
     setFile(null);
+    setImages([]);
     setErrors({});
     setActiveLang("latin");
     setModalOpen(true);
@@ -109,6 +156,7 @@ export default function Events() {
     setEditing(null);
     setForm({ ...emptyForm });
     setFile(null);
+    setImages([]);
     setErrors({});
     setActiveLang("latin");
     setModalOpen(true);
@@ -181,6 +229,7 @@ export default function Events() {
         ...form,
         event_date: eventDate,
         cover_image: file ?? undefined,
+        images: images.length ? images : undefined,
         is_public: Boolean(form.is_public),
       };
     }
@@ -255,7 +304,13 @@ export default function Events() {
               key={item.id}
               className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="h-48 overflow-hidden bg-slate-100">
+              <div className="relative h-48 overflow-hidden bg-slate-100">
+                {item.images?.length > 0 && (
+                  <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-slate-900/75 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                    <Images size={12} />
+                    {item.images.length}
+                  </span>
+                )}
                 {item.cover_image ? (
                   <img
                     src={
@@ -406,7 +461,7 @@ export default function Events() {
           <ImageUploadField
             label="Muqova rasmi"
             value={file}
-            existingUrl={editing?.cover_image}
+            existingUrl={editingEvent?.cover_image}
             onChange={setFile}
             maxSizeMb={5}
           />
@@ -415,6 +470,18 @@ export default function Events() {
           )}
           {editing?.cover_image && !file && (
             <p className="text-xs text-slate-400">Joriy rasm mavjud</p>
+          )}
+
+          {editing ? (
+            <ImageGalleryManager
+              images={editingEvent?.images ?? []}
+              isLoading={isEditingFetching && !editingData}
+              onUpload={handleUploadImages}
+              onSetMain={handleSetMainImage}
+              onDelete={handleDeleteImage}
+            />
+          ) : (
+            <MultiImagePicker value={images} onChange={setImages} />
           )}
 
           <label className="flex items-center gap-3 text-sm font-medium text-slate-700">

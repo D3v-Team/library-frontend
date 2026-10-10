@@ -1,5 +1,5 @@
 import { BookOpen, Download, FileText, User } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useLocalized } from "../../lib/useLocalized";
@@ -11,6 +11,7 @@ import {
   getBookGenreIds,
   getBookGenreNames,
   getFileViewUrl,
+  isExcelBook,
   isPdfFile,
 } from "./bookHelpers";
 import { Badge, Button, EmptyState, Rail, Skeleton } from "../../ui";
@@ -28,7 +29,7 @@ import SEO from "../../seo/SEO";
 export default function BookDetail() {
   const { id } = useParams();
   const { t } = useTranslation();
-  const { pick, formatDate } = useLocalized();
+  const { pick } = useLocalized();
 
   const { data: book, isLoading, error } = useGetBookByIdQuery(id);
 
@@ -45,9 +46,10 @@ export default function BookDetail() {
     { skip: !genreIds[0] },
   );
 
-  const sameAuthor = (byAuthor.data?.data ?? []).filter((b) => b.id !== id);
+  // Excel kitoblarining sahifasi yo'q — tavsiya relslariga ham tushmaydi
+  const sameAuthor = (byAuthor.data?.data ?? []).filter((b) => b.id !== id && !isExcelBook(b));
   const sameGenre = (byGenre.data?.data ?? []).filter(
-    (b) => b.id !== id && !sameAuthor.some((a) => a.id === b.id),
+    (b) => b.id !== id && !isExcelBook(b) && !sameAuthor.some((a) => a.id === b.id),
   );
 
   if (isLoading) {
@@ -79,6 +81,16 @@ export default function BookDetail() {
         />
       </PageShell>
     );
+  }
+
+  /* Excel importidan kelgan kitobning alohida sahifasi yo'q: unda
+     muqova, tavsif va fayl yo'q — sahifa bo'sh ko'rinardi. Eski havola
+     yoki qidiruv orqali kelgan tashrifchi kartotekadagi o'sha qatorga
+     (nomi bo'yicha qidiruv bilan) yo'naltiriladi. */
+  if (isExcelBook(book)) {
+    const name = pick(book, "name");
+    const qs = new URLSearchParams({ shelf: "kartoteka", ...(name ? { q: name } : {}) });
+    return <Navigate to={`/books?${qs}`} replace />;
   }
 
   const title = pick(book, "name") || t("books.unknown");
@@ -164,7 +176,7 @@ export default function BookDetail() {
               {[
                 { label: t("bookDetail.author"), value: author },
                 { label: t("bookDetail.nationality"), value: pick(book?.author, "nationality") },
-                { label: t("bookDetail.published"), value: formatDate(book.published_date) },
+                { label: t("bookDetail.published"), value: year },
                 { label: t("bookDetail.titleCyril"), value: book.name_cyril },
                 { label: t("bookDetail.titleRu"), value: book.name_ru },
               ]

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { useLocalized } from "../../../lib/useLocalized";
 import { useGetBooksQuery } from "../../../store/services/books.api";
-import { formatBookYear, getBookCoverUrl, getBookGenreNames } from "../../Books/bookHelpers";
+import { formatBookYear, getBookCoverUrl, getBookGenreNames, isExcelBook } from "../../Books/bookHelpers";
 import { Button, EmptyState, Rail, Skeleton } from "../../../ui";
 import { SectionHeader } from "../../../patterns";
 
@@ -24,14 +24,17 @@ export default function FondRail() {
   const { t } = useTranslation();
   const { pick } = useLocalized();
 
+  // Kengroq olinadi: Excel importidan kelgan muqovasiz kitoblar
+  // relsga tushmaydi (ular katalogdagi "Fond ro'yxati" jadvalida),
+  // aks holda bitta import butun relsni bo'sh muqovalar bilan to'ldiradi.
   const { data, isLoading, error } = useGetBooksQuery({
     page: 1,
-    limit: 12,
+    limit: 48,
     sortBy: "created_at",
     sortOrder: "desc",
   });
 
-  const books = data?.data ?? [];
+  const books = (data?.data ?? []).filter((book) => !isExcelBook(book)).slice(0, 12);
 
   return (
     <section className="border-t border-line-soft bg-paper-2">
@@ -41,7 +44,7 @@ export default function FondRail() {
           title={t("home.fond.title")}
           lede={t("home.fond.lede")}
           action={
-            <Button variant="secondary" to="/books" iconEnd={<ArrowRight size={16} />}>
+            <Button variant="secondary" to="/books?shelf=katalog&sort=new" iconEnd={<ArrowRight size={16} />}>
               {t("newBooks.all")}
             </Button>
           }

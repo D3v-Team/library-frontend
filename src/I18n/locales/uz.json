@@ -83,7 +83,26 @@
       "authorDesc": "{{name}} ning kutubxona fondidagi nashrlari.",
       "genre": "{{name}} janridagi kitoblar",
       "genreDesc": "{{name}} janridagi kutubxona nashrlari."
-    }
+    },
+    "registerBadge": "BOSMA FOND",
+    "registerTitle": "Fond ro'yxati",
+    "registerLede": "Kutubxona fondidagi bosma nashrlar — nomi, muallifi va nusxalar soni bilan.",
+    "colNo": "№",
+    "colTitle": "Kitob nomi",
+    "colAuthor": "Muallif",
+    "colQuantity": "Nusxa",
+    "quantityUnit": "{{count}} nusxa",
+    "registerCount": "{{count}} ta nashr",
+    "registerPagination": "Fond ro'yxati sahifalari",
+    "registerRange": "{{from}}–{{to}} / {{total}}",
+    "shelfLabel": "Fond bo'limlari",
+    "shelfCatalog": "Katalog",
+    "shelfCatalogHint": "Muqova, janr va tavsif bilan",
+    "shelfRegister": "Fond kartotekasi",
+    "shelfRegisterHint": "Nom, muallif va nusxa soni",
+    "shelfEmpty": "Bu bo'limda natija yo'q",
+    "shelfFoundThere": "«{{shelf}}» bo'limida {{count}} ta natija topildi.",
+    "shelfGo": "Ko'rish"
   },
   "bookDetail": {
     "back": "Kitoblar ro'yxatiga qaytish",
@@ -110,7 +129,7 @@
     "read": "O'qish",
     "hasDigital": "Elektron nusxa bor",
     "author": "Muallif",
-    "published": "Nashr sanasi",
+    "published": "Nashr yili",
     "titleCyril": "Kirill yozuvida",
     "titleRu": "Rus tilida",
     "authorPage": "Muallif sahifasi",
@@ -147,7 +166,14 @@
     "date": "Sana",
     "location": "Joy",
     "otherTitle": "Boshqa tadbirlar",
-    "notFoundHint": "Havola eskirgan yoki tadbir o'chirilgan bo'lishi mumkin."
+    "notFoundHint": "Havola eskirgan yoki tadbir o'chirilgan bo'lishi mumkin.",
+    "gallery": "Fotolavhalar",
+    "galleryCount": "{{count}} ta rasm",
+    "galleryOpen": "Rasmni kattalashtirish",
+    "photo": "Rasm {{current}} / {{total}}",
+    "prevPhoto": "Oldingi rasm",
+    "nextPhoto": "Keyingi rasm",
+    "galleryPagination": "Galereya sahifalari"
   },
   "usefulLinks": {
     "badge": "FOYDALI RESURSLAR",
@@ -169,7 +195,16 @@
     "resources": "Elektron resurslar",
     "resourcesDesc": "Raqamli axborot resurslari",
     "events": "Tadbirlar",
-    "eventsDesc": "Yil davomida o'tkazilgan tadbirlar"
+    "eventsDesc": "Yil davomida o'tkazilgan tadbirlar",
+    "fund": "Umumiy kitob fondi",
+    "copies": "nusxa",
+    "titles": "nom",
+    "titlesLabel": "{{count}} nomda",
+    "fiction": "Badiiy adabiyotlar",
+    "specialized": "Sohaga oid adabiyotlar",
+    "composition": "Fond tarkibi",
+    "share": "fondning {{pct}}%",
+    "updated": "Ma'lumotlar {{date}} holatiga"
   },
   "media": {
     "badge": "MEDIA",
@@ -294,7 +329,8 @@
     "noBooks": "Bu muallifning kitoblari topilmadi",
     "noBooksHint": "Fondga kitob qo'shilganda shu yerda paydo bo'ladi.",
     "loading": "Yuklanmoqda…",
-    "notFoundHint": "Havola eskirgan yoki yozuv o'chirilgan bo'lishi mumkin."
+    "notFoundHint": "Havola eskirgan yoki yozuv o'chirilgan bo'lishi mumkin.",
+    "inRegister": "Fond kartotekasida ham bu muallifning nashrlari bor"
   },
   "about": {
     "badge": "KUTUBXONA HAQIDA",
@@ -383,7 +419,17 @@
       "email": "Elektron pochta kiriting",
       "emailInvalid": "To'g'ri pochta manzilini kiriting",
       "book": "Kitob tanlang"
-    }
+    },
+    "search": "Kitob nomini yozing...",
+    "searchLabel": "Kitob nomi bo'yicha qidirish",
+    "selected": "Tanlangan kitob",
+    "change": "Boshqasini tanlash",
+    "notFound": "«{{term}}» bo'yicha kitob topilmadi",
+    "notFoundHint": "Nomini boshqacha yozib ko'ring yoki qisqaroq so'z bilan qidiring.",
+    "searching": "Qidirilmoqda…",
+    "searchPrompt": "Buyurtma qilmoqchi bo'lgan kitob nomini yozing",
+    "searchPromptHint": "Mos kitoblar shu yerda chiqadi.",
+    "searchMin": "Kamida {{count}} ta harf kiriting"
   },
   "home": {
     "hero": {

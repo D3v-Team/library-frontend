@@ -23,6 +23,7 @@ import {
   MessageCircleCodeIcon,
   Book,
   Package,
+  BarChart3,
 } from 'lucide-react';
 
 export const ADMIN_MENU = [
@@ -36,6 +37,11 @@ export const ADMIN_MENU = [
     label: 'Bannerlar',
     path: '/admin/banners',
     icon: GalleryHorizontalEnd,
+  },
+  {
+    label: 'Raqamli ma\'lumotlar',
+    path: '/admin/statistics',
+    icon: BarChart3,
   },
   {
     label: 'E\'lonlar',

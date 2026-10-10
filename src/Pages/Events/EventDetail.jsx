@@ -8,6 +8,7 @@ import { BASE_URL } from "../../store/api";
 import { Button, EmptyState, Skeleton } from "../../ui";
 import { MountedImage, PageShell, Prose, SectionHeader } from "../../patterns";
 import SEO from "../../seo/SEO";
+import EventGallery from "./EventGallery";
 
 const imageUrl = (path) =>
   !path ? null : path.startsWith("http") ? path : `${BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
@@ -72,6 +73,12 @@ export default function EventDetail() {
             )}
 
             <Prose html={pick(event, "description")} />
+
+            {event.images?.length > 0 && (
+              <div className="mt-12 border-t border-line pt-10">
+                <EventGallery images={event.images} title={title} />
+              </div>
+            )}
 
             <div className="mt-12">
               <Button variant="secondary" to="/events" iconStart={<ArrowLeft size={16} />}>
