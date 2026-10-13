@@ -1,6 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, FileText } from "lucide-react";
+import { ExternalLink, FileText } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
@@ -10,10 +10,11 @@ import FileUploadField from "./components/FileUploadField";
 import Pagination from "./components/Pagination";
 import {
   SearchInput,
-  StatusBadge,
   FilterSelect,
 } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
+import { AdminErrorState, AdminTable, RowActions, StatusToggle, TableSkeleton } from "./components/AdminUI";
+import { BASE_URL } from "../../store/api";
 
 import { required, minLength, validateForm } from "./utils/validators";
 
@@ -75,6 +76,11 @@ const emptyForm = {
   is_public: true,
 };
 
+// UpdateDocumentsDto maydonlari (fayl alohida). Ilgari `...item` dan
+// tuzilgan forma butunlay ketardi: file_url, file_name, file_size, id,
+// vaqt maydonlari ham multipart maydon bo'lib yuborilardi.
+const DOCUMENT_FIELDS = Object.keys(emptyForm);
+
 const formSchema = [
   {
     field: "title_latin",
@@ -112,7 +118,9 @@ export default function Documents() {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const { data, isLoading, isFetching, error } = useGetAdminDocumentsQuery({
+  const [pendingId, setPendingId] = useState(null);
+
+  const { data, isLoading, isFetching, error, refetch } = useGetAdminDocumentsQuery({
     page,
     limit: 10,
     search,
@@ -209,7 +217,7 @@ export default function Documents() {
     }
 
     const payload = {
-      ...form,
+      ...Object.fromEntries(DOCUMENT_FIELDS.map((f) => [f, form[f]])),
 
       file: file ?? undefined,
     };
@@ -235,6 +243,7 @@ export default function Documents() {
   };
 
   const handleTogglePublic = async (item) => {
+    setPendingId(item.id);
     try {
       await togglePublic({
         id: item.id,
@@ -242,6 +251,8 @@ export default function Documents() {
       }).unwrap();
     } catch (err) {
       toast.error(apiError(err, "Holatni o‘zgartirib bo‘lmadi"));
+    } finally {
+      setPendingId(null);
     }
   };
 
@@ -289,201 +300,89 @@ export default function Documents() {
         />
       </div>
 
+      {/* Jadval: hujjat — nom, kategoriya, sana, fayl. Ilgari matnli
+          kartochkalarda fayl nomi ham, uni ochish yo'li ham yo'q edi. */}
       {isLoading ? (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({
-            length: 6,
-          }).map((_, index) => (
-            <div
-              key={index}
-              className="
-                h-52
-                animate-pulse
-                rounded-2xl
-                bg-blue-700
-              "
-            />
-          ))}
-        </div>
+        <TableSkeleton rows={8} cols={5} />
       ) : error ? (
-        <div
-          className="
-          rounded-xl
-          border
-          border-red-200
-          bg-red-50
-          px-6
-          py-12
-          text-center
-          text-red-600
-        "
-        >
-          Hujjatlarni yuklashda xatolik.
-        </div>
+        <AdminErrorState title="Hujjatlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : items.length === 0 ? (
         <AdminEmptyState title="Hujjatlar topilmadi" icon={FileText} />
       ) : (
-        <div
-          className={`
-            grid
-            grid-cols-1
-            gap-5
-            md:grid-cols-2
-            xl:grid-cols-3
-            ${isFetching ? "opacity-60" : ""}
-          `}
-        >
-          {items.map((item) => (
-            <article
-              key={item.id}
-              className="
-                rounded-2xl
-                border
-                border-slate-200
-                bg-white
-                p-5
-                shadow-sm
-                transition
-                hover:-translate-y-1
-                hover:shadow-lg
-              "
-            >
-              <div
-                className="
-                flex
-                items-start
-                justify-between
-              "
-              >
-                <div
-                  className="
-                  flex
-                  h-11
-                  w-11
-                  items-center
-                  justify-center
-                  rounded-xl
-                  bg-slate-100
-                  text-slate-600
-                "
-                >
-                  <FileText size={22} />
+        <AdminTable
+          rows={items}
+          isFetching={isFetching}
+          columns={[
+            {
+              key: "title",
+              header: "Hujjat",
+              cell: (item) => (
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                    <FileText size={16} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 font-medium text-slate-900">{item.title_latin || "Nomsiz"}</p>
+                    {item.file_url ? (
+                      <a
+                        href={`${BASE_URL}${item.file_url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex max-w-full items-center gap-1 text-xs text-slate-500 hover:text-slate-900"
+                      >
+                        <ExternalLink size={11} className="shrink-0" />
+                        <span className="truncate">{item.file_name || "Faylni ochish"}</span>
+                      </a>
+                    ) : (
+                      <span className="text-xs text-red-500">Fayl yo‘q</span>
+                    )}
+                  </div>
                 </div>
-
-                <button type="button" onClick={() => handleTogglePublic(item)}>
-                  <StatusBadge
-                    active={item.is_public}
-                    activeLabel="Faol"
-                    inactiveLabel="Nofaol"
-                  />
-                </button>
-              </div>
-              <h3
-                className="
-                  mt-5
-                  line-clamp-2
-                  text-lg
-                  font-semibold
-                  text-slate-900
-                "
-              >
-                {item.title_latin}
-              </h3>
-
-              <div
-                className="
-                  mt-3
-                  flex
-                  items-center
-                  justify-between
-                "
-              >
-                <span
-                  className="
-                    rounded-full
-                    bg-slate-100
-                    px-3
-                    py-1
-                    text-xs
-                    font-medium
-                    text-slate-600
-                  "
-                >
+              ),
+            },
+            {
+              key: "category",
+              header: "Kategoriya",
+              hideBelow: "sm",
+              cell: (item) => (
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                   {categoryLabel(item.category)}
                 </span>
-
-                <span
-                  className="
-                    text-xs
-                    text-slate-400
-                  "
-                >
-                  {item.created_at
-                    ? new Date(item.created_at).toLocaleDateString("uz-UZ")
-                    : "—"}
-                </span>
-              </div>
-
-              <div
-                className="
-                  mt-5
-                  flex
-                  items-center
-                  justify-end
-                  gap-2
-                  border-t
-                  border-slate-100
-                  pt-4
-                "
-              >
-                <button
-                  type="button"
-                  onClick={() => openEdit(item)}
-                  className="
-                    flex
-                    h-9
-                    w-9
-                    items-center
-                    justify-center
-                    rounded-lg
-                    border
-                    border-slate-200
-                    text-slate-500
-                    transition
-                    hover:bg-slate-50
-                    hover:text-slate-900
-                  "
-                >
-                  <Pencil size={16} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(item)}
-                  className="
-                    flex
-                    h-9
-                    w-9
-                    items-center
-                    justify-center
-                    rounded-lg
-                    border
-                    border-red-200
-                    text-red-500
-                    transition
-                    hover:bg-red-50
-                  "
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+              ),
+            },
+            {
+              key: "date",
+              header: "Sana",
+              hideBelow: "md",
+              className: "whitespace-nowrap tabular-nums text-slate-500",
+              cell: (item) => (item.created_at ? new Date(item.created_at).toLocaleDateString("ru-RU") : "—"),
+            },
+            {
+              key: "public",
+              header: "Saytda",
+              hideBelow: "sm",
+              cell: (item) => (
+                <StatusToggle
+                  checked={item.is_public}
+                  onLabel="Ko‘rinadi"
+                  pending={pendingId === item.id}
+                  onChange={() => handleTogglePublic(item)}
+                />
+              ),
+            },
+            {
+              key: "actions",
+              header: <span className="sr-only">Amallar</span>,
+              align: "right",
+              cell: (item) => <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />,
+            },
+          ]}
+        />
       )}
 
       <div className="mt-6">
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={data?.meta?.total} disabled={isFetching} />
       </div>
 
       <Modal

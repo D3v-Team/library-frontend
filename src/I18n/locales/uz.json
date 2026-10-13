@@ -102,7 +102,10 @@
     "shelfRegisterHint": "Nom, muallif va nusxa soni",
     "shelfEmpty": "Bu bo'limda natija yo'q",
     "shelfFoundThere": "«{{shelf}}» bo'limida {{count}} ta natija topildi.",
-    "shelfGo": "Ko'rish"
+    "shelfGo": "Ko'rish",
+    "authorSearch": "Muallifni qidiring...",
+    "authorNotFound": "Muallif topilmadi",
+    "loadingMore": "Yuklanmoqda…"
   },
   "bookDetail": {
     "back": "Kitoblar ro'yxatiga qaytish",
@@ -301,7 +304,15 @@
     "metaCategories": "kategoriya",
     "all": "Barchasi",
     "emptyHint": "Hujjatlar yuklanganda shu yerda paydo bo'ladi.",
-    "emptyCategory": "Bu kategoriyada hujjat yo'q."
+    "emptyCategory": "Bu kategoriyada hujjat yo'q.",
+    "cat": {
+      "LAW": "Qonunlar",
+      "DECISION": "Qarorlar",
+      "ORDER": "Buyruqlar",
+      "REPORT": "Hisobotlar"
+    },
+    "open": "Ko'rish",
+    "pagination": "Hujjatlar sahifalari"
   },
   "management": {
     "badge": "RAHBARIYAT",
@@ -362,7 +373,29 @@
     "metaLetters": "harf",
     "alphabet": "Alifbo bo'yicha",
     "all": "Barchasi",
-    "heading": "Mualliflar"
+    "heading": "Mualliflar",
+    "search": "Muallif ismini yozing...",
+    "searchLabel": "Muallif ismi bo'yicha qidirish",
+    "sort": "Saralash",
+    "sortAz": "A–Z",
+    "sortZa": "Z–A",
+    "sortNew": "Yangi qo'shilgan",
+    "results": "{{count}} ta muallif",
+    "emptySearch": "«{{term}}» bo'yicha muallif topilmadi",
+    "emptySearchHint": "Ismni boshqacha yozib ko'ring yoki faqat familiyani kiriting.",
+    "clear": "Tozalash",
+    "pagination": "Mualliflar sahifalari",
+    "shelfLabel": "Mualliflar bo'limlari",
+    "shelfProfiles": "Mualliflar",
+    "shelfProfilesHint": "Tarjimai hol va surat bilan",
+    "shelfIndex": "Mualliflar ko'rsatkichi",
+    "shelfIndexHint": "Fond kartotekasidagi ismlar",
+    "shelfEmpty": "Bu bo'limda muallif topilmadi",
+    "shelfFoundThere": "«{{shelf}}» bo'limida {{count}} ta muallif topildi.",
+    "shelfGo": "Ko'rish",
+    "indexOpen": "{{name}} — kartotekadagi kitoblari",
+    "indexPagination": "Ko'rsatkich sahifalari",
+    "indexRange": "{{from}}–{{to}} / {{total}}"
   },
   "contact": {
     "badge": "Bog‘lanish",

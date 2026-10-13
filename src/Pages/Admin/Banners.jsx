@@ -1,16 +1,21 @@
 // src/pages/admin/Banners.jsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, GalleryHorizontalEnd } from "lucide-react";
+import { ExternalLink, GalleryHorizontalEnd, Info } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
 import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
 import ImageUploadField from "./components/ImageUploadField";
-import Pagination from "./components/Pagination";
-import { SearchInput } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
+import {
+  AdminErrorState,
+  CardGridSkeleton,
+  LangDots,
+  RowActions,
+  StatusToggle,
+} from "./components/AdminUI";
 import {
   required,
   isValidUrl,
@@ -19,7 +24,7 @@ import {
 } from "./utils/validators";
 
 import {
-  useGetBannersQuery,
+  useGetAllBannersQuery,
   useCreateBannerMutation,
   useUpdateBannerMutation,
   useDeleteBannerMutation,
@@ -43,6 +48,9 @@ const emptyForm = {
   is_active: true,
 };
 
+// UpdateBannerDto maydonlari (image_file alohida)
+const BANNER_FIELDS = Object.keys(emptyForm).filter((f) => f !== "image_file");
+
 // ===== FORM SCHEMA – 3 TIL UCHUN VALIDATSIYA =====
 const formSchema = [
   {
@@ -61,10 +69,11 @@ const formSchema = [
   { field: "order", validators: [isValidNumber] },
 ];
 
+// Saytdagi hero shuncha bannerni oladi (HeroBand.jsx: limit 10)
+const HERO_LIMIT = 10;
+
 export default function Banners() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [pendingId, setPendingId] = useState(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -74,19 +83,16 @@ export default function Banners() {
   const [imageFile, setImageFile] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // ===== DEBOUNCE LOGIC – yozish to‘xtaganda 4 sekunddan keyin so‘rov ketadi =====
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 1000);
 
-    return () => clearTimeout(timer);
-  }, [search]);
-
-  const { data, isLoading, isFetching, error } = useGetBannersQuery({
-    page,
-    limit: 10,
-    search: debouncedSearch, // debouncedSearch ishlatiladi
+  // /banners/all — nofaol bannerlar ham. Ommaviy /banners faqat faollarini
+  // beradi: nofaol qilingan banner admindan yo'qolib, qayta yoqib bo'lmasdi.
+  //
+  // Bannerlar oz (hero slaydlari) — hammasi bitta so'rovda, qidiruv va
+  // paginatsiyasiz. Ilgari 10 talik sahifa ichida klientda saralanardi,
+  // ya'ni tartib sahifalar orasida noto'g'ri edi.
+  const { data, isLoading, isFetching, error, refetch } = useGetAllBannersQuery({
+    page: 1,
+    limit: 100,
   });
 
   const [createBanner, { isLoading: isCreating }] = useCreateBannerMutation();
@@ -94,8 +100,10 @@ export default function Banners() {
   const [deleteBanner, { isLoading: isDeleting }] = useDeleteBannerMutation();
   const [toggleActive] = useToggleBannerActiveMutation();
 
-  const items = data?.data ?? [];
-  const totalPages = data?.meta?.totalPages ?? 1;
+  const items = [...(data?.data ?? [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const activeCount = items.filter((b) => b.is_active).length;
+  // Bir xil tartib raqami — saytda qaysi biri oldin chiqishi noaniq
+  const orderCounts = items.reduce((m, b) => m.set(b.order, (m.get(b.order) ?? 0) + 1), new Map());
   const isSaving = isCreating || isUpdating;
 
   const openCreate = () => {
@@ -137,7 +145,13 @@ export default function Banners() {
       return;
     }
 
-    const payload = { ...form, image_file: imageFile };
+    // Faqat UpdateBannerDto / CreateBannerDto maydonlari. Ilgari `...item`
+    // dan tuzilgan forma butunlay ketardi: image_url, id, created_at,
+    // updated_at ham multipart maydon bo'lib yuborilardi.
+    const payload = {
+      ...Object.fromEntries(BANNER_FIELDS.map((f) => [f, form[f]])),
+      image_file: imageFile,
+    };
 
     try {
       if (editing) {
@@ -154,10 +168,13 @@ export default function Banners() {
   };
 
   const handleToggleActive = async (item) => {
+    setPendingId(item.id);
     try {
       await toggleActive({ id: item.id, is_active: !item.is_active }).unwrap();
     } catch (err) {
       toast.error(apiError(err, "Holatni o‘zgartirib bo‘lmadi"));
+    } finally {
+      setPendingId(null);
     }
   };
 
@@ -181,232 +198,106 @@ export default function Banners() {
         onAction={openCreate}
       />
 
-      <div className="mb-4">
-        <SearchInput
-          value={search}
-          onChange={(v) => {
-            setSearch(v);
-            setPage(1);
-          }}
-          placeholder="Sarlavha bo‘yicha qidirish..."
-        />
-      </div>
-
-      <div className="overflow-hidden rounded-xl border-slate-200 shadow-sm">
-        {isLoading ? (
-          <div className="space-y-3 p-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-14 animate-pulse rounded-lg bg-blue-700"
-              />
-            ))}
-          </div>
-        ) : error ? (
-          <div className="px-6 py-12 text-center text-sm text-red-600">
-            Bannerlarni yuklashda xatolik yuz berdi.
-          </div>
-        ) : items.length === 0 ? (
-          <AdminEmptyState title="Bannerlar topilmadi" icon={GalleryHorizontalEnd} />
-        ) : (
-          <div
-            className={`overflow-x-auto transition-opacity ${isFetching ? "opacity-60" : "opacity-100"}`}
-          >
-            <div
-              className={`
-grid
-grid-cols-1
-md:grid-cols-2
-xl:grid-cols-3
-gap-5
-transition-opacity
-${isFetching ? "opacity-60" : "opacity-100"}
-`}
-            >
-              {items
-                .slice()
-                .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                .map((item) => (
-                  <div
-                    key={item.id}
-                    className="
-group
-overflow-hidden
-rounded-2xl
-border
-border-slate-200
-bg-white
-shadow-sm
-transition-all
-duration-200
-hover:-translate-y-1
-hover:shadow-lg
-"
-                  >
-                    <div
-                      className="
-relative
-h-44
-bg-slate-100
-"
-                    >
-                      {item.image_url ? (
-                        <img
-                          src={`${BASE_URL}${item.image_url}`}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div
-                          className="
-flex
-h-full
-items-center
-justify-center
-text-slate-400
-"
-                        >
-                          Rasm yo‘q
-                        </div>
-                      )}
-                    </div>
-
-                    <div
-                      className="
-p-5
-"
-                    >
-                      <div
-                        className="
-flex
-items-start
-justify-between
-gap-3
-"
-                      >
-                        <h3
-                          className="
-line-clamp-2
-font-semibold
-text-slate-900
-
-transition-colors
-"
-                        >
-                          {item.title_latin}
-                        </h3>
-
-                        <button
-                          type="button"
-                          onClick={() => handleToggleActive(item)}
-                          className={`
-rounded-full
-border
-px-3
-py-1
-text-xs
-font-medium
-
-${item.is_active
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : "bg-slate-100 text-slate-500 border-slate-200"
-                            }
-
-`}
-                        >
-                          {item.is_active ? "Faol" : "Nofaol"}
-                        </button>
-                      </div>
-
-                      <p
-                        className="
-mt-3
-text-sm
-text-slate-500
-truncate
-"
-                      >
-                        {item.link_url || "Havola yo‘q"}
-                      </p>
-
-                      <div
-                        className="
-mt-4
-flex
-items-center
-justify-between
-border-t
-border-slate-100
-pt-4
-"
-                      >
-                        <span
-                          className="
-text-xs
-text-slate-500
-"
-                        >
-                          Tartib: {item.order}
-                        </span>
-
-                        <div
-                          className="
-flex
-gap-2
-"
-                        >
-                          <button
-                            onClick={() => openEdit(item)}
-                            className="
-flex
-h-9
-w-9
-items-center
-justify-center
-rounded-lg
-border
-border-slate-200
-text-slate-500
-hover:bg-green-50
-hover:text-green-700
-hover:border-green-200
-transition
-"
-                          >
-                            <Pencil size={15} />
-                          </button>
-
-                          <button
-                            onClick={() => setDeleteTarget(item)}
-                            className="
-flex
-h-9
-w-9
-items-center
-justify-center
-rounded-lg
-border
-border-red-100
-text-red-500
-hover:bg-red-50
-transition
-"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        )}
-
-        <div className="px-4">
-          <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+      {activeCount > HERO_LIMIT && (
+        <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <Info size={16} className="mt-0.5 shrink-0" />
+          <p>
+            {activeCount} ta banner faol, lekin saytda faqat tartib bo‘yicha birinchi {HERO_LIMIT} tasi ko‘rinadi.
+          </p>
         </div>
-      </div>
+      )}
+
+      {isLoading ? (
+        <CardGridSkeleton
+          count={6}
+          media="4/5"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+        />
+      ) : error ? (
+        <AdminErrorState title="Bannerlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
+      ) : items.length === 0 ? (
+        <AdminEmptyState title="Bannerlar hali qo‘shilmagan" icon={GalleryHorizontalEnd} />
+      ) : (
+        <div
+          className={`grid grid-cols-1 gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 ${
+            isFetching ? "opacity-60" : ""
+          }`}
+        >
+          {items.map((item) => (
+            <article
+              key={item.id}
+              className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+            >
+              {/* 4:5 — saytdagi hero peshtoqi shu nisbatda ko'rsatadi */}
+              <div className="relative aspect-[4/5] shrink-0 overflow-hidden bg-slate-100">
+                {item.image_url ? (
+                  <img
+                    src={`${BASE_URL}${item.image_url}`}
+                    alt={item.title_latin || "Banner rasmi"}
+                    loading="lazy"
+                    className={`absolute inset-0 h-full w-full object-cover transition ${item.is_active ? "" : "opacity-50 grayscale"}`}
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-sm text-slate-400">Rasm yo‘q</div>
+                )}
+
+                {orderCounts.get(item.order) > 1 ? (
+                  <span
+                    className="absolute left-3 top-3 rounded-md bg-amber-400 px-2 py-1 text-xs font-semibold text-amber-950"
+                    title="Bu tartib raqami boshqa bannerda ham bor — saytda qaysi biri oldin chiqishi noaniq"
+                  >
+                    #{item.order ?? "—"} · takror
+                  </span>
+                ) : (
+                  <span
+                    className="absolute left-3 top-3 rounded-md bg-slate-900/80 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
+                    title="Saytdagi tartib raqami"
+                  >
+                    #{item.order ?? "—"}
+                  </span>
+                )}
+
+                {!item.is_active && (
+                  <span className="absolute right-3 top-3 rounded-md bg-white/90 px-2 py-1 text-xs font-medium text-slate-600">
+                    Yashirin
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-1 flex-col gap-2 p-4">
+                <h3 className="line-clamp-2 font-semibold text-slate-900">
+                  {item.title_latin || "Sarlavhasiz"}
+                </h3>
+                <LangDots record={item} field="title" />
+
+                {item.link_url ? (
+                  <a
+                    href={item.link_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-w-0 items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900"
+                  >
+                    <ExternalLink size={13} className="shrink-0" />
+                    <span className="truncate">{item.link_url}</span>
+                  </a>
+                ) : (
+                  <p className="text-sm text-slate-400">Havola yo‘q</p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-3">
+                <StatusToggle
+                  onLabel="Ko‘rinadi"
+                  checked={item.is_active}
+                  pending={pendingId === item.id}
+                  onChange={() => handleToggleActive(item)}
+                />
+                <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
 
       <Modal
         open={modalOpen}
@@ -500,7 +391,7 @@ transition
             <button
               type="submit"
               disabled={isSaving}
-              className="rounded-lg border px-5 py-2.5 text-sm font-medium text-black hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
             >
               {isSaving ? "Saqlanmoqda..." : "Saqlash"}
             </button>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-import { Mail, Phone, User, Eye, Trash2, MessageCircle } from "lucide-react";
+import { Mail, MessageCircle, Phone } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
@@ -9,6 +9,14 @@ import ConfirmDialog from "./components/ConfirmDialog";
 import Pagination from "./components/Pagination";
 import { SearchInput } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
+import { AdminErrorState, RowActions, TableSkeleton } from "./components/AdminUI";
+
+// is_read filtri (Swagger: GET /contact/messages?is_read=true|false)
+const READ_FILTERS = [
+  { key: "", label: "Hammasi" },
+  { key: "unread", label: "O‘qilmagan" },
+  { key: "read", label: "O‘qilgan" },
+];
 
 import {
   useGetContactMessagesQuery,
@@ -24,14 +32,15 @@ export default function ContactMessages() {
 
   const [search, setSearch] = useState("");
 
+  const [readFilter, setReadFilter] = useState("");
+
   // ================= LIST =================
 
-  const { data, isLoading, error, isFetching } = useGetContactMessagesQuery({
+  const { data, isLoading, error, isFetching, refetch } = useGetContactMessagesQuery({
     page,
-
-    limit: 10,
-
+    limit: 20,
     search,
+    is_read: readFilter === "" ? undefined : readFilter === "read",
   });
 
   const [deleteContactMessage, { isLoading: isDeleting }] =
@@ -63,6 +72,10 @@ export default function ContactMessages() {
   };
 
   const closeDetail = () => {
+    // Backend xabarni ochilganda (GET /contact/messages/{id}) o'qilgan deb
+    // belgilashi mumkin — o'qilmagan xabar yopilganda ro'yxatni bir marta
+    // yangilaymiz, belgi to'g'ri ko'rinsin. Alohida "o'qildi" endpointi yo'q.
+    if (selectedMessage && !selectedMessage.is_read) refetch();
     setSelectedMessage(null);
   };
 
@@ -81,9 +94,13 @@ export default function ContactMessages() {
   };
 
   const formatDate = (date) => {
-    if (!date) return "-";
-
-    return new Date(date).toLocaleDateString("uz-UZ");
+    if (!date) return "—";
+    const d = new Date(date);
+    const today = new Date();
+    // Bugungi xabar — faqat vaqt, qolganlari — sana (pochta qutisidagidek)
+    return d.toDateString() === today.toDateString()
+      ? d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
+      : d.toLocaleDateString("ru-RU");
   };
   return (
     <div>
@@ -97,237 +114,102 @@ export default function ContactMessages() {
           mb-6
         "
       >
-        <SearchInput
-          value={search}
-          onChange={(value) => {
-            setSearch(value);
-            setPage(1);
-          }}
-          placeholder="Xabar qidirish..."
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchInput
+            value={search}
+            onChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
+            placeholder="Xabar qidirish..."
+          />
+
+          <div role="group" aria-label="O‘qilganlik bo‘yicha" className="flex rounded-lg bg-slate-100 p-1">
+            {READ_FILTERS.map((f) => (
+              <button
+                key={f.key || "all"}
+                type="button"
+                aria-pressed={readFilter === f.key}
+                onClick={() => {
+                  setReadFilter(f.key);
+                  setPage(1);
+                }}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  readFilter === f.key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {isLoading ? (
-        <div
-          className="
-            grid
-            gap-5
-            md:grid-cols-2
-            xl:grid-cols-3
-          "
-        >
-          {Array.from({
-            length: 6,
-          }).map((_, index) => (
-            <div
-              key={index}
-              className="
-                h-56
-                animate-pulse
-                rounded-2xl
-                bg-slate-100
-              "
-            />
-          ))}
-        </div>
+        <TableSkeleton rows={8} cols={3} />
       ) : error ? (
-        <div
-          className="
-            rounded-2xl
-            bg-red-50
-            px-6
-            py-12
-            text-center
-            text-sm
-            text-red-600
-          "
-        >
-          Xabarlarni yuklashda xatolik.
-        </div>
+        <AdminErrorState title="Xabarlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : messages.length === 0 ? (
-        <AdminEmptyState title="Xabarlar topilmadi" icon={MessageCircle} />
+        <AdminEmptyState
+          title={search || readFilter ? "Filtr bo‘yicha xabar topilmadi" : "Hozircha xabar yo‘q"}
+          icon={MessageCircle}
+        />
       ) : (
-        <div
-          className={`
-            grid
-            gap-5
-            md:grid-cols-2
-            xl:grid-cols-3
-
-            ${isFetching ? "opacity-60" : ""}
-          `}
+        /* Pochta qutisi: har xabar — bitta qator. Ilgari 3 ustunli
+           kartochkalar edi va o'qilmagan xabarni ajratib bo'lmasdi. */
+        <ul
+          className={`divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-opacity ${
+            isFetching ? "opacity-60" : ""
+          }`}
         >
-          {messages.map((item) => (
-            <div
-              key={item.id}
-              className="
-                rounded-2xl
-                border
-                border-slate-200
-                bg-white
-                p-5
-                shadow-sm
-              "
-            >
-              <div
-                className="
-                  flex
-                  items-start
-                  justify-between
-                  gap-3
-                "
-              >
+          {messages.map((item) => {
+            const unread = item.is_read === false;
+            return (
+              <li key={item.id}>
                 <div
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                  "
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openDetail(item)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      openDetail(item);
+                    }
+                  }}
+                  className="flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none"
                 >
-                  <div
-                    className="
-                      flex
-                      h-11
-                      w-11
-                      items-center
-                      justify-center
-                      rounded-xl
-                      bg-slate-100
-                      text-slate-700
-                    "
-                  >
-                    <User size={20} />
-                  </div>
+                  <span
+                    aria-label={unread ? "O‘qilmagan" : "O‘qilgan"}
+                    className={`h-2 w-2 shrink-0 rounded-full ${unread ? "bg-green-600" : "bg-transparent"}`}
+                  />
 
-                  <div>
-                    <h3
-                      className="
-                        text-sm
-                        font-semibold
-                        text-slate-900
-                      "
-                    >
-                      {item.full_name || "-"}
-                    </h3>
-
-                    <p
-                      className="
-                        text-xs
-                        text-slate-400
-                      "
-                    >
-                      {formatDate(item.created_at)}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-3">
+                      <p className={`truncate text-sm ${unread ? "font-semibold text-slate-900" : "text-slate-700"}`}>
+                        {item.full_name || "Ismsiz"}
+                      </p>
+                      <span className="hidden shrink-0 truncate text-xs text-slate-400 sm:inline">
+                        {item.phone || item.email || ""}
+                      </span>
+                    </div>
+                    <p className={`truncate text-sm ${unread ? "text-slate-700" : "text-slate-500"}`}>
+                      {item.message || "—"}
                     </p>
                   </div>
+
+                  <span className={`shrink-0 text-xs tabular-nums ${unread ? "font-semibold text-slate-700" : "text-slate-400"}`}>
+                    {formatDate(item.created_at)}
+                  </span>
+
+                  <RowActions onDelete={() => setDeleteTarget(item)} />
                 </div>
-              </div>
-
-              <div
-                className="
-                  mt-5
-                  space-y-3
-                "
-              >
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                    text-sm
-                    text-slate-600
-                  "
-                >
-                  <Mail size={16} />
-
-                  {item.email || "-"}
-                </div>
-
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                    text-sm
-                    text-slate-600
-                  "
-                >
-                  <Phone size={16} />
-
-                  {item.phone || "-"}
-                </div>
-
-                <p
-                  className="
-                    line-clamp-3
-                    text-sm
-                    leading-6
-                    text-slate-500
-                  "
-                >
-                  {item.message || "-"}
-                </p>
-              </div>
-
-              <div
-                className="
-                  mt-5
-                  flex
-                  gap-2
-                  border-t
-                  border-slate-100
-                  pt-4
-                "
-              >
-                <button
-                  type="button"
-                  onClick={() => openDetail(item)}
-                  className="
-                    flex
-                    flex-1
-                    items-center
-                    justify-center
-                    gap-2
-                    rounded-lg
-                    border
-                    border-slate-200
-                    py-2
-                    text-sm
-                    font-medium
-                    text-slate-700
-                    hover:bg-slate-50
-                  "
-                >
-                  <Eye size={15} />
-                  Ko‘rish
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(item)}
-                  className="
-                    flex
-                    h-9
-                    w-9
-                    items-center
-                    justify-center
-                    rounded-lg
-                    border
-                    border-red-200
-                    text-red-500
-                    hover:bg-red-50
-                  "
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
 
-      <div className="mt-8">
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
-      </div>
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} total={data?.meta?.total} disabled={isFetching} />
 
       <Modal
         open={Boolean(selectedMessage)}
@@ -335,54 +217,48 @@ export default function ContactMessages() {
         title="Xabar tafsilotlari"
         size="md"
       >
-        {isDetailLoading ? (
-          <div
-            className="
-              h-40
-              animate-pulse
-              rounded-xl
-              bg-slate-100
-            "
-          />
-        ) : (
-          <div
-            className="
-              space-y-4
-            "
-          >
-            <div>
-              <p className="text-xs text-slate-400">Ism</p>
+        {/* Ro'yxatdagi ma'lumot darhol ko'rinadi, detail so'rovi kelgach yangilanadi */}
+        {(() => {
+          const m = messageDetail ?? selectedMessage ?? {};
+          return (
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-base font-semibold text-slate-900">{m.full_name || "Ismsiz"}</p>
+                  <p className="text-xs text-slate-400">
+                    {m.created_at ? new Date(m.created_at).toLocaleString("ru-RU") : ""}
+                    {isDetailLoading && " · yuklanmoqda…"}
+                  </p>
+                </div>
+              </div>
 
-              <p className="text-sm font-medium text-slate-900">
-                {messageDetail?.full_name || "-"}
+              <div className="flex flex-wrap gap-2">
+                {m.phone && (
+                  <a
+                    href={`tel:${m.phone}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    <Phone size={14} />
+                    {m.phone}
+                  </a>
+                )}
+                {m.email && (
+                  <a
+                    href={`mailto:${m.email}`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    <Mail size={14} />
+                    {m.email}
+                  </a>
+                )}
+              </div>
+
+              <p className="whitespace-pre-line rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                {m.message || "—"}
               </p>
             </div>
-
-            <div>
-              <p className="text-xs text-slate-400">Email</p>
-
-              <p className="text-sm font-medium text-slate-900">
-                {messageDetail?.email || "-"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-400">Telefon</p>
-
-              <p className="text-sm font-medium text-slate-900">
-                {messageDetail?.phone || "-"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-400">Xabar</p>
-
-              <p className="mt-1 text-sm leading-6 text-slate-700">
-                {messageDetail?.message || "-"}
-              </p>
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
 
       <ConfirmDialog

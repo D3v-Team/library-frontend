@@ -8,6 +8,9 @@ export default function ConfirmDialog({
   isLoading,
   title = "O‘chirishni tasdiqlang",
   description = "Bu amalni ortga qaytarib bo‘lmaydi.",
+  // O'chirishdan boshqa tasdiqlar uchun (masalan, foydalanuvchini bloklash)
+  confirmLabel = "Ha, o‘chirish",
+  pendingLabel = "O‘chirilmoqda...",
 }) {
   return (
     <Modal open={open} onClose={onClose} title={title} size="sm">
@@ -34,7 +37,7 @@ export default function ConfirmDialog({
           disabled={isLoading}
           className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
         >
-          {isLoading ? "O‘chirilmoqda..." : "Ha, o‘chirish"}
+          {isLoading ? pendingLabel : confirmLabel}
         </button>
       </div>
     </Modal>

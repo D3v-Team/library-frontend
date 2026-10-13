@@ -1,9 +1,8 @@
 // AdminAnnouncements.jsx
 import { useState } from "react";
+import { AdminErrorState, CardGridSkeleton, LangDots, RowActions, StatusToggle } from "./components/AdminUI";
 import toast from "react-hot-toast";
 import {
-  Pencil,
-  Trash2,
   CalendarDays,
   ImageIcon,
   Megaphone,
@@ -56,6 +55,7 @@ export default function Announcements() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activeLang, setActiveLang] = useState("latin");
   const [errors, setErrors] = useState({});
+  const [pendingId, setPendingId] = useState(null);
 
   const { data, isLoading, isFetching, error, refetch } = useGetAnnouncementsQuery({
     page,
@@ -178,7 +178,6 @@ export default function Announcements() {
         toast.success("E'lon qo'shildi");
       }
       closeModal();
-      refetch();
     } catch (err) {
       const backendError = apiError(err);
       if (typeof backendError === 'string') {
@@ -201,21 +200,22 @@ export default function Announcements() {
       await deleteAnnouncement(deleteTarget.id).unwrap();
       toast.success("E'lon o'chirildi");
       setDeleteTarget(null);
-      refetch();
     } catch (err) {
       toast.error(apiError(err, "O'chirishda xatolik"));
     }
   };
 
   const handleToggle = async (item) => {
+    setPendingId(item.id);
     try {
       await togglePublish({
         id: item.id,
         is_public: item.is_public !== true,
       }).unwrap();
-      refetch();
     } catch (err) {
       toast.error(apiError(err, "Holatni o'zgartirib bo'lmadi"));
+    } finally {
+      setPendingId(null);
     }
   };
 
@@ -227,6 +227,13 @@ export default function Announcements() {
         actionLabel="E'lon qo'shish"
         onAction={openCreate}
       />
+
+      {/* Backend cheklovi: GET /announcements faqat chop etilganlarni beradi */}
+      <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        Yashirilgan e&apos;lonlar sahifa yangilangandan keyin ro&apos;yxatda ko&apos;rinmaydi —
+        backendda admin uchun barcha e&apos;lonlar ro&apos;yxati hali yo&apos;q. E&apos;lonni yashirishdan
+        oldin shuni hisobga oling.
+      </div>
 
       <div className="mb-5">
         <SearchInput
@@ -240,90 +247,77 @@ export default function Announcements() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-52 rounded-2xl bg-slate-300 animate-pulse" />
-          ))}
-        </div>
+        <CardGridSkeleton count={6} media="16/9" className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" />
       ) : error ? (
-        <div className="rounded-xl bg-red-50 px-6 py-10 text-center text-red-600">
-          E'lonlarni yuklashda xatolik.
-        </div>
+        <AdminErrorState title="E'lonlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : items.length === 0 ? (
         <AdminEmptyState title="E'lonlar topilmadi" icon={Megaphone} />
       ) : (
         <div className={`grid gap-5 md:grid-cols-2 xl:grid-cols-3 ${isFetching ? "opacity-60" : ""}`}>
-          {items.map((item) => (
-            <article key={item.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="h-44 bg-slate-100">
-                {item.cover_image ? (
-                  <img
-                    src={item.cover_image.startsWith("http") ? item.cover_image : `${BASE_URL}${item.cover_image}`}
-                    alt={item.title_latin}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-slate-400">
-                    <ImageIcon />
-                  </div>
-                )}
-              </div>
+          {items.map((item) => {
+            // Matn HTML bo'lishi mumkin — kartochkada faqat toza matn
+            const preview = String(item.content_latin ?? "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+            return (
+              /* Kartochkalar bir qatorda BIR XIL balandlikda: grid elementni
+                 cho'zadi (h-full), matn qismlari qat'iy balandlikda kesiladi,
+                 pastki panel esa `mt-auto` bilan doim eng pastda. Ilgari matn
+                 uzun-qisqaligiga qarab kartochkalar har xil bo'yda edi. */
+              <article
+                key={item.id}
+                className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+              >
+                {/* Rasm absolyut: flex ustunida aspect-ratio qutisi rasmning asl
+                    balandligiga qarab cho'zilib ketmasin */}
+                <div className="relative aspect-video shrink-0 overflow-hidden bg-slate-100">
+                  {item.cover_image ? (
+                    <img
+                      src={item.cover_image.startsWith("http") ? item.cover_image : `${BASE_URL}${item.cover_image}`}
+                      alt={item.title_latin || ""}
+                      loading="lazy"
+                      className={`absolute inset-0 h-full w-full object-cover ${item.is_public ? "" : "opacity-50 grayscale"}`}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-slate-400">
+                      <ImageIcon />
+                    </div>
+                  )}
+                </div>
 
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="line-clamp-2 text-lg font-semibold text-slate-900">
-                    {item.title_latin}
+                <div className="flex flex-1 flex-col p-4">
+                  <h3 className="line-clamp-2 min-h-[2.75rem] text-base font-semibold leading-snug text-slate-900">
+                    {item.title_latin || "Sarlavhasiz"}
                   </h3>
 
-                  <button
-                    type="button"
-                    onClick={() => handleToggle(item)}
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-                      item.is_public === true
-                        ? "bg-green-100 text-green-700"
-                        : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {item.is_public === true ? "Faol" : "Nofaol"}
-                  </button>
+                  <p className="mt-2 line-clamp-2 min-h-[2.5rem] text-sm leading-5 text-slate-500">
+                    {preview || <span className="italic text-slate-400">Matn kiritilmagan</span>}
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                    <span className="inline-flex items-center gap-1.5">
+                      <CalendarDays size={14} />
+                      {item.created_at ? new Date(item.created_at).toLocaleDateString("ru-RU") : "—"}
+                    </span>
+                    <LangDots record={item} field="title" />
+                  </div>
                 </div>
 
-                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-500">
-                  {item.content_latin}
-                </p>
-
-                <div className="mt-4 flex items-center gap-2 text-xs text-slate-400">
-                  <CalendarDays size={14} />
-                  {item.created_at
-                    ? new Date(item.created_at).toLocaleDateString("uz-UZ")
-                    : "-"}
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-3">
+                  <StatusToggle
+                    checked={item.is_public === true}
+                    onLabel="Ko‘rinadi"
+                    pending={pendingId === item.id}
+                    onChange={() => handleToggle(item)}
+                  />
+                  <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />
                 </div>
-
-                <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => openEdit(item)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                  >
-                    <Pencil size={16} />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(item)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
 
       <div className="mt-6">
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={data?.meta?.total} disabled={isFetching} />
       </div>
 
       <Modal

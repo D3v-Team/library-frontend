@@ -1,14 +1,20 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { Link as LinkIcon, ExternalLink } from "lucide-react";
+import {
+  AdminErrorState,
+  AdminTable,
+  LangDots,
+  RowActions,
+  StatusToggle,
+  TableSkeleton,
+} from "./components/AdminUI";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
 import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
-import Pagination from "./components/Pagination";
 
-import { SearchInput } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
@@ -60,10 +66,12 @@ const LANGS = [
   },
 ];
 
-export default function Links() {
-  const [page, setPage] = useState(1);
+// UpdateUsefulLinkDto maydonlari — faqat shular yuboriladi (ilgari `...item`
+// tufayli id ham ketardi)
+const DTO_FIELDS = Object.keys(emptyForm);
 
-  const [search, setSearch] = useState("");
+export default function Links() {
+  const [pendingId, setPendingId] = useState(null);
 
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -77,10 +85,11 @@ export default function Links() {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const { data, isLoading, isFetching, error } = useGetAllUsefulLinksQuery({
-    page,
-    limit: 10,
-    search,
+  // Havolalar oz (admin qo'lda kiritadi) — hammasi bitta so'rovda, saytdagi
+  // tartibda; qidiruv va paginatsiya kerak emas
+  const { data, isLoading, isFetching, error, refetch } = useGetAllUsefulLinksQuery({
+    page: 1,
+    limit: 100,
   });
   
 
@@ -93,9 +102,7 @@ export default function Links() {
   const [deleteUsefulLink, { isLoading: isDeleting }] =
     useDeleteUsefulLinkMutation();
 
-  const items = data?.data ?? [];
-
-  const totalPages = data?.meta?.totalPages ?? 1;
+  const items = [...(data?.data ?? [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   const isSaving = isCreating || isUpdating;
 
@@ -116,10 +123,7 @@ export default function Links() {
   const openEdit = (item) => {
     setEditing(item);
 
-    setForm({
-      ...emptyForm,
-      ...item,
-    });
+    setForm(Object.fromEntries(DTO_FIELDS.map((f) => [f, item[f] ?? emptyForm[f]])));
 
     setErrors({});
 
@@ -167,12 +171,13 @@ export default function Links() {
       if (editing) {
         await updateUsefulLink({
           id: editing.id,
-          ...form,
+          ...Object.fromEntries(DTO_FIELDS.map((f) => [f, form[f]])),
+          order: Number(form.order) || 0,
         }).unwrap();
 
         toast.success("Link yangilandi");
       } else {
-        await createUsefulLink(form).unwrap();
+        await createUsefulLink({ ...form, order: Number(form.order) || 0 }).unwrap();
 
         toast.success("Link qo‘shildi");
       }
@@ -198,6 +203,7 @@ export default function Links() {
   };
 
   const handleToggleActive = async (item) => {
+    setPendingId(item.id);
     try {
       await updateUsefulLink({
         id: item.id,
@@ -209,6 +215,8 @@ export default function Links() {
       );
     } catch (err) {
       toast.error(apiError(err, "Holatni o‘zgartirib bo‘lmadi"));
+    } finally {
+      setPendingId(null);
     }
   };
 
@@ -221,215 +229,76 @@ export default function Links() {
         onAction={openCreate}
       />
 
-      <div className="mb-5">
-        <SearchInput
-          value={search}
-          onChange={(value) => {
-            setSearch(value);
-
-            setPage(1);
-          }}
-          placeholder="Link qidirish..."
-        />
-      </div>
       {isLoading ? (
-        <div
-          className="
-          grid
-          gap-5
-          md:grid-cols-2
-          xl:grid-cols-3
-        "
-        >
-          {Array.from({
-            length: 6,
-          }).map((_, i) => (
-            <div
-              key={i}
-              className="
-                  h-44
-                  animate-pulse
-                  rounded-2xl
-                  bg-blue-700
-                "
-            />
-          ))}
-        </div>
+        <TableSkeleton rows={5} cols={4} />
       ) : error ? (
-        <div
-          className="
-            rounded-xl
-            bg-red-50
-            px-6
-            py-12
-            text-center
-            text-red-600
-          "
-        >
-          Linklarni yuklashda xatolik.
-        </div>
+        <AdminErrorState title="Havolalarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : items.length === 0 ? (
-        <AdminEmptyState title="Linklar topilmadi" icon={LinkIcon} />
+        <AdminEmptyState title="Foydali havolalar hali qo‘shilmagan" icon={LinkIcon} />
       ) : (
-        <div
-          className={`
-            grid
-            gap-5
-            md:grid-cols-2
-            xl:grid-cols-3
-
-            ${isFetching ? "opacity-60" : ""}
-          `}
-        >
-          {items.map((item) => (
-            <article
-              key={item.id}
-              className="
-                  rounded-2xl
-                  border
-                  border-slate-200
-                  bg-white
-                  p-5
-                  shadow-sm
-                  transition
-                  hover:-translate-y-1
-                  hover:shadow-lg
-                "
-            >
-              <div
-                className="
-                    flex
-                    items-start
-                    justify-between
-                    gap-3
-                  "
-              >
-                <div
-                  className="
-                      flex
-                      h-12
-                      w-12
-                      items-center
-                      justify-center
-                      rounded-xl
-                      bg-blue-50
-                      text-blue-700
-                    "
-                >
-                  <LinkIcon size={22} />
+        <AdminTable
+          rows={items}
+          isFetching={isFetching}
+          onRowClick={openEdit}
+          columns={[
+            {
+              key: "order",
+              header: "#",
+              className: "w-12 tabular-nums text-slate-400",
+              cell: (item) => item.order ?? "—",
+            },
+            {
+              key: "title",
+              header: "Havola",
+              cell: (item) => (
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-900">{item.title_latin || "Nomsiz"}</p>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <LangDots record={item} field="title" />
+                    {/* Mobil: URL shu yerda */}
+                    <span className="truncate text-xs text-slate-400 md:hidden">{item.url}</span>
+                  </div>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleToggleActive(item)}
-                  className={`
-    rounded-full
-    px-3
-    py-1
-    text-xs
-    font-medium
-
-    ${
-      item.is_active
-        ? "bg-green-100 text-green-700"
-        : "bg-slate-100 text-slate-500"
-    }
-  `}
+              ),
+            },
+            {
+              key: "url",
+              header: "URL",
+              hideBelow: "md",
+              cell: (item) => (
+                <a
+                  href={safeHref(item.url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex max-w-[18rem] items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900"
                 >
-                  {item.is_active ? "Faol" : "Nofaol"}
-                </button>
-              </div>
-
-              <h3
-                className="
-                    mt-5
-                    line-clamp-2
-                    text-lg
-                    font-semibold
-                    text-slate-900
-                  "
-              >
-                {item.title_latin}
-              </h3>
-
-              <a
-                href={safeHref(item.url)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="
-                    mt-3
-                    flex
-                    items-center
-                    gap-2
-                    truncate
-                    text-sm
-                    text-blue-700
-                    hover:underline
-                  "
-              >
-                {item.url}
-
-                <ExternalLink size={14} />
-              </a>
-            
-
-              <div
-                className="
-                    mt-5
-                    flex
-                    justify-end
-                    gap-2
-                    border-t
-                    border-slate-100
-                    pt-4
-                  "
-              >
-                <button
-                  type="button"
-                  onClick={() => openEdit(item)}
-                  className="
-                      flex
-                      h-9
-                      w-9
-                      items-center
-                      justify-center
-                      rounded-lg
-                      border
-                      border-slate-200
-                      text-slate-500
-                      hover:bg-slate-50
-                    "
-                >
-                  <Pencil size={16} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(item)}
-                  className="
-                      flex
-                      h-9
-                      w-9
-                      items-center
-                      justify-center
-                      rounded-lg
-                      border
-                      border-red-200
-                      text-red-500
-                      hover:bg-red-50
-                    "
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+                  <ExternalLink size={13} className="shrink-0" />
+                  <span className="truncate">{item.url}</span>
+                </a>
+              ),
+            },
+            {
+              key: "active",
+              header: "Saytda",
+              cell: (item) => (
+                <StatusToggle
+                  checked={item.is_active}
+                  onLabel="Ko‘rinadi"
+                  pending={pendingId === item.id}
+                  onChange={() => handleToggleActive(item)}
+                />
+              ),
+            },
+            {
+              key: "actions",
+              header: <span className="sr-only">Amallar</span>,
+              align: "right",
+              cell: (item) => <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />,
+            },
+          ]}
+        />
       )}
-
-      <div className="mt-6">
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
-      </div>
 
       <Modal
         open={modalOpen}

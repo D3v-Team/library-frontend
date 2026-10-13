@@ -1,11 +1,10 @@
-import { useMemo } from "react";
 import { MapPin } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import cx from "../../lib/cx";
 import { useLocalized } from "../../lib/useLocalized";
-import { useGetEventsQuery } from "../../store/services/events";
+import { useGetEventsQuery, useGetEventsWindowQuery } from "../../store/services/events";
 import { Button, EmptyState, Reveal, Skeleton } from "../../ui";
 import { PageMeta, PageShell, Pagination } from "../../patterns";
 import SEO from "../../seo/SEO";
@@ -18,6 +17,15 @@ import { SEO_CONFIG } from "../../seo/seoConfig";
  * kelayotgan va o'tgan tadbirlar. Ilgari hammasi bir ro'yxatda
  * aralash chiqardi, ya'ni "shu hafta nima bor?" savoliga javob
  * topib bo'lmasdi.
+ *
+ * Ajratish SERVERDA. Ilgari bitta 12 talik sahifa (yaratilgan sanasi
+ * bo'yicha!) olinib, klientda bo'linardi: tab sonlari faqat 12 tani
+ * hisoblardi, sahifalar bo'sh chiqardi, eski yaratilgan kelayotgan
+ * tadbir esa oxirgi sahifalarga tushib qolardi.
+ *
+ *   kelayotganlar — GET /events?upcoming=true&sortBy=event_date&asc
+ *   o'tganlar     — `event_date desc` ro'yxatida kelayotganlardan keyingi
+ *                   qism (getEventsWindow; `upcoming=false` ga tayanmaymiz)
  */
 const LIMIT = 12;
 
@@ -29,38 +37,39 @@ export default function Events() {
   const page = Math.max(1, Number(params.get("page")) || 1);
   const when = params.get("when") === "past" ? "past" : "upcoming";
 
-  const { data, isLoading, isFetching, error } = useGetEventsQuery({ page, limit: LIMIT });
+  const isUpcoming = when === "upcoming";
 
-  /* `?? []` har renderda yangi massiv qaytaradi — uni useMemo
-     bog'liqligiga bersak memo hech qachon ishlamaydi. */
-  const all = useMemo(() => data?.data ?? [], [data]);
-  const total = data?.meta?.total;
-  const totalPages = data?.meta?.totalPages ?? 1;
+  // Kelayotganlar: o'z tabida — joriy sahifa, aks holda faqat soni (limit 1)
+  const upRes = useGetEventsQuery({
+    page: isUpcoming ? page : 1,
+    limit: isUpcoming ? LIMIT : 1,
+    upcoming: true,
+    sortBy: "event_date",
+    sortOrder: "asc",
+  });
+  const upTotal = upRes.data?.meta?.total;
 
-  /* Kelayotgan / o'tgan ajratmasi — kunning boshiga nisbatan */
-  const { upcoming, past } = useMemo(() => {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+  // O'tganlar: event_date desc da kelayotgan `upTotal` tadan keyingi oyna
+  const pastRes = useGetEventsWindowQuery(
+    { offset: (upTotal ?? 0) + (page - 1) * LIMIT, limit: LIMIT, sortBy: "event_date", sortOrder: "desc" },
+    { skip: isUpcoming || upTotal == null },
+  );
 
-    const up = [];
-    const old = [];
+  // Kelayotganlar tabida o'tganlar sonini bilish uchun — jami tadbirlar
+  const allRes = useGetEventsQuery({ page: 1, limit: 1 }, { skip: !isUpcoming });
 
-    for (const e of all) {
-      const d = e.event_date ? new Date(e.event_date) : null;
-      if (!d || Number.isNaN(d.getTime())) {
-        up.push(e);
-        continue;
-      }
-      (d >= startOfToday ? up : old).push(e);
-    }
+  const allTotal = isUpcoming ? allRes.data?.meta?.total : pastRes.data?.meta?.total;
+  const pastTotal = allTotal != null && upTotal != null ? Math.max(0, allTotal - upTotal) : null;
 
-    up.sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
-    old.sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
+  const activeRes = isUpcoming ? upRes : pastRes;
+  const shown = activeRes.data?.data ?? [];
+  const activeTotal = isUpcoming ? upTotal : pastTotal;
+  const totalPages = Math.max(1, Math.ceil((activeTotal ?? 0) / LIMIT));
+  const total = allTotal;
+  const isLoading = upRes.isLoading || (!isUpcoming && (pastRes.isLoading || pastRes.isUninitialized));
+  const isFetching = activeRes.isFetching;
+  const error = upRes.error || pastRes.error;
 
-    return { upcoming: up, past: old };
-  }, [all]);
-
-  const shown = when === "past" ? past : upcoming;
 
   const setParam = (key, value) => {
     const next = new URLSearchParams(params);
@@ -82,7 +91,7 @@ export default function Events() {
         meta={
           <>
             <PageMeta label={t("events.metaTotal")} value={total ?? "—"} />
-            <PageMeta label={t("events.metaUpcoming")} value={upcoming.length || "—"} />
+            <PageMeta label={t("events.metaUpcoming")} value={upTotal || "—"} />
           </>
         }
         filters={
@@ -94,7 +103,7 @@ export default function Events() {
             >
               {t("events.upcoming")}
               <span className="ml-1.5 font-mono text-[0.7rem] opacity-60 tabular">
-                {upcoming.length}
+                {upTotal ?? "—"}
               </span>
             </Button>
             <Button
@@ -103,7 +112,7 @@ export default function Events() {
               onClick={() => setParam("when", "past")}
             >
               {t("events.past")}
-              <span className="ml-1.5 font-mono text-[0.7rem] opacity-60 tabular">{past.length}</span>
+              <span className="ml-1.5 font-mono text-[0.7rem] opacity-60 tabular">{pastTotal ?? "—"}</span>
             </Button>
           </div>
         }

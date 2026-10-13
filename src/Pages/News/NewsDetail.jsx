@@ -22,7 +22,9 @@ export default function NewsDetail() {
   const { pick, formatDate } = useLocalized();
 
   const { data, isLoading, error } = useGetAnnouncementByIdQuery(id);
-  const others = useGetAnnouncementsQuery({ page: 1, limit: 6 });
+  // Bosh sahifadagi yangiliklar bloki bilan bir xil argument — umumiy kesh
+  // (5 tadan joriy e'lon chiqarilsa ham 4 tasi qoladi)
+  const others = useGetAnnouncementsQuery({ page: 1, limit: 5 });
 
   const item = data?.data ?? data;
   const rest = (others.data?.data ?? []).filter((n) => n.id !== id).slice(0, 4);

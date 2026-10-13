@@ -14,6 +14,11 @@ export const BASE_URL = "https://dev.chinozakm.uz";
 export const $api = axios.create({
   baseURL: `${BASE_URL}/api`,
 
+  // Ilgari timeout yo'q edi: osilib qolgan so'rov abadiy kutardi, token
+  // yangilanayotganda esa unga bog'langan BARCHA so'rovlar ham osilardi.
+  // Fayl yuklashlar uchun uzunroq — axiosBaseQuery ga qarang.
+  timeout: 30000,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -168,10 +173,20 @@ $api.interceptors.response.use(
       // Yangi token bilan asl so'rovni qaytadan yuboramiz — chaqiruvchi
       // (RTK Query yoki komponent) buni sezmaydi ham.
       return $api(config);
-    } catch {
-      // Refresh ham rad etildi (backend 403 "Ruxsat yo'q!" qaytaradi)
-      // yoki javob shakli buzuq — sessiyani tugatamiz.
-      forceLogout();
+    } catch (refreshError) {
+      // Sessiyani FAQAT refresh haqiqatan rad etilganda tugatamiz: backend
+      // 401/403 ("Ruxsat yo'q!") qaytardi, token yo'q yoki javob buzuq.
+      // Tarmoq uzilishi yoki timeout — sessiya hali tirik, shunchaki
+      // so'rov muvaffaqiyatsiz. Ilgari internet bir lahza uzilsa ham
+      // admin tizimdan chiqarib yuborilardi.
+      const refreshStatus = refreshError?.response?.status;
+      const rejected =
+        refreshStatus === 401 ||
+        refreshStatus === 403 ||
+        refreshError?.message === "REFRESH_CREDENTIALS_MISSING" ||
+        refreshError?.message === "REFRESH_RESPONSE_INVALID";
+
+      if (rejected) forceLogout();
 
       return Promise.reject(error);
     }

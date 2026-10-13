@@ -1,79 +1,88 @@
 import { useMemo } from "react";
 
-import {
-  BOOK_SOURCE_FILTER,
-  useGetAllBooksQuery,
-  useGetBooksQuery,
-} from "../../store/services/books.api";
+import { useGetBooksQuery, useGetCatalogBooksQuery } from "../../store/services/books.api";
 import { isExcelBook } from "./bookHelpers";
 
 /**
- * Kitoblar sahifasining ikki bo'limi uchun ma'lumot:
+ * Kitoblar sahifasining ikki tortmasi uchun ma'lumot:
  *   catalog  — qo'lda kiritilgan (muqova, janr, tavsif)
  *   register — Excel importi (fond kartotekasi)
  *
- * Har bo'lim o'z sahifasini va umumiy sonini qaytaradi — sonlar
- * bo'lim tugmalarida ko'rinadi, shuning uchun ikkalasi ham kerak.
+ * So'rovlar soni (ilgari butun fond 100 tadan olinardi — 4 643 kitobda
+ * 47 ta so'rov, qidiruvda har harfga yana shuncha):
+ *   katalog   — 1 so'rov (getCatalogBooks, odatda bitta sahifa)
+ *   kartoteka — 1 so'rov, faqat u ochiq bo'lganda, 20 tadan
+ *   sonlar    — katalog so'rovining o'zidan (grandTotal - total)
  *
- * Ikki rejim (`BOOK_SOURCE_FILTER`, books.api.js):
- *   server  — har bo'lim alohida so'raladi, sahifa hajmicha (20/24 ta)
- *   klient  — backend filtr qo'shguncha: hammasi olinib ajratiladi
+ * Kartoteka alifbo tartibida (`name_latin`) — kartoteka shkafi kabi.
+ * `published_date` bo'yicha EMAS: Excel kitoblarining yili bir xil
+ * (null), bunday tartib aniqlanmagan va sahifalar orasida kitoblar
+ * takrorlanardi (o'lchab tekshirilgan). Server sahifasiga oz sonli
+ * katalog kitobi aralashib qolsa, ular klientda olib tashlanadi.
  */
-const meta = (res, pageSize) => {
-  const total = res.data?.meta?.total ?? 0;
-  return {
-    items: res.data?.data ?? [],
-    total,
-    totalPages: Math.max(1, Math.ceil(total / pageSize)),
-  };
-};
+export default function useShelfBooks({
+  filters,
+  shelfParam,
+  catalogPage,
+  catalogSize,
+  registerPage,
+  registerSize,
+}) {
+  const catalogRes = useGetCatalogBooksQuery(filters);
 
-export default function useShelfBooks({ filters, catalogPage, catalogSize, registerPage, registerSize }) {
-  const server = BOOK_SOURCE_FILTER;
+  const grandTotal = catalogRes.data?.meta?.grandTotal ?? 0;
+  const catalogTotal = catalogRes.data?.meta?.total ?? 0;
+  const registerTotal = Math.max(0, grandTotal - catalogTotal);
 
-  /* ---------- Server rejimi ---------- */
-  const catalogRes = useGetBooksQuery(
-    { ...filters, page: catalogPage, limit: catalogSize, source: "manual" },
-    { skip: !server },
-  );
+  /* Ochiq tortma. Parametr yo'q bo'lsa — katalog; lekin katalog bo'sh,
+     kartotekada esa kitob bo'lsa, tashrifchi bo'sh sahifa ko'rmasin. */
+  const shelf =
+    shelfParam === "kartoteka" ||
+    (!shelfParam && catalogRes.data && catalogTotal === 0 && registerTotal > 0)
+      ? "register"
+      : "catalog";
+  const registerOpen = shelf === "register";
+
+  // Janr tanlansa kartoteka bo'sh (Excel kitoblarida janr yo'q) — so'rov ham kerak emas
   const registerRes = useGetBooksQuery(
-    { ...filters, page: registerPage, limit: registerSize, source: "excel" },
-    { skip: !server },
+    {
+      ...filters,
+      page: registerPage,
+      limit: registerSize,
+      sortBy: "name_latin",
+      sortOrder: "asc",
+    },
+    { skip: !registerOpen || filters.genre_id || (catalogRes.data && registerTotal === 0) },
   );
 
-  /* ---------- Klient rejimi ---------- */
-  const allRes = useGetAllBooksQuery(filters, { skip: server });
-
-  const split = useMemo(() => {
-    if (server) return null;
-    const all = allRes.data?.data ?? [];
+  const catalog = useMemo(() => {
+    const all = catalogRes.data?.data ?? [];
     return {
-      catalog: all.filter((book) => !isExcelBook(book)),
-      register: all.filter(isExcelBook),
+      items: all.slice((catalogPage - 1) * catalogSize, catalogPage * catalogSize),
+      total: catalogTotal,
+      totalPages: Math.max(1, Math.ceil(catalogTotal / catalogSize)),
     };
-  }, [server, allRes.data]);
+  }, [catalogRes.data, catalogTotal, catalogPage, catalogSize]);
 
-  if (server) {
-    return {
-      catalog: meta(catalogRes, catalogSize),
-      register: meta(registerRes, registerSize),
-      isLoading: catalogRes.isLoading || registerRes.isLoading,
-      isFetching: catalogRes.isFetching || registerRes.isFetching,
-      error: catalogRes.error || registerRes.error,
-    };
-  }
-
-  const slice = (list, page, size) => ({
-    items: list.slice((page - 1) * size, page * size),
-    total: list.length,
-    totalPages: Math.max(1, Math.ceil(list.length / size)),
-  });
+  const register = useMemo(
+    () => ({
+      items: (registerRes.data?.data ?? []).filter(isExcelBook),
+      total: registerTotal,
+      // Server sahifalari BUTUN fond bo'yicha (katalog kitoblari ham ichida)
+      totalPages: Math.max(
+        1,
+        registerRes.data?.meta?.totalPages ?? Math.ceil(grandTotal / registerSize),
+      ),
+    }),
+    [registerRes.data, registerTotal, grandTotal, registerSize],
+  );
 
   return {
-    catalog: slice(split?.catalog ?? [], catalogPage, catalogSize),
-    register: slice(split?.register ?? [], registerPage, registerSize),
-    isLoading: allRes.isLoading,
-    isFetching: allRes.isFetching,
-    error: allRes.error,
+    shelf,
+    catalog,
+    register,
+    isLoading: catalogRes.isLoading || (registerOpen && registerRes.isLoading),
+    isFetching: catalogRes.isFetching || registerRes.isFetching,
+    error: catalogRes.error || registerRes.error,
   };
 }

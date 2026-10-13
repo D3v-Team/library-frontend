@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AdminErrorState, CardSkeleton } from "./components/AdminUI";
 import toast from "react-hot-toast";
 
 import {
@@ -103,7 +104,8 @@ const SOCIAL_PLATFORMS = [
 ];
 
 export default function ContactInfo() {
-  const { data, isLoading, error, isFetching } = useGetContactInfoQuery();
+  // Admin doim serverdan o'qiydi (saytdagi 1 soatlik localStorage keshisiz)
+  const { data, isLoading, error, refetch } = useGetContactInfoQuery({ fresh: true });
 
   const [updateContactInfo, { isLoading: isUpdatingContact }] =
     useUpdateContactInfoMutation();
@@ -332,7 +334,6 @@ export default function ContactInfo() {
     return item?.icon || Globe;
   };
 
-  const isSaving = isUpdatingContact || isCreatingSocial || isUpdatingSocial;
 
   return (
     <div>
@@ -340,9 +341,9 @@ export default function ContactInfo() {
       <AdminPageHeader
         title="Aloqa ma'lumotlari"
         description="Kutubxonaning aloqa ma'lumotlari va ijtimoiy tarmoqlarini boshqaring."
-        actionLabel="Ijtimoiy tarmoq qo‘shish"
-        onAction={openCreateSocial}
       />
+      {/* "Ijtimoiy tarmoq qo'shish" tugmasi faqat o'z bo'limida — ilgari
+          sarlavhada ham bor edi va ikki xil uslubda takrorlanardi */}
       {isLoading ? (
         <div
           className="
@@ -353,30 +354,11 @@ export default function ContactInfo() {
         "
         >
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="
-              h-32
-              rounded-2xl
-              bg-blue-700
-              animate-pulse
-              "
-            />
+            <CardSkeleton key={i} media="none" />
           ))}
         </div>
       ) : error ? (
-        <div
-          className="
-          rounded-xl
-          bg-red-50
-          px-6
-          py-12
-          text-center
-          text-red-600
-          "
-        >
-          Aloqa ma'lumotlarini yuklashda xatolik.
-        </div>
+        <AdminErrorState title="Aloqa ma’lumotlarini yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : (
         <>
           {/* CONTACT INFO */}

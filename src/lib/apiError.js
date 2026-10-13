@@ -72,6 +72,16 @@ export function apiErrorMessage(err, fallback = "Xatolik yuz berdi") {
   const status = err?.status ?? err?.originalStatus;
   const raw = err?.data?.message;
 
+  if (status === "TIMEOUT_ERROR") {
+    return "Server juda uzoq javob bermadi. Birozdan so'ng qayta urinib ko'ring.";
+  }
+
+  // Tarmoq xatosi: so'rov serverga yetmagan. Axios xabari inglizcha
+  // ("Network Error", "timeout of ...") — backend xabaridan OLDIN tekshiriladi
+  if (status == null || status === "FETCH_ERROR") {
+    return "Serverga ulanmadi. Internet aloqasini tekshirib ko'ring.";
+  }
+
   // class-validator massivi — ichi inglizcha, holat kodiga qaytamiz
   if (Array.isArray(raw)) {
     return BY_STATUS[status] ?? fallback;
@@ -88,11 +98,6 @@ export function apiErrorMessage(err, fallback = "Xatolik yuz berdi") {
 
   if (typeof raw === "string" && raw.trim() && !isEnglish(raw)) {
     return raw.trim();
-  }
-
-  // Tarmoq xatosi: `status` bo'lmasa so'rov serverga yetmagan
-  if (status == null) {
-    return "Serverga ulanmadi. Internet aloqasini tekshirib ko'ring.";
   }
 
   return BY_STATUS[status] ?? fallback;

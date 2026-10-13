@@ -207,6 +207,11 @@ export const ADMIN_ROUTES = [
     roles: ADMIN_ROLES,
   },
   {
+    path: "/admin/news",
+    component: lazy(() => import("../../Pages/Admin/News.jsx")),
+    roles: ADMIN_ROLES,
+  },
+  {
     path: "/admin/statistics",
     component: lazy(() => import("../../Pages/Admin/Statistics.jsx")),
     roles: ADMIN_ROLES,

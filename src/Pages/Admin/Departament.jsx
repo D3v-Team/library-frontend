@@ -1,16 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-
-import {
-  Pencil,
-  Trash2,
-  Search,
-  Users,
-  X,
-  Phone,
-  Mail,
-  CalendarDays,
-} from "lucide-react";
+import { Phone, Users } from "lucide-react";
 
 import {
   useGetDepartmentsQuery,
@@ -22,6 +12,18 @@ import {
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import AdminEmptyState from "./components/AdminEmptyState";
+import Modal from "./components/Modal";
+import ConfirmDialog from "./components/ConfirmDialog";
+import FormField from "./components/FormField";
+import Pagination from "./components/Pagination";
+import { SearchInput } from "./components/ListControls";
+import {
+  AdminErrorState,
+  CardGridSkeleton,
+  LangDots,
+  RowActions,
+  StatusToggle,
+} from "./components/AdminUI";
 import apiError from "../../lib/apiError";
 import ImageUploadField from "./components/ImageUploadField";
 import { BASE_URL } from "../../store/api";
@@ -50,6 +52,24 @@ const emptyForm = {
   member_photo: null,
 };
 
+// UpdateDepartmentDto maydonlari (member_photo alohida ko'rib chiqiladi)
+const DTO_FIELDS = Object.keys(emptyForm).filter((f) => f !== "member_photo");
+
+const LANGS = [
+  { key: "latin", label: "Lotin" },
+  { key: "cyril", label: "Kirill" },
+  { key: "ru", label: "Rus" },
+];
+
+/* Faqat DTO maydonlari; null lar boshqariladigan maydonlar uchun "" */
+const toDeptForm = (item) => ({
+  ...Object.fromEntries(DTO_FIELDS.map((f) => [f, item?.[f] ?? emptyForm[f]])),
+  member_photo: null,
+});
+
+const photoUrl = (path) =>
+  path ? `${BASE_URL}${String(path).startsWith("/") ? "" : "/"}${path}` : null;
+
 export default function Departament() {
   const [page, setPage] = useState(1);
 
@@ -65,16 +85,17 @@ export default function Departament() {
     ...emptyForm,
   });
 
-  const { data, isLoading, isFetching, error } = useGetDepartmentsQuery({
+  const [activeLang, setActiveLang] = useState("latin");
+  const [pendingId, setPendingId] = useState(null);
+
+  // Rahbariyat tartibi saytdagidek — position_order bo'yicha (tekshirilgan:
+  // backend sortBy=position_order ni qabul qiladi)
+  const { data, isLoading, isFetching, error, refetch } = useGetDepartmentsQuery({
     page,
-
-    limit: 10,
-
+    limit: 24,
     search,
-
-
-
-    sortOrder: "desc",
+    sortBy: "position_order",
+    sortOrder: "asc",
   });
 
   const [createDepartment, { isLoading: isCreating }] =
@@ -114,6 +135,7 @@ export default function Departament() {
     });
 
     setPhotoRemoved(false);
+    setActiveLang("latin");
 
     setModalOpen(true);
   };
@@ -121,16 +143,12 @@ export default function Departament() {
   const openEdit = (item) => {
     setEditing(item);
 
-    setForm({
-      ...emptyForm,
-
-      ...item,
-
-      // Serverdan kelgan yo'lni File deb yubormaymiz
-      member_photo: null,
-    });
+    // Faqat DTO maydonlari (id, created_at formaga tushmaydi);
+    // serverdagi surat yo'li File deb yuborilmaydi
+    setForm(toDeptForm(item));
 
     setPhotoRemoved(false);
+    setActiveLang("latin");
 
     setModalOpen(true);
   };
@@ -160,13 +178,16 @@ export default function Departament() {
 
     try {
       if (editing) {
+        // Faqat o'zgargan DTO maydonlari
+        const initial = toDeptForm(editing);
         const changedData = {};
 
-        Object.keys(form).forEach((key) => {
-          if (form[key] !== editing[key]) {
-            changedData[key] = form[key];
+        DTO_FIELDS.forEach((key) => {
+          if (form[key] !== initial[key]) {
+            changedData[key] = key === "position_order" ? Number(form[key]) || 0 : form[key];
           }
         });
+        if (form.member_photo instanceof File) changedData.member_photo = form.member_photo;
 
         /* Surat alohida ko'rib chiqiladi. `member_photo` faqat yangi
            File tanlanganda yuboriladi — aks holda mavjud surat o'chib
@@ -189,7 +210,11 @@ export default function Departament() {
 
         toast.success("Xodim yangilandi");
       } else {
-        await createDepartment(form).unwrap();
+        await createDepartment({
+          ...Object.fromEntries(DTO_FIELDS.map((f) => [f, form[f]])),
+          position_order: Number(form.position_order) || 0,
+          member_photo: form.member_photo instanceof File ? form.member_photo : undefined,
+        }).unwrap();
 
         toast.success("Xodim qo‘shildi");
       }
@@ -215,6 +240,7 @@ export default function Departament() {
   };
 
   const toggleStatus = async (item) => {
+    setPendingId(item.id);
     try {
       await updateDepartment({
         id: item.id,
@@ -227,6 +253,8 @@ export default function Departament() {
       toast.success("Status yangilandi");
     } catch (err) {
       toast.error(apiError(err, "Statusni o‘zgartirishda xatolik"));
+    } finally {
+      setPendingId(null);
     }
   };
   return (
@@ -238,649 +266,209 @@ export default function Departament() {
         onAction={openCreate}
       />
 
-      {/* SEARCH */}
-
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search
-            size={17}
-            className="
-            absolute
-            left-3
-            top-1/2
-            -translate-y-1/2
-            text-slate-400
-          "
-          />
-
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Xodim qidirish..."
-            className="
-            w-full
-            rounded-xl
-            border
-            border-slate-200
-            bg-white
-            py-2.5
-            pl-10
-            pr-4
-            text-sm
-            text-slate-800
-            outline-none
-            focus:border-slate-400
-          "
-          />
-        </div>
+      <div className="mb-5">
+        <SearchInput
+          value={search}
+          onChange={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
+          placeholder="Xodim qidirish..."
+        />
       </div>
 
-      {/* LOADING */}
-
-      {isLoading && (
+      {/* Xodimlar ro'yxati — kartochkalar, chunki asosiy ma'lumot SURAT.
+          Ilgari kartochkada surat ham, tartib raqami ham yo'q edi. */}
+      {isLoading ? (
+        <CardGridSkeleton
+          count={8}
+          media="4/5"
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+        />
+      ) : error ? (
+        <AdminErrorState title="Xodimlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
+      ) : departments.length === 0 ? (
+        <AdminEmptyState title={search ? "Qidiruv bo‘yicha xodim topilmadi" : "Xodimlar qo‘shilmagan"} icon={Users} />
+      ) : (
         <div
-          className="
-          grid
-          gap-5
-          md:grid-cols-2
-          xl:grid-cols-3
-        "
+          className={`grid gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 ${
+            isFetching ? "opacity-60" : ""
+          }`}
         >
-          {Array.from({
-            length: 6,
-          }).map((_, i) => (
-            <div
-              key={i}
-              className="
-                h-44
-                animate-pulse
-                rounded-2xl
-                bg-blue-700
-              "
-            />
-          ))}
-        </div>
-      )}
-
-      {/* ERROR */}
-
-      {error && (
-        <div
-          className="
-          rounded-xl
-          bg-red-50
-          px-5
-          py-10
-          text-center
-          text-sm
-          text-red-600
-        "
-        >
-          Ma'lumotlarni yuklashda xatolik
-        </div>
-      )}
-
-      {/* EMPTY */}
-
-      {!isLoading && !error && departments.length === 0 && (
-        <AdminEmptyState title="Xodimlar topilmadi" icon={Users} />
-      )}
-
-      {/* CARDS */}
-
-      {!isLoading && !error && departments.length > 0 && (
-        <div
-          className="
-          grid
-          gap-5
-          md:grid-cols-2
-          xl:grid-cols-3
-        "
-        >
-          {departments.map((item) => (
-            <div
-              key={item.id}
-              className="
-                rounded-2xl
-                border
-                border-slate-200
-                bg-white
-                p-5
-                shadow-sm
-              "
-            >
-              <div
-                className="
-                  flex
-                  items-start
-                  justify-between
-                "
+          {departments.map((item) => {
+            const photo = photoUrl(item.member_photo);
+            const surname = String(item.full_name_latin || "?").trim().charAt(0).toUpperCase();
+            return (
+              <article
+                key={item.id}
+                className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
               >
-                <div>
-                  <h3
-                    className="
-                      text-base
-                      font-semibold
-                      text-slate-900
-                    "
-                  >
-                    {item.full_name_latin}
-                  </h3>
-
-                  <p
-                    className="
-                      mt-1
-                      text-sm
-                      text-slate-500
-                    "
-                  >
-                    {item.position_latin || "-"}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => toggleStatus(item)}
-                  className={`
-                    rounded-full
-                    px-3
-                    py-1
-                    text-xs
-                    font-medium
-
-                    ${
-                      item.is_active
-                        ? "bg-green-50 text-green-700"
-                        : "bg-red-50 text-red-600"
-                    }
-                  `}
-                >
-                  {item.is_active ? "Faol" : "Nofaol"}
-                </button>
-              </div>
-
-              <div
-                className="
-                  mt-5
-                  space-y-3
-                "
-              >
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                    text-sm
-                    text-slate-600
-                  "
-                >
-                  <Phone size={16} className="text-slate-400" />
-
-                  {item.phone || "-"}
-                </div>
-
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                    text-sm
-                    text-slate-600
-                  "
-                >
-                  <Mail size={16} className="text-slate-400" />
-
-                  {item.email || "-"}
-                </div>
-
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                    text-sm
-                    text-slate-600
-                  "
-                >
-                  <CalendarDays size={16} className="text-slate-400" />
-
-                  {item.reception_days || "-"}
-                </div>
-              </div>
-
-              <div
-                className="
-                  mt-5
-                  flex
-                  gap-2
-                  border-t
-                  border-slate-100
-                  pt-4
-                "
-              >
-                <button
-                  onClick={() => openEdit(item)}
-                  className="
-                    flex-1
-                    rounded-lg
-                    border
-                    border-slate-200
-                    py-2
-                    text-sm
-                    text-slate-700
-                    hover:bg-slate-50
-                  "
-                >
+                <div className="relative aspect-[4/5] shrink-0 overflow-hidden bg-slate-100">
+                  {photo ? (
+                    <img
+                      src={photo}
+                      alt={item.full_name_latin || ""}
+                      loading="lazy"
+                      className={`absolute inset-0 h-full w-full object-cover ${item.is_active ? "" : "opacity-50 grayscale"}`}
+                    />
+                  ) : (
+                    <span className="absolute inset-0 flex items-center justify-center text-5xl font-semibold text-slate-300">
+                      {surname}
+                    </span>
+                  )}
                   <span
-                    className="
-                      flex
-                      items-center
-                      justify-center
-                      gap-2
-                    "
+                    className="absolute left-3 top-3 rounded-md bg-slate-900/80 px-2 py-1 text-xs font-semibold text-white"
+                    title="Saytdagi tartib raqami"
                   >
-                    <Pencil size={15} />
-                    Tahrirlash
+                    #{item.position_order ?? "—"}
                   </span>
-                </button>
+                </div>
 
-                <button
-                  onClick={() => setDeleteTarget(item)}
-                  className="
-                    flex
-                    h-9
-                    w-9
-                    items-center
-                    justify-center
-                    rounded-lg
-                    border
-                    border-red-200
-                    text-red-500
-                    hover:bg-red-50
-                  "
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+                <div className="flex flex-1 flex-col gap-1.5 p-4">
+                  <h3 className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug text-slate-900">
+                    {item.full_name_latin || "Ism kiritilmagan"}
+                  </h3>
+                  <p className="line-clamp-2 min-h-[2.5rem] text-sm leading-5 text-slate-500">
+                    {item.position_latin || <span className="italic text-slate-400">Lavozim ko‘rsatilmagan</span>}
+                  </p>
+                  <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                    <LangDots record={item} field="full_name" />
+                    {item.phone && (
+                      <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                        <Phone size={12} />
+                        {item.phone}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-3">
+                  <StatusToggle
+                    checked={item.is_active}
+                    onLabel="Ko‘rinadi"
+                    pending={pendingId === item.id}
+                    onChange={() => toggleStatus(item)}
+                  />
+                  <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} total={data?.meta?.total} disabled={isFetching} />
+
+      {/* Umumiy Modal: fokus tuzog'i, Esc, ichki scroll. Ilgari o'z `fixed`
+          oynasi edi — uzun forma past ekranda scroll qilinmasdi. */}
+      <Modal
+        open={modalOpen}
+        onClose={closeModal}
+        title={editing ? "Xodimni tahrirlash" : "Yangi xodim"}
+        size="lg"
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <ImageUploadField
+            label="Surat"
+            value={form.member_photo}
+            existingUrl={editing?.member_photo && !photoRemoved ? photoUrl(editing.member_photo) : null}
+            onChange={(file) => {
+              handleChange("member_photo", file);
+              if (file) setPhotoRemoved(false);
+            }}
+            onRemove={() => {
+              handleChange("member_photo", null);
+              setPhotoRemoved(true);
+            }}
+          />
+
+          <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
+            {LANGS.map((lang) => (
+              <button
+                key={lang.key}
+                type="button"
+                onClick={() => setActiveLang(lang.key)}
+                className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
+                  activeLang === lang.key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+
+          {LANGS.map((lang) => (
+            <div key={lang.key} className={activeLang === lang.key ? "grid gap-4 sm:grid-cols-2" : "hidden"}>
+              <FormField
+                label={`F.I.SH (${lang.label})`}
+                required={lang.key === "latin"}
+                value={form[`full_name_${lang.key}`]}
+                onChange={(e) => handleChange(`full_name_${lang.key}`, e.target.value)}
+              />
+              <FormField
+                label={`Lavozim (${lang.label})`}
+                value={form[`position_${lang.key}`]}
+                onChange={(e) => handleChange(`position_${lang.key}`, e.target.value)}
+              />
             </div>
           ))}
-        </div>
-      )}
 
-      {/* PAGINATION */}
-
-      <div
-        className="
-        mt-8
-        flex
-        items-center
-        justify-between
-      "
-      >
-        <p
-          className="
-          text-sm
-          text-slate-500
-        "
-        >
-          Sahifa {page} / {totalPages}
-        </p>
-
-        <div className="flex gap-2">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="
-            rounded-lg
-            border
-            px-4
-            py-2
-            text-sm
-            disabled:opacity-40
-          "
-          >
-            Oldingi
-          </button>
-
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className="
-            rounded-lg
-            border
-            px-4
-            py-2
-            text-sm
-            disabled:opacity-40
-          "
-          >
-            Keyingi
-          </button>
-        </div>
-      </div>
-      {/* CREATE / UPDATE MODAL */}
-
-      {modalOpen && (
-        <div
-          className="
-      fixed
-      inset-0
-      z-50
-      flex
-      items-center
-      justify-center
-      bg-black/40
-      px-4
-    "
-        >
-          <div
-            className="
-        w-full
-        max-w-3xl
-        rounded-2xl
-        bg-white
-        p-6
-        shadow-xl
-      "
-          >
-            <div
-              className="
-          mb-6
-          flex
-          items-center
-          justify-between
-        "
-            >
-              <h2
-                className="
-            text-lg
-            font-semibold
-            text-slate-900
-          "
-              >
-                {editing ? "Xodimni tahrirlash" : "Yangi xodim"}
-              </h2>
-
-              <button
-                type="button"
-                onClick={closeModal}
-                className="
-            text-slate-400
-            hover:text-slate-700
-          "
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              className="
-          grid
-          gap-4
-          sm:grid-cols-2
-        "
-            >
-              {/* Surat — ikki ustunni egallaydi. Swagger: multipart,
-                  `member_photo` (binary). Tahrirlashda serverdagi
-                  mavjud surat `existingUrl` orqali ko'rsatiladi. */}
-              <div className="sm:col-span-2">
-                <ImageUploadField
-                  label="Surat"
-                  value={form.member_photo}
-                  existingUrl={
-                    editing?.member_photo && !photoRemoved
-                      ? `${BASE_URL}${String(editing.member_photo).startsWith("/") ? "" : "/"}${editing.member_photo}`
-                      : null
-                  }
-                  onChange={(file) => {
-                    handleChange("member_photo", file);
-                    if (file) setPhotoRemoved(false);
-                  }}
-                  onRemove={() => {
-                    handleChange("member_photo", null);
-                    setPhotoRemoved(true);
-                  }}
-                />
-              </div>
-
-              {[
-                ["full_name_latin", "F.I.SH (Lotin)", "text"],
-                ["full_name_cyril", "F.I.SH (Kirill)", "text"],
-                ["full_name_ru", "F.I.SH (Rus)", "text"],
-
-                ["position_latin", "Lavozim", "text"],
-                ["position_cyril", "Lavozim Kirill", "text"],
-                ["position_ru", "Lavozim Rus", "text"],
-
-                ["phone", "Telefon", "tel"],
-                ["email", "Email", "email"],
-                ["fax", "Fax", "text"],
-                ["reception_days", "Qabul kunlari", "text"],
-              ].map(([key, label, type]) => (
-                <div key={key}>
-                  <label
-                    className="
-                mb-1.5
-                block
-                text-sm
-                font-medium
-                text-slate-700
-              "
-                  >
-                    {label}
-                  </label>
-
-                  <input
-                    type={type}
-                    value={form[key]}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    className="
-                w-full
-                rounded-lg
-                border
-                border-slate-200
-                px-3
-                py-2.5
-                text-sm
-                text-slate-800
-                outline-none
-                focus:border-slate-400
-              "
-                  />
-                </div>
-              ))}
-
-              <div>
-                <label
-                  className="
-              mb-1.5
-              block
-              text-sm
-              font-medium
-              text-slate-700
-            "
-                >
-                  Tartib raqami
-                </label>
-
-                <input
-                  type="number"
-                  value={form.position_order}
-                  onChange={(e) =>
-                    handleChange("position_order", Number(e.target.value))
-                  }
-                  className="
-              w-full
-              rounded-lg
-              border
-              border-slate-200
-              px-3
-              py-2.5
-              text-sm
-              text-slate-800
-            "
-                />
-              </div>
-
-              <label
-                className="
-            mt-7
-            flex
-            items-center
-            gap-3
-            text-sm
-            text-slate-700
-          "
-              >
-                <input
-                  type="checkbox"
-                  checked={form.is_active}
-                  onChange={(e) => handleChange("is_active", e.target.checked)}
-                />
-                Faol
-              </label>
-
-              <div
-                className="
-            col-span-full
-            mt-5
-            flex
-            justify-end
-            gap-3
-            border-t
-            border-slate-100
-            pt-5
-          "
-              >
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="
-              rounded-lg
-              border
-              border-slate-200
-              px-5
-              py-2.5
-              text-sm
-              text-slate-600
-              hover:bg-slate-50
-            "
-                >
-                  Bekor qilish
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="
-              rounded-lg
-              hover:bg-slate-50
-              border
-              px-5
-              py-2.5
-              text-sm
-              font-medium
-              text-black
-              disabled:opacity-50
-            "
-                >
-                  {isSaving ? "Saqlanmoqda..." : "Saqlash"}
-                </button>
-              </div>
-            </form>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label="Telefon" type="tel" value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} />
+            <FormField label="Elektron pochta" type="email" value={form.email} onChange={(e) => handleChange("email", e.target.value)} />
+            <FormField label="Faks" value={form.fax} onChange={(e) => handleChange("fax", e.target.value)} />
+            <FormField
+              label="Qabul kunlari"
+              placeholder="Dushanba – Juma, 09:00 – 17:00"
+              value={form.reception_days}
+              onChange={(e) => handleChange("reception_days", e.target.value)}
+            />
+            <FormField
+              label="Tartib raqami"
+              type="number"
+              min="0"
+              value={form.position_order}
+              onChange={(e) => handleChange("position_order", e.target.value)}
+            />
+            <label className="flex items-center gap-3 self-end pb-2.5 text-sm font-medium text-slate-700">
+              <input
+                type="checkbox"
+                checked={form.is_active}
+                onChange={(e) => handleChange("is_active", e.target.checked)}
+                className="h-4 w-4 rounded"
+              />
+              Saytda ko‘rsatish
+            </label>
           </div>
-        </div>
-      )}
 
-      {/* DELETE MODAL */}
-
-      {deleteTarget && (
-        <div
-          className="
- fixed
- inset-0
- z-50
- flex
- items-center
- justify-center
- bg-black/40
- px-4
- "
-        >
-          <div
-            className="
- max-w-md
- w-full
- rounded-2xl
- bg-white
- p-6
- "
-          >
-            <h3
-              className="
-text-lg
-font-semibold
-text-slate-900
-"
+          <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={isSaving}
+              className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
-              O‘chirish
-            </h3>
-
-            <p
-              className="
-mt-3
-text-sm
-text-slate-500
-"
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
             >
-              {deleteTarget.full_name_latin}
-              o‘chirilsinmi?
-            </p>
-
-            <div
-              className="
-mt-6
-flex
-justify-end
-gap-3
-"
-            >
-              <button
-                onClick={() => setDeleteTarget(null)}
-                className="
-rounded-lg
-border
-border-slate-200
-px-4
-py-2
-text-sm
-"
-              >
-                Bekor
-              </button>
-
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="
-rounded-lg
-bg-red-600
-px-4
-py-2
-text-sm
-text-white
-disabled:opacity-50
-"
-              >
-                {isDeleting ? "O‘chirilmoqda..." : "O‘chirish"}
-              </button>
-            </div>
+              {isSaving ? "Saqlanmoqda..." : "Saqlash"}
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+        title="Xodimni o‘chirish"
+        description={`"${deleteTarget?.full_name_latin || ""}" ro‘yxatdan o‘chiriladi.`}
+      />
     </div>
   );
 }

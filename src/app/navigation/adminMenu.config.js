@@ -17,7 +17,6 @@ import {
   BookAIcon,
   UserSquare,
   FileText,
-  Link2Off,
   Link,
   Phone,
   MessageCircleCodeIcon,
@@ -47,6 +46,11 @@ export const ADMIN_MENU = [
     label: 'E\'lonlar',
     path: '/admin/announcements',
     icon: Megaphone,
+  },
+  {
+    label: 'Yangiliklar',
+    path: '/admin/news',
+    icon: Newspaper,
   },
   {
     label: 'Mualliflar',

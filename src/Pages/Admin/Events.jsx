@@ -1,7 +1,8 @@
 // src/pages/admin/Events.jsx
 import { useState } from "react";
+import { AdminErrorState, CardGridSkeleton, RowActions, StatusToggle } from "./components/AdminUI";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, CalendarDays, MapPin, Images } from "lucide-react";
+import { CalendarDays, MapPin, Images } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
@@ -43,6 +44,34 @@ const emptyForm = {
   is_public: true,
 };
 
+// UpdateEventsDto / CreateEventsDto dagi matnli maydonlar — faqat shular yuboriladi
+const TEXT_FIELDS = [
+  "title_latin", "title_cyril", "title_ru",
+  "description_latin", "description_cyril", "description_ru",
+  "location_latin", "location_cyril", "location_ru",
+];
+
+const pad2 = (n) => String(n).padStart(2, "0");
+
+/* Server ISO sanasi ("2026-09-15T06:00:00.000Z") -> <input type="date"> va
+   <input type="time"> qiymatlari, MAHALLIY vaqtda. Ilgari ISO qatori
+   to'g'ridan-to'g'ri date maydoniga tushardi: maydon bo'sh ko'rinar,
+   faqat vaqt o'zgartirilsa esa hech narsa saqlanmasdi. */
+function splitDate(iso) {
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return { date: "", time: "" };
+  return {
+    date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+    time: `${pad2(d.getHours())}:${pad2(d.getMinutes())}`,
+  };
+}
+
+function joinDate(date, time) {
+  if (!date) return null;
+  const d = new Date(`${date}T${time || "00:00"}:00`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 const LANGS = [
   { key: "latin", label: "Lotin" },
   { key: "cyril", label: "Kirill" },
@@ -58,11 +87,12 @@ export default function Events() {
   const [form, setForm] = useState({ ...emptyForm });
   const [file, setFile] = useState(null);
   const [images, setImages] = useState([]);
+  const [pendingId, setPendingId] = useState(null);
   const [errors, setErrors] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activeLang, setActiveLang] = useState("latin");
 
-  const { data, isLoading, isFetching, error } = useGetAdminEventsQuery({
+  const { data, isLoading, isFetching, error, refetch } = useGetAdminEventsQuery({
     page,
     limit: 10,
     search,
@@ -119,6 +149,7 @@ export default function Events() {
   const isSaving = isCreating || isUpdating;
 
   const handleTogglePublic = async (item) => {
+    setPendingId(item.id);
     try {
       await updateEvent({
         id: item.id,
@@ -127,23 +158,21 @@ export default function Events() {
       toast.success(!item.is_public ? "Tadbir faollashtirildi" : "Tadbir yashirildi");
     } catch (err) {
       toast.error(apiError(err, "Status o‘zgarmadi"));
+    } finally {
+      setPendingId(null);
     }
   };
 
   // ===== OPEN EDIT – vaqtni to‘g‘ri ajratish =====
   const openEdit = (item) => {
     setEditing(item);
-    let time = "";
-    if (item.event_date) {
-      const dateObj = new Date(item.event_date);
-      if (!isNaN(dateObj)) {
-        time = dateObj.toTimeString().slice(0, 5);
-      }
-    }
+    const { date, time } = splitDate(item.event_date);
     setForm({
       ...emptyForm,
-      ...item,
+      ...Object.fromEntries(TEXT_FIELDS.map((f) => [f, item[f] ?? ""])),
+      event_date: date,
       event_time: time,
+      is_public: item.is_public ?? true,
     });
     setFile(null);
     setImages([]);
@@ -176,38 +205,28 @@ export default function Events() {
   const submitHandler = async (e) => {
     e.preventDefault();
 
+    const eventDate = joinDate(form.event_date, form.event_time);
+    if (!eventDate) {
+      toast.error("Tadbir sanasini kiriting");
+      return;
+    }
+
     let payload = {};
 
     if (editing) {
-      // O'zgargan maydonlarni aniqlash
+      // Faqat o'zgargan DTO maydonlari
       const changed = {};
-      const initial = { ...emptyForm, ...editing };
 
-      Object.keys(form).forEach((key) => {
-        if (key === 'event_time') {
-          const oldTime = initial.event_date
-            ? new Date(initial.event_date).toTimeString().slice(0, 5)
-            : '';
-          if (form[key] !== oldTime && form.event_date) {
-            const dateObj = new Date(`${form.event_date}T${form.event_time}:00`);
-            if (!isNaN(dateObj)) {
-              changed.event_date = dateObj.toISOString();
-            }
-          }
-        } else if (key === 'event_date') {
-          const oldDate = initial.event_date || '';
-          if (form[key] !== oldDate && form[key] && form.event_time) {
-            const dateObj = new Date(`${form[key]}T${form.event_time}:00`);
-            if (!isNaN(dateObj)) {
-              changed.event_date = dateObj.toISOString();
-            }
-          } else if (form[key] !== oldDate && form[key]) {
-            changed.event_date = form[key];
-          }
-        } else if (key !== 'event_time' && form[key] !== initial[key]) {
-          changed[key] = form[key];
-        }
+      TEXT_FIELDS.forEach((f) => {
+        if ((form[f] ?? "") !== (editing[f] ?? "")) changed[f] = form[f];
       });
+
+      const oldDate = editing.event_date ? new Date(editing.event_date).toISOString() : null;
+      if (eventDate !== oldDate) changed.event_date = eventDate;
+
+      if (Boolean(form.is_public) !== Boolean(editing.is_public)) {
+        changed.is_public = Boolean(form.is_public);
+      }
 
       if (file) changed.cover_image = file;
       payload = changed;
@@ -217,16 +236,14 @@ export default function Events() {
         return;
       }
     } else {
-      // Yangi yaratish
-      let eventDate = form.event_date;
-      if (form.event_date && form.event_time) {
-        const dateObj = new Date(`${form.event_date}T${form.event_time}:00`);
-        if (!isNaN(dateObj)) {
-          eventDate = dateObj.toISOString();
-        }
+      // CreateEventsDto: nom uch tilda majburiy
+      if (!form.title_latin || !form.title_cyril || !form.title_ru) {
+        toast.error("Tadbir nomini uchala tilda kiriting");
+        return;
       }
+
       payload = {
-        ...form,
+        ...Object.fromEntries(TEXT_FIELDS.map((f) => [f, form[f]])),
         event_date: eventDate,
         cover_image: file ?? undefined,
         images: images.length ? images : undefined,
@@ -282,15 +299,9 @@ export default function Events() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-44 animate-pulse rounded-2xl bg-blue-700" />
-          ))}
-        </div>
+        <CardGridSkeleton count={6} media="16/9" className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" />
       ) : error ? (
-        <div className="rounded-xl bg-red-50 px-6 py-10 text-center text-red-600">
-          Tadbirlarni yuklashda xatolik.
-        </div>
+        <AdminErrorState title="Tadbirlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : items.length === 0 ? (
         <AdminEmptyState title="Tadbirlar topilmadi" icon={CalendarDays} />
       ) : (
@@ -299,93 +310,81 @@ export default function Events() {
             isFetching ? "opacity-60" : "opacity-100"
           }`}
         >
-          {items.map((item) => (
-            <article
-              key={item.id}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-            >
-              <div className="relative h-48 overflow-hidden bg-slate-100">
-                {item.images?.length > 0 && (
-                  <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-slate-900/75 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                    <Images size={12} />
-                    {item.images.length}
-                  </span>
-                )}
-                {item.cover_image ? (
-                  <img
-                    src={
-                      item.cover_image.startsWith("http")
-                        ? item.cover_image
-                        : `${BASE_URL}${item.cover_image}`
-                    }
-                    alt={item.title_latin}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-slate-400">
-                    Rasm mavjud emas
-                  </div>
-                )}
-              </div>
+          {items.map((item) => {
+            const d = item.event_date ? new Date(item.event_date) : null;
+            const valid = d && !Number.isNaN(d.getTime());
+            const isPast = valid && d < new Date();
+            return (
+              /* Bir qatordagi kartochkalar bir xil balandlikda: matn qismlari
+                 qat'iy balandlikda kesiladi, pastki panel `mt-auto` bilan pastda */
+              <article
+                key={item.id}
+                className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+              >
+                <div className="relative aspect-video shrink-0 overflow-hidden bg-slate-100">
+                  {item.cover_image ? (
+                    <img
+                      src={item.cover_image.startsWith("http") ? item.cover_image : `${BASE_URL}${item.cover_image}`}
+                      alt={item.title_latin || ""}
+                      loading="lazy"
+                      className={`absolute inset-0 h-full w-full object-cover ${item.is_public ? "" : "opacity-50 grayscale"}`}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-slate-400">Rasm mavjud emas</div>
+                  )}
 
-              <div className="p-5">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <h3 className="line-clamp-2 text-lg font-semibold text-slate-900">
-                    {item.title_latin}
-                  </h3>
+                  {valid && (
+                    <span
+                      className={`absolute left-2 top-2 rounded-md px-2 py-1 text-xs font-medium ${
+                        isPast ? "bg-white/90 text-slate-600" : "bg-green-600 text-white"
+                      }`}
+                    >
+                      {isPast ? "O‘tgan" : "Kelayotgan"}
+                    </span>
+                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => handleTogglePublic(item)}
-                    className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                      item.is_public
-                        ? "bg-green-100 text-green-700 hover:bg-green-200"
-                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}
-                  >
-                    {item.is_public ? "Faol" : "Nofaol"}
-                  </button>
-                </div>
-
-                <div className="space-y-2 text-sm text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays size={15} />
-                    {item.event_date
-                      ? new Date(item.event_date).toLocaleDateString("uz-UZ")
-                      : "-"}
-                  </div>
-                  {item.location_latin && (
-                    <div className="flex items-center gap-2">
-                      <MapPin size={15} />
-                      {item.location_latin}
-                    </div>
+                  {item.images?.length > 0 && (
+                    <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-slate-900/75 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                      <Images size={12} />
+                      {item.images.length}
+                    </span>
                   )}
                 </div>
 
-                <div className="mt-5 flex justify-end gap-2 border-t border-slate-100 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => openEdit(item)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(item)}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-500 hover:bg-red-50"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                <div className="flex flex-1 flex-col gap-2 p-4">
+                  <h3 className="line-clamp-2 min-h-[2.75rem] text-base font-semibold leading-snug text-slate-900">
+                    {item.title_latin || "Sarlavhasiz"}
+                  </h3>
+
+                  <p className="flex items-center gap-2 text-sm text-slate-500">
+                    <CalendarDays size={15} className="shrink-0" />
+                    {valid
+                      ? `${d.toLocaleDateString("ru-RU")} · ${d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}`
+                      : "—"}
+                  </p>
+                  <p className="flex min-h-[1.25rem] items-center gap-2 text-sm text-slate-500">
+                    <MapPin size={15} className="shrink-0" />
+                    <span className="truncate">{item.location_latin || <span className="text-slate-300">Joy ko‘rsatilmagan</span>}</span>
+                  </p>
                 </div>
-              </div>
-            </article>
-          ))}
+
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-3">
+                  <StatusToggle
+                    checked={item.is_public}
+                    onLabel="Ko‘rinadi"
+                    pending={pendingId === item.id}
+                    onChange={() => handleTogglePublic(item)}
+                  />
+                  <RowActions onEdit={() => openEdit(item)} onDelete={() => setDeleteTarget(item)} />
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
 
       <div className="mt-6">
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} total={data?.meta?.total} disabled={isFetching} />
       </div>
 
       {/* MODAL */}

@@ -47,7 +47,13 @@ export const bannersApi = createApi({
         method: "GET",
         params: { page, limit, search, sortBy, sortOrder, is_active },
       }),
-      providesTags: [{ type: "Banners", id: "LIST" }],
+      providesTags: (result) =>
+        result?.data
+          ? [
+              ...result.data.map((b) => ({ type: "Banners", id: b.id })),
+              { type: "Banners", id: "LIST" },
+            ]
+          : [{ type: "Banners", id: "LIST" }],
     }),
 
     createBanner: builder.mutation({
@@ -85,20 +91,34 @@ export const bannersApi = createApi({
         method: "PATCH",
         data: { is_active },
       }),
-      async onQueryStarted({ id, is_active }, { dispatch, queryFulfilled }) {
-        const patchResult = dispatch(
-          bannersApi.util.updateQueryData("getBanners", undefined, (draft) => {
-            const item = draft?.data?.find((b) => b.id === id);
-            if (item) item.is_active = is_active;
-          }),
-        );
+      // Optimistik: kalit darhol almashadi. Ro'yxat haqiqiy argumentlar bilan
+      // keshlangan ({page, limit, search}) — `undefined` bilan patch hech
+      // narsaga tushmasdi, shuning uchun har keshlangan nusxa yangilanadi.
+      async onQueryStarted({ id, is_active }, { dispatch, getState, queryFulfilled }) {
+        const patches = [];
+        for (const name of ["getAllBanners", "getBanners"]) {
+          for (const args of bannersApi.util.selectCachedArgsForQuery(getState(), name)) {
+            patches.push(
+              dispatch(
+                bannersApi.util.updateQueryData(name, args, (draft) => {
+                  const item = draft?.data?.find((b) => b.id === id);
+                  if (item) item.is_active = is_active;
+                }),
+              ),
+            );
+          }
+        }
         try {
           await queryFulfilled;
         } catch {
-          patchResult.undo();
+          patches.forEach((p) => p.undo());
         }
       },
-      invalidatesTags: (result, error, { id }) => [{ type: "Banners", id }],
+      // LIST ham: ommaviy /banners faqat faollarni beradi — tarkibi o'zgaradi
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Banners", id },
+        { type: "Banners", id: "LIST" },
+      ],
     }),
   }),
 });

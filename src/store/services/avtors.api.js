@@ -36,6 +36,72 @@ export const authorsApi = createApi({
     }),
 
     // =============================================
+    // 1a. MUALLIF TANLASH RO'YXATI (cheksiz scroll)
+    // Filtr ro'yxati ochilganda 25 tadan, oxiriga yetilganda keyingisi.
+    // Mualliflar 2 000 dan ko'p, backend esa limit ni 100 ga qirqadi —
+    // bitta so'rovda hammasini olib bo'lmaydi.
+    // =============================================
+    getAuthorOptions: builder.infiniteQuery({
+      infiniteQueryOptions: {
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) =>
+          lastPage?.meta?.hasNextPage ? lastPage.meta.page + 1 : undefined,
+      },
+      query: ({ queryArg, pageParam }) => ({
+        url: "/authors",
+        method: "GET",
+        params: {
+          page: pageParam,
+          limit: 25,
+          search: queryArg?.search || undefined,
+          sortBy: "full_name_latin",
+          sortOrder: "asc",
+        },
+      }),
+      providesTags: [{ type: "Authors", id: "LIST" }],
+    }),
+
+    // =============================================
+    // 1b. PROFILLI MUALLIFLAR (qo'lda kiritilganlar)
+    //
+    // Excel importi har `author_name` dan faqat ismli muallif yaratadi.
+    // Qo'lda kiritishda tug'ilgan sana MAJBURIY, importda esa u bo'sh —
+    // `birth_date asc` da sanalilar oldinda, bo'shlari oxirida keladi
+    // (o'lchab tekshirilgan). Birinchi bo'sh sanada to'xtaymiz: profilli
+    // mualliflar oz, odatda bitta so'rov.
+    //   meta.total      — profilli mualliflar soni
+    //   meta.grandTotal — filtrga mos BARCHA mualliflar
+    // =============================================
+    getProfiledAuthors: builder.query({
+      async queryFn({ search } = {}, _api, _extra, baseQuery) {
+        const items = new Map();
+        let grandTotal = 0;
+
+        // Himoya: sikl cheksiz aylanmasin (20 × 100 = 2 000 ta profilli muallif)
+        for (let page = 1; page <= 20; page += 1) {
+          const res = await baseQuery({
+            url: "/authors",
+            method: "GET",
+            params: { page, limit: 100, search, sortBy: "birth_date", sortOrder: "asc" },
+          });
+          if (res.error) return { error: res.error };
+
+          const list = res.data?.data ?? [];
+          grandTotal = res.data?.meta?.total ?? grandTotal;
+
+          const dated = list.filter((a) => a.birth_date);
+          dated.forEach((a) => items.set(a.id, a));
+
+          if (dated.length < list.length || !res.data?.meta?.hasNextPage) break;
+        }
+
+        const data = [...items.values()];
+        return { data: { data, meta: { total: data.length, grandTotal } } };
+      },
+      providesTags: [{ type: "Authors", id: "LIST" }],
+    }),
+
+    // =============================================
     // 2. GET AUTHOR BY ID
     // GET /api/authors/{id}
     // =============================================
@@ -97,6 +163,10 @@ export const authorsApi = createApi({
         url: `/authors/${authorId}/images`,
         method: "GET",
       }),
+      // Backend oddiy massiv qaytaradi ([{id, url, is_main}]), admin esa
+      // `data.data` ni o'qiydi — ilgari rasmlar tahrirlash oynasida umuman
+      // chiqmasdi. Ikkala shaklni ham qabul qilamiz.
+      transformResponse: (res) => ({ data: Array.isArray(res) ? res : res?.data ?? [] }),
       providesTags: (result, error, authorId) => [
         { type: "AuthorImages", id: authorId },
       ],
@@ -121,8 +191,12 @@ export const authorsApi = createApi({
           data: formData,
         };
       },
+      // /authors va /authors/{id} ham images[] ni ichida qaytaradi —
+      // kartochkalar eskicha qolmasin
       invalidatesTags: (result, error, { authorId }) => [
         { type: "AuthorImages", id: authorId },
+        { type: "Authors", id: authorId },
+        { type: "Authors", id: "LIST" },
       ],
     }),
 
@@ -135,8 +209,12 @@ export const authorsApi = createApi({
         url: `/authors/${authorId}/images/${imageId}`,
         method: "DELETE",
       }),
+      // /authors va /authors/{id} ham images[] ni ichida qaytaradi —
+      // kartochkalar eskicha qolmasin
       invalidatesTags: (result, error, { authorId }) => [
         { type: "AuthorImages", id: authorId },
+        { type: "Authors", id: authorId },
+        { type: "Authors", id: "LIST" },
       ],
     }),
 
@@ -149,8 +227,12 @@ export const authorsApi = createApi({
         url: `/authors/${authorId}/images/${imageId}/set-main`,
         method: "PATCH",
       }),
+      // /authors va /authors/{id} ham images[] ni ichida qaytaradi —
+      // kartochkalar eskicha qolmasin
       invalidatesTags: (result, error, { authorId }) => [
         { type: "AuthorImages", id: authorId },
+        { type: "Authors", id: authorId },
+        { type: "Authors", id: "LIST" },
       ],
     }),
   }),
@@ -158,6 +240,8 @@ export const authorsApi = createApi({
 
 export const {
   useGetAuthorsQuery,
+  useGetProfiledAuthorsQuery,
+  useGetAuthorOptionsInfiniteQuery,
   useGetAuthorByIdQuery,
   useCreateAuthorMutation,
   useUpdateAuthorMutation,

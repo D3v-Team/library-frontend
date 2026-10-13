@@ -1,12 +1,12 @@
 import { useRef } from "react";
-import { Archive, BookOpen } from "lucide-react";
-import { useTranslation } from "react-i18next";
 
-import cx from "../../lib/cx";
-import { useLocalized } from "../../lib/useLocalized";
+import cx from "../lib/cx";
+import { useLocalized } from "../lib/useLocalized";
 
 /**
- * Fond bo'limlari — katalog qutisining ikki tortmasi.
+ * Bo'lim tortmalari — katalog qutisining tortmalari.
+ * Kitoblar (katalog / kartoteka) va mualliflar (profil / ko'rsatkich)
+ * sahifalarida bir xil.
  *
  * Kutubxonadagi kartoteka shkafi metafora: har tortma old yuzida
  * yorliq (nom + son) va pastda tutqich. Ochiq tortma — siyoh rangda.
@@ -18,21 +18,20 @@ import { useLocalized } from "../../lib/useLocalized";
  * ekani darhol ko'rinadi.
  *
  * ARIA tablist: ← → bilan tortmalar orasida yuriladi.
+ *
+ *   shelves — [{ key, icon, title, hint }]
+ *   counts  — { [key]: son }
  */
-export default function ShelfSwitch({ value, onChange, counts, loading, panelId }) {
-  const { t } = useTranslation();
+export default function ShelfSwitch({ shelves, value, onChange, counts, loading, panelId, label }) {
   const { formatNumber } = useLocalized();
   const refs = useRef({});
-
-  const shelves = [
-    { key: "catalog", icon: BookOpen, title: t("books.shelfCatalog"), hint: t("books.shelfCatalogHint") },
-    { key: "register", icon: Archive, title: t("books.shelfRegister"), hint: t("books.shelfRegisterHint") },
-  ];
 
   const onKeyDown = (e) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
     e.preventDefault();
-    const next = value === "catalog" ? "register" : "catalog";
+    const index = shelves.findIndex((s) => s.key === value);
+    const step = e.key === "ArrowRight" ? 1 : -1;
+    const next = shelves[(index + step + shelves.length) % shelves.length].key;
     onChange(next);
     refs.current[next]?.focus();
   };
@@ -40,7 +39,7 @@ export default function ShelfSwitch({ value, onChange, counts, loading, panelId 
   return (
     <div
       role="tablist"
-      aria-label={t("books.shelfLabel")}
+      aria-label={label}
       className="grid grid-cols-2 gap-3 sm:max-w-2xl sm:gap-4"
       onKeyDown={onKeyDown}
     >

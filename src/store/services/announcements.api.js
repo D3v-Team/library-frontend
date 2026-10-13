@@ -35,11 +35,13 @@ export const announcementsApi = createApi({
         search = "",
         sortBy,
         sortOrder,
-        is_public,
       } = {}) => ({
+        // Backend faqat CHOP ETILGAN e'lonlarni qaytaradi; `is_public`
+        // filtri yo'q (yuborilsa jim e'tiborsiz qoladi — tekshirilgan).
+        // Admin uchun alohida ro'yxat (GET /announcements/admin) kerak.
         url: "/announcements",
         method: "GET",
-        params: { page, limit, search, sortBy, sortOrder, is_public },
+        params: { page, limit, search, sortBy, sortOrder },
       }),
       providesTags: (result) =>
         result?.data
@@ -93,28 +95,29 @@ export const announcementsApi = createApi({
         method: "PATCH",
         data: { is_public },
       }),
-      // Optimistic update — the switch flips instantly instead of
-      // waiting on the round trip, then rolls back on failure.
-      async onQueryStarted({ id, is_public }, { dispatch, queryFulfilled }) {
-        const patchResult = dispatch(
-          announcementsApi.util.updateQueryData(
-            "getAnnouncements",
-            undefined,
-            (draft) => {
-              const item = draft?.data?.find((a) => a.id === id);
-              if (item) item.is_public = is_public;
-            },
-          ),
-        );
+      // Optimistik: kalit darhol almashadi. Ro'yxat haqiqiy argumentlar
+      // bilan keshlangan — `undefined` bilan patch hech narsaga tushmasdi.
+      //
+      // Teg ATAYLAB invalidatsiya qilinmaydi: ro'yxat qayta yuklansa,
+      // backend yashirilgan e'lonni qaytarmaydi va admin uni shu zahoti
+      // qayta chop eta olmay qoladi. Patch tufayli u sahifada qoladi.
+      async onQueryStarted({ id, is_public }, { dispatch, getState, queryFulfilled }) {
+        const patches = announcementsApi.util
+          .selectCachedArgsForQuery(getState(), "getAnnouncements")
+          .map((args) =>
+            dispatch(
+              announcementsApi.util.updateQueryData("getAnnouncements", args, (draft) => {
+                const item = draft?.data?.find((a) => a.id === id);
+                if (item) item.is_public = is_public;
+              }),
+            ),
+          );
         try {
           await queryFulfilled;
         } catch {
-          patchResult.undo();
+          patches.forEach((p) => p.undo());
         }
       },
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Announcements", id },
-      ],
     }),
   }),
 });

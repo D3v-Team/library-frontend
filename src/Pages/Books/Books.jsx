@@ -1,18 +1,18 @@
 import { useMemo } from "react";
-import { LayoutGrid, List, Search, X } from "lucide-react";
+import { Archive, BookOpen, LayoutGrid, List, Search, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import cx from "../../lib/cx";
 import { useLocalized } from "../../lib/useLocalized";
-import { useGetAuthorsQuery } from "../../store/services/avtors.api";
+import useDebouncedSearchParam from "../../lib/useDebouncedSearchParam";
+import { useGetAuthorByIdQuery } from "../../store/services/avtors.api";
 import { useGetGenresQuery } from "../../store/services/genres";
 import { Button, EmptyState, Input, Reveal, Select, Skeleton } from "../../ui";
-import { BookCard, PageMeta, PageShell, Pagination } from "../../patterns";
+import { AuthorPicker, BookCard, PageMeta, PageShell, Pagination, ShelfSwitch } from "../../patterns";
 import SEO from "../../seo/SEO";
 import { SEO_CONFIG } from "../../seo/seoConfig";
 import FondRegister from "./FondRegister";
-import ShelfSwitch from "./ShelfSwitch";
 import useShelfBooks from "./useShelfBooks";
 
 /**
@@ -72,29 +72,25 @@ export default function Books() {
     setParams(next, { replace: resetPage });
   };
 
-  const { catalog, register, isLoading, isFetching, error } = useShelfBooks({
+  // Qidiruv URL ga yozish to'xtagach 400 ms o'tib tushadi (har harfga so'rov ketmaydi)
+  const [term, setTerm] = useDebouncedSearchParam(search, (q) => update({ q }));
+
+  const { shelf, catalog, register, isLoading, isFetching, error } = useShelfBooks({
     filters: {
-      search,
+      search: search || undefined,
       author_id: author || undefined,
       genre_id: genre || undefined,
-      ...(sort === "new" ? { sortBy: "created_at", sortOrder: "desc" } : {}),
+      // `sort` so'rovga kirmaydi: katalog doim eng yangisi birinchi,
+      // kartoteka esa alifbo bo'yicha — ortiqcha cache kaliti bo'lmasin
     },
+    shelfParam,
     catalogPage: page,
     catalogSize: LIMIT,
     registerPage,
     registerSize: REGISTER_LIMIT,
   });
 
-  const { data: authorsData } = useGetAuthorsQuery({ page: 1, limit: 100 });
   const { data: genresData } = useGetGenresQuery({ page: 1, limit: 100 });
-
-  /* Ochiq tortma. Parametr yo'q bo'lsa — katalog; lekin katalog bo'sh,
-     kartotekada esa kitob bo'lsa, tashrifchi bo'sh sahifa ko'rmasin. */
-  const shelf =
-    shelfParam === "kartoteka" ||
-    (!shelfParam && !isLoading && catalog.total === 0 && register.total > 0)
-      ? "register"
-      : "catalog";
 
   const active = shelf === "catalog" ? catalog : register;
   const other = shelf === "catalog" ? register : catalog;
@@ -109,9 +105,14 @@ export default function Books() {
       { resetPage: false },
     );
 
+  /* Mualliflar ro'yxati sahifa ochilganda OLINMAYDI — AuthorPicker uni
+     faqat ochilganda 25 tadan so'raydi. Tanlangan muallif (SEO sarlavhasi
+     uchun) esa bitta so'rov, AuthorPicker bilan umumiy keshda. */
+  const { data: selectedAuthorData } = useGetAuthorByIdQuery(author, { skip: !author });
+  const selectedAuthor = selectedAuthorData?.data ?? selectedAuthorData;
+
   /* `?? []` har renderda yangi massiv qaytaradi — uni useMemo
      bog'liqligiga bersak memo hech qachon ishlamaydi. */
-  const authors = useMemo(() => authorsData?.data ?? [], [authorsData]);
   const genres = useMemo(() => genresData?.data ?? [], [genresData]);
 
   const hasFilter = Boolean(search || author || genre || sort);
@@ -125,9 +126,8 @@ export default function Books() {
       };
     }
     if (author) {
-      const found = authors.find((a) => a.id === author);
-      if (found) {
-        const name = pick(found, "full_name");
+      if (selectedAuthor) {
+        const name = pick(selectedAuthor, "full_name");
         return { title: t("books.seo.author", { name }), description: t("books.seo.authorDesc", { name }) };
       }
     }
@@ -139,7 +139,7 @@ export default function Books() {
       }
     }
     return {};
-  }, [search, author, genre, authors, genres, pick, t]);
+  }, [search, author, genre, selectedAuthor, genres, pick, t]);
 
   return (
     <>
@@ -153,7 +153,6 @@ export default function Books() {
         meta={
           <>
             <PageMeta label={t("books.total")} value={total != null ? formatNumber(total) : "—"} />
-            <PageMeta label={t("books.metaAuthors")} value={authors.length || "—"} />
             <PageMeta label={t("books.metaGenres")} value={genres.length || "—"} />
           </>
         }
@@ -172,27 +171,19 @@ export default function Books() {
               <Input
                 id="catalog-search"
                 type="search"
-                value={search}
-                onChange={(e) => update({ q: e.target.value })}
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
                 placeholder={t("books.search")}
                 className="pl-10"
               />
             </div>
 
             <div className="grid flex-1 grid-cols-2 gap-3 sm:flex sm:items-center">
-              <Select
-                aria-label={t("books.allAuthors")}
+              <AuthorPicker
                 value={author}
-                onChange={(e) => update({ author: e.target.value })}
-                className="sm:w-48"
-              >
-                <option value="">{t("books.allAuthors")}</option>
-                {authors.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {pick(a, "full_name")}
-                  </option>
-                ))}
-              </Select>
+                onChange={(id) => update({ author: id })}
+                className="sm:w-56"
+              />
 
               {/* Kartotekada janr yo'q — filtr ham ko'rsatilmaydi */}
               {shelf === "catalog" && (
@@ -267,6 +258,11 @@ export default function Books() {
         }
       >
         <ShelfSwitch
+          label={t("books.shelfLabel")}
+          shelves={[
+            { key: "catalog", icon: BookOpen, title: t("books.shelfCatalog"), hint: t("books.shelfCatalogHint") },
+            { key: "register", icon: Archive, title: t("books.shelfRegister"), hint: t("books.shelfRegisterHint") },
+          ]}
           value={shelf}
           onChange={setShelf}
           loading={isLoading}

@@ -1,4 +1,7 @@
+import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
+
+import useDebouncedValue from "../../../lib/useDebouncedValue";
 
 export function StatusBadge({ active, activeLabel = "Faol", inactiveLabel = "Yashirin" }) {
   return (
@@ -14,7 +17,36 @@ export function StatusBadge({ active, activeLabel = "Faol", inactiveLabel = "Yas
   );
 }
 
-export function SearchInput({ value, onChange, placeholder = "Qidirish..." }) {
+/**
+ * Qidiruv maydoni — DEBOUNCE ichida.
+ *
+ * Ota sahifa `onChange` ni faqat yozish to'xtagach (`delay` ms) oladi.
+ * Ilgari har harf ota holatini o'zgartirib, darhol yangi so'rov
+ * yuborardi (12 ta admin sahifada). Maydon esa yozuvni darhol ko'rsatadi
+ * — kechikish faqat so'rovda. Tashqaridan `value` o'zgarsa (masalan,
+ * tozalash) maydon ham yangilanadi.
+ */
+export function SearchInput({ value, onChange, placeholder = "Qidirish...", delay = 400 }) {
+  const [term, setTerm] = useState(value ?? "");
+  const debounced = useDebouncedValue(term, delay);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const lastSent = useRef(value ?? "");
+
+  useEffect(() => {
+    if (debounced === lastSent.current) return;
+    lastSent.current = debounced;
+    onChangeRef.current(debounced);
+  }, [debounced]);
+
+  useEffect(() => {
+    const next = value ?? "";
+    if (next !== lastSent.current) {
+      lastSent.current = next;
+      setTerm(next);
+    }
+  }, [value]);
+
   return (
     <div className="relative w-full sm:w-72">
       <Search
@@ -23,8 +55,8 @@ export function SearchInput({ value, onChange, placeholder = "Qidirish..." }) {
       />
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={term}
+        onChange={(e) => setTerm(e.target.value)}
         placeholder={placeholder}
         className="w-full rounded-lg border border-slate-200 py-2.5 pl-9 pr-3 text-sm outline-none transition-colors focus:border-slate-900"
       />

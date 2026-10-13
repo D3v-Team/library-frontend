@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { axiosBaseQuery } from "../baseQuary/axiosBaseQuery";
 import $api from "../api";
+import { authorsApi } from "./avtors.api";
 
 function toUploadFormData(fileOrFiles) {
   const formData = new FormData();
@@ -14,17 +15,10 @@ function toUploadFormData(fileOrFiles) {
   return formData;
 }
 
-/**
- * Backend kitob manbasi bo'yicha filtr qo'llab-quvvatlaydimi.
- *
- * `true` bo'lsa kitoblar sahifasi har bo'limni alohida, 20 tadan
- * so'raydi: `GET /books?source=manual|excel&page=N&limit=20`.
- * Hozir backendda bu filtr YO'Q — shuning uchun `false`.
- */
-export const BOOK_SOURCE_FILTER = false;
-
 /** Backend `limit` ni shu songa qirqadi (o'lchab tekshirilgan) */
 const BACKEND_MAX_LIMIT = 100;
+
+const byNewest = (a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? ""));
 
 export const booksApi = createApi({
   reducerPath: "booksApi",
@@ -45,20 +39,19 @@ export const booksApi = createApi({
         grade_level,
         sortBy,
         sortOrder,
-        source,
       } = {}) => ({
         url: "/books",
         method: "GET",
         params: {
           page,
           limit,
-          search,
+          // Bo'sh qidiruv URL ga `search=` bo'lib tushmasin
+          search: search || undefined,
           author_id,
           genre_id,
           grade_level,
           sortBy,
           sortOrder,
-          source,
         },
       }),
       providesTags: (result) =>
@@ -70,41 +63,52 @@ export const booksApi = createApi({
           : [{ type: "Books", id: "LIST" }],
     }),
 
-    // Filtrga mos BARCHA kitoblar — VAQTINCHALIK yechim.
+    // Katalog — qo'lda kiritilgan kitoblar (muqova, janr bilan).
     //
-    // Katalog (qo'lda kiritilgan) va kartoteka (Excel importi) ni
-    // backend ajratib bera olmaydi: `source` kabi filtr yo'q (tekshirildi
-    // — noma'lum parametrlar jim e'tiborsiz qoldiriladi). Shuning uchun
-    // hammasi olinib klientda ajratiladi. Backend `limit` ni 100 ga
-    // cheklaydi, ya'ni bitta so'rovga ishonib bo'lmaydi: birinchi
-    // sahifadan `meta.total` olinadi va qolganlari 100 tadan so'raladi.
+    // Backendda manba bo'yicha filtr yo'q, lekin farq bor: qo'lda
+    // kiritishda nashr yili MAJBURIY, Excel importida esa u bo'sh
+    // (`null`). `published_date asc` bo'yicha saralanganda yilli
+    // kitoblar oldinda, bo'shlari oxirida keladi (o'lchab tekshirilgan).
+    // Shuning uchun birinchi bo'sh yil uchragan joyda to'xtaymiz —
+    // katalog kichik, odatda bitta so'rov yetadi.
     //
-    // Backend `source=excel|manual` filtrini qo'shgach `BOOK_SOURCE_FILTER`
-    // ni yoqing — kitoblar sahifasi 20 tadan server paginatsiyasiga o'tadi
-    // va bu endpoint kerak bo'lmay qoladi.
-    getAllBooks: builder.query({
+    // `meta.total` — katalog soni, `meta.grandTotal` — filtrga mos
+    // BARCHA kitoblar. Kartoteka soni = grandTotal - total, ya'ni u
+    // uchun alohida so'rov kerak emas.
+    getCatalogBooks: builder.query({
       async queryFn(params = {}, _api, _extra, baseQuery) {
-        const fetchPage = (page) =>
-          baseQuery({
+        const items = new Map();
+        let grandTotal = 0;
+
+        // Himoya: backend tartibi kutilmaganda o'zgarsa ham sikl cheksiz
+        // aylanmasin (20 × 100 = 2 000 ta qo'lda kiritilgan kitob)
+        for (let page = 1; page <= 20; page += 1) {
+          const res = await baseQuery({
             url: "/books",
             method: "GET",
-            params: { ...params, page, limit: BACKEND_MAX_LIMIT },
+            params: {
+              ...params,
+              page,
+              limit: BACKEND_MAX_LIMIT,
+              sortBy: "published_date",
+              sortOrder: "asc",
+            },
           });
+          if (res.error) return { error: res.error };
 
-        const first = await fetchPage(1);
-        if (first.error) return { error: first.error };
+          const list = res.data?.data ?? [];
+          grandTotal = res.data?.meta?.total ?? grandTotal;
 
-        const total = first.data?.meta?.total ?? first.data?.data?.length ?? 0;
-        const pages = Math.ceil(total / BACKEND_MAX_LIMIT);
+          const dated = list.filter((book) => book.published_date);
+          dated.forEach((book) => items.set(book.id, book));
 
-        const rest = await Promise.all(
-          Array.from({ length: Math.max(0, pages - 1) }, (_, i) => fetchPage(i + 2)),
-        );
-        const failed = rest.find((r) => r.error);
-        if (failed) return { error: failed.error };
+          // Bo'sh yil uchradi yoki sahifalar tugadi — katalog shu yerda tugaydi
+          if (dated.length < list.length || !res.data?.meta?.hasNextPage) break;
+        }
 
-        const data = [first, ...rest].flatMap((r) => r.data?.data ?? []);
-        return { data: { data, meta: { total } } };
+        // Ko'rsatish tartibi — eng yangi qo'shilgan birinchi
+        const data = [...items.values()].sort(byNewest);
+        return { data: { data, meta: { total: data.length, grandTotal } } };
       },
       providesTags: [{ type: "Books", id: "LIST" }],
     }),
@@ -156,19 +160,6 @@ export const booksApi = createApi({
     // --- Files (PDF/DOC/DOCX/XLS/XLSX/PPT/PPTX) ---
     // Backend has no GET /books/:id/files — files live on the book detail.
 
-    getBookFiles: builder.query({
-      query: (bookId) => ({
-        url: `/books/${bookId}`,
-        method: "GET",
-      }),
-      transformResponse: (book) => ({
-        data: book?.files ?? [],
-      }),
-      providesTags: (result, error, bookId) => [
-        { type: "BookFiles", id: bookId },
-      ],
-    }),
-
     uploadBookFile: builder.mutation({
       query: ({ bookId, file, files }) => ({
         url: `/books/${bookId}/files`,
@@ -195,19 +186,6 @@ export const booksApi = createApi({
     }),
 
 
-
-    getBookImages: builder.query({
-      query: (bookId) => ({
-        url: `/books/${bookId}`,
-        method: "GET",
-      }),
-      transformResponse: (book) => ({
-        data: book?.images ?? [],
-      }),
-      providesTags: (result, error, bookId) => [
-        { type: "BookImages", id: bookId },
-      ],
-    }),
 
     uploadBookImage: builder.mutation({
       query: ({ bookId, file, files }) => ({
@@ -260,6 +238,16 @@ export const booksApi = createApi({
           data: formData,
         };
       },
+      // Import har `author_name` dan muallif ham yaratadi — mualliflar
+      // boshqa API bo'lagida, uning keshi ham yangilanishi kerak
+      async onQueryStarted(_file, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(authorsApi.util.invalidateTags([{ type: "Authors", id: "LIST" }]));
+        } catch {
+          // xatoni chaqiruvchi ko'rsatadi
+        }
+      },
       invalidatesTags: [{ type: "Books", id: "LIST" }],
     }),
 
@@ -291,15 +279,13 @@ export async function downloadBookFile(bookId, fileId, fileName = "fayl") {
 
 export const {
   useGetBooksQuery,
-  useGetAllBooksQuery,
+  useGetCatalogBooksQuery,
   useGetBookByIdQuery,
   useCreateBookMutation,
   useUpdateBookMutation,
   useDeleteBookMutation,
-  useGetBookFilesQuery,
   useUploadBookFileMutation,
   useDeleteBookFileMutation,
-  useGetBookImagesQuery,
   useUploadBookImageMutation,
   useDeleteBookImageMutation,
   useSetMainBookImageMutation,

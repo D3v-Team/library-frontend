@@ -1,5 +1,6 @@
 // src/pages/admin/Pages.jsx
 import { useState } from "react";
+import { AdminErrorState, TableSkeleton } from "./components/AdminUI";
 import toast from "react-hot-toast";
 import { Pencil, Trash2, FileText } from "lucide-react";
 
@@ -32,6 +33,12 @@ const SLUG_OPTIONS = [
   { value: "FAQ", label: "FAQ (Ko'p so'raladigan savollar)" },
   // { value: "RULES", label: "Rules (Qoidalar)" },
   // { value: "CONTACTS", label: "Contacts (Aloqa)" },
+];
+
+// UpdatePageDto — slug O'ZGARTIRILMAYDI (faqat yaratishda)
+const PAGE_TEXT_FIELDS = [
+  "title_latin", "title_cyril", "title_ru",
+  "content_latin", "content_cyril", "content_ru",
 ];
 
 const emptyForm = {
@@ -77,7 +84,11 @@ export default function Pages() {
 
   const openEdit = (page) => {
     setEditingPage(page);
-    setForm({ ...emptyForm, ...page });
+    // Faqat forma maydonlari (id, created_at kabilar formaga tushmaydi)
+    setForm({
+      slug: page.slug ?? "",
+      ...Object.fromEntries(PAGE_TEXT_FIELDS.map((f) => [f, page[f] ?? ""])),
+    });
     setActiveLang("latin");
     setModalOpen(true);
   };
@@ -111,14 +122,23 @@ export default function Pages() {
 
     try {
       if (editingPage) {
-        await updatePage({ id: editingPage.id, data: form }).unwrap();
+        // UpdatePageDto da slug yo'q — faqat o'zgargan matnli maydonlar
+        const changed = Object.fromEntries(
+          PAGE_TEXT_FIELDS.filter((f) => form[f] !== (editingPage[f] ?? "")).map((f) => [f, form[f]]),
+        );
+        if (Object.keys(changed).length > 0) {
+          await updatePage({ id: editingPage.id, data: changed }).unwrap();
+        }
         toast.success("Sahifa yangilandi");
       } else {
-        await createPage(form).unwrap();
+        await createPage({
+          slug: form.slug,
+          ...Object.fromEntries(PAGE_TEXT_FIELDS.map((f) => [f, form[f]])),
+        }).unwrap();
         toast.success("Sahifa yaratildi");
       }
+      // Ro'yxat va saytdagi sahifa kesh teglari orqali o'zi yangilanadi
       closeModal();
-      refetch();
     } catch (err) {
       toast.error(apiError(err, "Saqlashda xatolik yuz berdi"));
     }
@@ -130,7 +150,6 @@ export default function Pages() {
       await deletePage(deleteTarget.id).unwrap();
       toast.success("Sahifa o'chirildi");
       setDeleteTarget(null);
-      refetch();
     } catch (err) {
       toast.error(apiError(err, "O'chirishda xatolik yuz berdi"));
     }
@@ -154,15 +173,9 @@ export default function Pages() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-20 animate-pulse rounded-xl bg-blue-700" />
-          ))}
-        </div>
+        <TableSkeleton rows={3} cols={3} />
       ) : error ? (
-        <div className="rounded-xl border border-dashed border-red-200 bg-red-50 px-6 py-12 text-center text-sm text-red-600">
-          Sahifalarni yuklashda xatolik yuz berdi.
-        </div>
+        <AdminErrorState title="Sahifalarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : filteredPages.length === 0 ? (
         <AdminEmptyState title="Sahifalar topilmadi" icon={FileText} />
       ) : (

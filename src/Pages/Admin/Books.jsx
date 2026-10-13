@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, BookOpen, Eye, FileSpreadsheet } from "lucide-react";
+import { BookOpen, FileSpreadsheet } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
@@ -11,6 +11,7 @@ import MultiSelect from "./components/MultiSelect";
 import Pagination from "./components/Pagination";
 import { SearchInput, FilterSelect } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
+import { AdminErrorState, AdminTable, RowActions, TableSkeleton } from "./components/AdminUI";
 import ExcelImportModal from "./components/ExcelImportModal";
 
 import {
@@ -27,7 +28,7 @@ import {
   useDeleteBookMutation,
 } from "../../store/services/books.api";
 
-import { useGetAuthorsQuery } from "../../store/services/avtors.api";
+import { AuthorPicker } from "../../patterns";
 import { useGetGenresQuery } from "../../store/services/genres";
 import { formatBookYear, getBookGenreIds, getBookGenreLabel, isExcelBook } from "../Books/bookHelpers";
 
@@ -77,10 +78,19 @@ const formSchema = [
     validators: [(v) => required(v, "Muallif")],
   },
 
+  // Nashr yili majburiyligi faqat YARATISHDA (handleSubmit ga qarang)
   {
     field: "published_date",
-    validators: [(v) => required(v, "Nashr yili"), isValidYear],
+    validators: [isValidYear],
   },
+];
+
+// UpdateBookDto maydonlari — faqat shular yuboriladi. Ilgari `...book`
+// dan tuzilgan butun obyekt ketardi: id, images, files, genres, author,
+// created_at... Backend ortiqchani tashlamasa, bog'lanishlar buzilardi.
+const BOOK_TEXT_FIELDS = [
+  "name_latin", "name_cyril", "name_ru",
+  "description_latin", "description_cyril", "description_ru",
 ];
 
 export default function Books() {
@@ -108,10 +118,12 @@ export default function Books() {
 
   const [excelOpen, setExcelOpen] = useState(false);
 
-  const { data, isLoading, isFetching, error } = useGetBooksQuery({
+  const navigate = useNavigate();
+
+  const { data, isLoading, isFetching, error, refetch } = useGetBooksQuery({
     page,
 
-    limit: 10,
+    limit: 20,
 
     search,
 
@@ -122,10 +134,10 @@ export default function Books() {
     grade_level: gradeFilter,
   });
 
-  const { data: authorsData } = useGetAuthorsQuery({
-    page: 1,
-    limit: 100,
-  });
+  /* Mualliflar ro'yxati sahifa ochilganda OLINMAYDI: ular 2 000 dan ko'p,
+     backend esa limit ni 100 ga qirqadi — ilgari faqat birinchi 100 tasini
+     tanlash mumkin edi. AuthorPicker ro'yxat ochilganda 25 tadan, qidiruv
+     va cheksiz scroll bilan oladi. */
 
   const { data: genresData } = useGetGenresQuery({
     page: 1,
@@ -144,18 +156,10 @@ export default function Books() {
 
   const isSaving = isCreating || isUpdating;
 
-  const authorOptions = (authorsData?.data ?? []).map((a) => ({
-    value: a.id,
-    label: a.full_name_latin,
-  }));
-
   const genreOptions = (genresData?.data ?? []).map((g) => ({
     value: g.id,
     label: g.name_latin || g.name,
   }));
-
-  const authorNameById = (id) =>
-    authorsData?.data?.find((a) => a.id === id)?.full_name_latin || "—";
 
   const getImageUrl = (url) => {
     if (!url) return "";
@@ -197,6 +201,9 @@ export default function Books() {
          Yaratishda xato chiqmasdi, chunki u yerda ID ro'yxatdan tanlanadi. */
       genreIds: getBookGenreIds(book),
 
+      // Excel kitoblarida tavsif null — boshqariladigan maydonlar uchun ""
+      ...Object.fromEntries(BOOK_TEXT_FIELDS.map((f) => [f, book[f] ?? ""])),
+
       // Formada faqat yil: "1962-01-01T00:00:00.000Z" -> "1962"
       published_date: formatBookYear(book.published_date) ?? "",
     });
@@ -234,6 +241,11 @@ export default function Books() {
 
     const validationErrors = validateForm(form, formSchema);
 
+    // Excel importidagi kitoblarda yil yo'q — tahrirlashda talab qilinmaydi
+    if (!editing && !form.published_date) {
+      validationErrors.published_date = "Nashr yili to‘ldirilishi shart";
+    }
+
     if (Object.keys(validationErrors).length) {
       setErrors(validationErrors);
 
@@ -243,13 +255,24 @@ export default function Books() {
     }
 
     const payload = {
-      ...form,
+      ...Object.fromEntries(
+        BOOK_TEXT_FIELDS.filter((f) => form[f] != null).map((f) => [f, form[f]]),
+      ),
+
+      author_id: form.author_id,
+
+      // UpdateBookDto da majburiy
+      genreIds: form.genreIds ?? [],
 
       grade_level: form.grade_level ? Number(form.grade_level) : undefined,
 
-      // Backend sana kutadi (published_date: string) — faqat yil
-      // kiritiladi, oy va kun 1-yanvar bo'lib ketadi
-      published_date: `${form.published_date}-01-01`,
+      // Formada maydoni yo'q — mavjud qiymat saqlanadi (Excel importi beradi)
+      quantity: form.quantity != null ? Number(form.quantity) : undefined,
+
+      // Backend sana kutadi — faqat yil kiritiladi, oy va kun 1-yanvar.
+      // Yil bo'sh bo'lsa (Excel kitobi) umuman yuborilmaydi — ilgari
+      // "-01-01" ketardi.
+      published_date: form.published_date ? `${form.published_date}-01-01` : undefined,
     };
 
     try {
@@ -327,15 +350,14 @@ gap-3
           placeholder="Kitob qidirish..."
         />
 
-        <FilterSelect
-          value={authorFilter}
-          onChange={(v) => {
-            setAuthorFilter(v);
-
+        <AuthorPicker
+          variant="admin"
+          className="w-56"
+          value={authorFilter ?? ""}
+          onChange={(id) => {
+            setAuthorFilter(id || undefined);
             setPage(1);
           }}
-          options={authorOptions}
-          placeholder="Barcha mualliflar"
         />
 
         <FilterSelect
@@ -365,302 +387,120 @@ gap-3
         />
       </div>
 
-      {/* CARD LIST */}
-
-      <div
-        className="
-rounded-2xl
-
-
-
-p-5
-
-"
-      >
-        {isLoading ? (
-          <div
-            className="
-grid
-grid-cols-2
-gap-5
-sm:grid-cols-3
-lg:grid-cols-4
-"
-          >
-            {Array.from({
-              length: 8,
-            }).map((_, i) => (
-              <div
-                key={i}
-                className="
-h-42
-animate-pulse
-rounded-xl
-bg-blue-700
-"
-              />
-            ))}
-          </div>
-        ) : error ? (
-          <div
-            className="
-py-14
-text-center
-text-sm
-text-red-600
-"
-          >
-            Kitoblarni yuklashda xatolik yuz berdi.
-          </div>
-        ) : books.length === 0 ? (
-          <AdminEmptyState title="Kitoblar topilmadi" icon={BookOpen} />
-        ) : (
-          <div
-            className={`
-grid
-grid-cols-1
-gap-5
-sm:grid-cols-2
-xl:grid-cols-3
-
-${isFetching ? "opacity-60" : "opacity-100"}
-
-`}
-          >
-            {books.map((book) => (
-              <article
-                key={book.id}
-                className="
-group
-rounded-xl
-border
-border-slate-200
-bg-white
-p-4
-transition
-hover:-translate-y-1
-hover:shadow-lg
-"
-              >
-                <div
-                  className="
-flex
-gap-4
-"
-                >
-                  {/* IMAGE */}
-
-                  <div
-                    className="
-h-36
-w-24
-shrink-0
-overflow-hidden
-rounded-lg
-bg-slate-100
-"
-                  >
-                    {getMainImage(book) ? (
-                      <img
-                        src={getImageUrl(getMainImage(book))}
-                        alt={book.name_latin}
-                        className="
-h-full
-w-full
-object-cover
-"
-                      />
-                    ) : (
-                      <div
-                        className="
-flex
-h-full
-items-center
-justify-center
-text-slate-300
-"
-                      >
-                        <BookOpen size={28} />
-                      </div>
-                    )}
-                  </div>
-
-                  <div
-                    className="
-min-w-0
-flex-1
-"
-                  >
-                    <h3
-                      className="
-line-clamp-2
-text-base
-font-semibold
-text-slate-900
-"
-                    >
-                      {book.name_latin}
-                    </h3>
-
-                    <p
-                      className="
-mt-1
-line-clamp-1
-text-sm
-text-slate-500
-"
-                    >
-                      {book.author?.full_name_latin ||
-                        book.author_name ||
-                        authorNameById(book.author_id)}
-                    </p>
-
-                    <div
-                      className="
-mt-3
-flex
-flex-wrap
-gap-1
-"
-                    >
-                      {isExcelBook(book) && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                          <FileSpreadsheet size={12} />
-                          Excel
-                        </span>
+      {/* Jadval — minglab kitob (Excel importi) uchun. Ilgari kartochkalar edi,
+          skeleton esa mavjud bo'lmagan `h-42` klassi tufayli umuman ko'rinmasdi. */}
+      {isLoading ? (
+        <TableSkeleton rows={10} cols={6} thumb />
+      ) : error ? (
+        <AdminErrorState title="Kitoblarni yuklashda xatolik yuz berdi" onRetry={refetch} />
+      ) : books.length === 0 ? (
+        <AdminEmptyState title="Kitoblar topilmadi" icon={BookOpen} />
+      ) : (
+        <AdminTable
+          rows={books}
+          isFetching={isFetching}
+          onRowClick={(book) => navigate(`/admin/books/${book.id}`)}
+          columns={[
+            {
+              key: "book",
+              header: "Kitob",
+              cell: (book) => {
+                const cover = getMainImage(book);
+                const genres = (book.genres ?? []).map(getBookGenreLabel).filter(Boolean);
+                return (
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-14 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-100 text-slate-300">
+                      {cover ? (
+                        <img src={getImageUrl(cover)} alt="" loading="lazy" className="h-full w-full object-cover" />
+                      ) : (
+                        <BookOpen size={16} />
                       )}
-                      {book.quantity != null && (
-                        <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
-                          {book.quantity} nusxa
-                        </span>
+                    </span>
+                    <div className="min-w-0">
+                      <p className="line-clamp-2 font-medium text-slate-900">{book.name_latin || "Nomsiz"}</p>
+                      <p className="truncate text-xs text-slate-500">
+                        {book.author?.full_name_latin || book.author_name || "Muallif ko‘rsatilmagan"}
+                      </p>
+                      {/* Mobil: janr shu yerda */}
+                      {genres.length > 0 && (
+                        <p className="truncate text-xs text-slate-400 lg:hidden">{genres.join(", ")}</p>
                       )}
-                      {(book.genres ?? []).map((g) => (
-                        <span
-                          key={g.id}
-                          className="
-rounded-full
-bg-slate-100
-px-2
-py-1
-text-xs
-text-slate-600
-"
-                        >
-                          {getBookGenreLabel(g)}
-                        </span>
-                      ))}
                     </div>
                   </div>
-                </div>
-
-                <div
-                  className="
-mt-5
-flex
-items-center
-justify-between
-border-t
-border-slate-100
-pt-4
-"
-                >
-                  <div
-                    className="
-text-xs
-text-slate-500
-"
-                  >
-                    <p>
-                      Nashr yili:
-                      <span
-                        className="
-ml-1
-font-medium
-text-slate-700
-"
-                      >
-                        {formatBookYear(book.published_date) || "—"}
-                      </span>
-                    </p>
-
-                    <p className="mt-1">
-                      Sinf:
-                      <span
-                        className="
-ml-1
-font-medium
-text-slate-700
-"
-                      >
-                        {book.grade_level || "—"}
-                      </span>
-                    </p>
+                );
+              },
+            },
+            {
+              key: "genres",
+              header: "Janr",
+              hideBelow: "lg",
+              cell: (book) => {
+                const genres = (book.genres ?? []).map(getBookGenreLabel).filter(Boolean);
+                return genres.length ? (
+                  <div className="flex max-w-[14rem] flex-wrap gap-1">
+                    {genres.map((g) => (
+                      <span key={g} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">{g}</span>
+                    ))}
                   </div>
+                ) : (
+                  <span className="text-slate-300">—</span>
+                );
+              },
+            },
+            {
+              key: "quantity",
+              header: "Nusxa",
+              hideBelow: "sm",
+              align: "right",
+              className: "tabular-nums",
+              cell: (book) => book.quantity ?? "—",
+            },
+            {
+              key: "year",
+              header: "Yil",
+              hideBelow: "md",
+              className: "tabular-nums text-slate-500",
+              cell: (book) => formatBookYear(book.published_date) || <span className="text-slate-300">—</span>,
+            },
+            {
+              key: "grade",
+              header: "Sinf",
+              hideBelow: "lg",
+              className: "tabular-nums text-slate-500",
+              cell: (book) => book.grade_level || <span className="text-slate-300">—</span>,
+            },
+            {
+              key: "source",
+              header: "Manba",
+              hideBelow: "md",
+              cell: (book) =>
+                isExcelBook(book) ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                    <FileSpreadsheet size={12} />
+                    Excel
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Qo‘lda</span>
+                ),
+            },
+            {
+              key: "actions",
+              header: <span className="sr-only">Amallar</span>,
+              align: "right",
+              cell: (book) => (
+                <RowActions
+                  onView={() => navigate(`/admin/books/${book.id}`)}
+                  viewLabel="Rasmlar va fayllar"
+                  onEdit={() => openEdit(book)}
+                  onDelete={() => setDeleteTarget(book)}
+                />
+              ),
+            },
+          ]}
+        />
+      )}
 
-                  <div
-                    className="
-flex
-gap-1
-"
-                  >
-                    <Link
-                      to={`/admin/books/${book.id}`}
-                      className="
-flex
-h-8
-w-8
-items-center
-justify-center
-rounded-lg
-text-slate-500
-hover:bg-slate-100
-"
-                    >
-                      <Eye size={15} />
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={() => openEdit(book)}
-                      className="
-flex
-h-8
-w-8
-items-center
-justify-center
-rounded-lg
-text-slate-500
-hover:bg-slate-100
-"
-                    >
-                      <Pencil size={15} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(book)}
-                      className="
-flex
-h-8
-w-8
-items-center
-justify-center
-rounded-lg
-text-red-500
-hover:bg-red-50
-"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} total={data?.meta?.total} disabled={isFetching} />
 
       {/* MODAL DAVOMI 3-QISMDA */}
       <Modal
@@ -752,22 +592,27 @@ hover:bg-red-50
               sm:grid-cols-2
             "
           >
-            <FormField
-              as="select"
-              label="Muallif"
-              required
-              value={form.author_id}
-              onChange={(e) => handleFieldChange("author_id", e.target.value)}
-              error={errors.author_id}
-            >
-              <option value="">Muallifni tanlang</option>
-
-              {authorOptions.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </FormField>
+            <div>
+              <label
+                htmlFor="book-author"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
+              >
+                Muallif<span className="text-red-500"> *</span>
+              </label>
+              <AuthorPicker
+                id="book-author"
+                variant="admin"
+                allowAll={false}
+                emptyLabel="Muallifni tanlang"
+                value={form.author_id}
+                selected={editing?.author}
+                invalid={Boolean(errors.author_id)}
+                onChange={(id) => handleFieldChange("author_id", id)}
+              />
+              {errors.author_id && (
+                <p className="mt-1.5 text-xs text-red-600">{errors.author_id}</p>
+              )}
+            </div>
 
             <FormField
               as="select"

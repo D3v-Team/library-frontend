@@ -21,6 +21,54 @@ function toFormData(fields) {
   return formData;
 }
 
+/* Aloqa ma'lumotlari (manzil, telefon, ijtimoiy tarmoqlar) har sahifada —
+   header, footer va aloqa bloklarida — kerak, lekin juda kam o'zgaradi.
+   Sayt ichida o'tishda RTK Query keshi allaqachon qayta so'ramaydi;
+   bu esa sahifa YANGILANGANDA (F5, yangi tab) ham so'rov ketmasligi
+   uchun: javob localStorage da 1 soat saqlanadi. Admin o'zgartirsa,
+   kesh darhol tozalanadi; admin sahifasi doim serverdan o'qiydi. */
+const CACHE_KEY = "kutubxona:contact-info";
+const CACHE_TTL_MS = 60 * 60 * 1000;
+
+function readCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    return Date.now() - ts < CACHE_TTL_MS ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(data) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+  } catch {
+    // xususiy rejim / to'lgan xotira — kesh shunchaki ishlamaydi
+  }
+}
+
+export function clearContactInfoCache() {
+  try {
+    localStorage.removeItem(CACHE_KEY);
+  } catch {
+    // e'tiborsiz
+  }
+}
+
+/* Mutatsiyalar uchun: kesh so'rov boshida ham, muvaffaqiyatdan keyin ham
+   tozalanadi — teglar invalidatsiyasi qayta so'raganda eski nusxa o'qilmasin */
+async function dropCacheAround(_arg, { queryFulfilled }) {
+  clearContactInfoCache();
+  try {
+    await queryFulfilled;
+    clearContactInfoCache();
+  } catch {
+    // xato bo'lsa — kesh baribir bo'sh, keyingi o'qish serverdan
+  }
+}
+
 export const contactInfoApi = createApi({
   reducerPath: "contactInfoApi",
 
@@ -31,11 +79,20 @@ export const contactInfoApi = createApi({
   endpoints: (builder) => ({
     // ================= CONTACT INFO =================
 
+    // Argumentsiz — sayt (localStorage kesh bilan); { fresh: true } — admin
     getContactInfo: builder.query({
-      query: () => ({
-        url: "/contact/info",
-        method: "GET",
-      }),
+      async queryFn(arg, _api, _extra, baseQuery) {
+        if (!arg?.fresh) {
+          const cached = readCache();
+          if (cached) return { data: cached };
+        }
+
+        const res = await baseQuery({ url: "/contact/info", method: "GET" });
+        if (res.error) return { error: res.error };
+
+        writeCache(res.data);
+        return { data: res.data };
+      },
 
       providesTags: [
         {
@@ -53,6 +110,8 @@ export const contactInfoApi = createApi({
 
         data: body,
       }),
+
+      onQueryStarted: dropCacheAround,
 
       invalidatesTags: [
         {
@@ -72,6 +131,8 @@ export const contactInfoApi = createApi({
 
         data: toFormData(fields),
       }),
+
+      onQueryStarted: dropCacheAround,
 
       invalidatesTags: [
         {
@@ -105,6 +166,8 @@ export const contactInfoApi = createApi({
         data: toFormData(fields),
       }),
 
+      onQueryStarted: dropCacheAround,
+
       invalidatesTags: (result, error, { platform }) => [
         {
           type: "ContactInfo",
@@ -124,6 +187,8 @@ export const contactInfoApi = createApi({
 
         method: "DELETE",
       }),
+
+      onQueryStarted: dropCacheAround,
 
       invalidatesTags: (result, error, platform) => [
         {

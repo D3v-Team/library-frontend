@@ -84,6 +84,7 @@ export const mediaApi = createApi({
         sortBy = "",
         sortOrder = "desc",
         type,
+        is_public,
       } = {}) => ({
         url: "/media-albums",
         method: "GET",
@@ -94,6 +95,8 @@ export const mediaApi = createApi({
           ...(sortBy && { sortBy }),
           ...(sortOrder && { sortOrder }),
           ...(type && { type }),
+          // Swagger: GET /media-albums?is_public — sayt faqat ochiqlarini so'raydi
+          ...(typeof is_public === "boolean" && { is_public }),
         },
       }),
       providesTags: (result) => [
@@ -155,10 +158,12 @@ export const mediaApi = createApi({
     // PATCH /api/media-albums/{albumId}
     // =====================================================
     toggleMediaPublic: builder.mutation({
+      // PATCH /media-albums/{id} faqat multipart/form-data qabul qiladi
+      // (Swagger) — ilgari JSON yuborilardi
       query: ({ id, is_public }) => ({
         url: `/media-albums/${id}`,
         method: "PATCH",
-        data: { is_public },
+        data: createFormData({ is_public }),
       }),
       invalidatesTags: (result, error, { id }) => [
         { type: "Media", id },

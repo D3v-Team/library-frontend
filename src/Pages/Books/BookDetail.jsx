@@ -3,7 +3,11 @@ import { Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useLocalized } from "../../lib/useLocalized";
-import { useGetBookByIdQuery, useGetBooksQuery } from "../../store/services/books.api";
+import {
+  useGetBookByIdQuery,
+  useGetBooksQuery,
+  useGetCatalogBooksQuery,
+} from "../../store/services/books.api";
 import {
   formatBookYear,
   getBookCoverUrl,
@@ -37,17 +41,16 @@ export default function BookDetail() {
   const genreIds = getBookGenreIds(book ?? {});
 
   /* Tavsiyalar — faqat kitob kelgandan keyin so'raladi */
-  const byAuthor = useGetBooksQuery(
-    { page: 1, limit: 12, author_id: authorId },
-    { skip: !authorId },
-  );
+  // Muallifning katalog kitoblari (Excel importidagilar olinmaydi) —
+  // muallif sahifasi va kitoblar filtri bilan umumiy kesh
+  const byAuthor = useGetCatalogBooksQuery({ author_id: authorId }, { skip: !authorId });
   const byGenre = useGetBooksQuery(
     { page: 1, limit: 12, genre_id: genreIds[0] },
     { skip: !genreIds[0] },
   );
 
   // Excel kitoblarining sahifasi yo'q — tavsiya relslariga ham tushmaydi
-  const sameAuthor = (byAuthor.data?.data ?? []).filter((b) => b.id !== id && !isExcelBook(b));
+  const sameAuthor = (byAuthor.data?.data ?? []).filter((b) => b.id !== id).slice(0, 12);
   const sameGenre = (byGenre.data?.data ?? []).filter(
     (b) => b.id !== id && !isExcelBook(b) && !sameAuthor.some((a) => a.id === b.id),
   );

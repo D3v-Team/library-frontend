@@ -1,5 +1,6 @@
 // src/pages/admin/Requests.jsx
 import { useState } from "react";
+import { AdminErrorState, TableSkeleton } from "./components/AdminUI";
 import toast from "react-hot-toast";
 import {
   Pencil,
@@ -26,7 +27,6 @@ import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
   useGetOnlineRequestsQuery,
-  useGetOnlineRequestByIdQuery,
   useUpdateOnlineRequestMutation,
   useDeleteOnlineRequestMutation,
 } from "../../store/services/requests";
@@ -115,11 +115,6 @@ export default function Requests() {
       type: typeFilter || undefined,
       status: statusFilter || undefined,
     });
-
-  const { data: requestDetail } = useGetOnlineRequestByIdQuery(
-    selectedRequest?.id,
-    { skip: !selectedRequest }
-  );
 
   const [updateRequest, { isLoading: isUpdating }] =
     useUpdateOnlineRequestMutation();
@@ -236,7 +231,8 @@ export default function Requests() {
               setStatusFilter(value);
               setPage(1);
             }}
-            options={REQUEST_STATUSES}
+            // "" varianti FilterSelect ning placeholder i bilan takrorlanardi
+            options={REQUEST_STATUSES.filter((st) => st.value !== "")}
             placeholder="Barcha holatlar"
             className="w-40"
           />
@@ -245,18 +241,9 @@ export default function Requests() {
 
       {/* CONTENT */}
       {isLoading ? (
-        <div className="grid gap-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-24 animate-pulse rounded-xl border border-slate-200 bg-blue-700"
-            />
-          ))}
-        </div>
+        <TableSkeleton rows={6} cols={4} />
       ) : error ? (
-        <div className="rounded-xl border border-dashed border-red-200 bg-red-50 px-6 py-12 text-center text-sm text-red-600">
-          Murojaatlarni yuklashda xatolik yuz berdi.
-        </div>
+        <AdminErrorState title="Murojaatlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : requests.length === 0 ? (
         <AdminEmptyState title="Murojaatlar topilmadi" icon={Mail} />
       ) : (
@@ -394,7 +381,8 @@ export default function Requests() {
                 <div>
                   <p className="text-xs text-slate-400">Kitob Nomi</p>
                   <p className="text-sm font-medium text-slate-900">
-                    {selectedRequest.book.name_latin}
+                    {/* Kitob o'chirilgan bo'lsa book null keladi — sahifa yiqilmasin */}
+                    {selectedRequest.book?.name_latin || "Kitob o‘chirilgan"}
                   </p>
                 </div>
               )}

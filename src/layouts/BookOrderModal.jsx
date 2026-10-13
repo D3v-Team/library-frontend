@@ -51,11 +51,17 @@ export default function BookOrderModal({ open, onClose }) {
 
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
-  const [page, setPage] = useState(1);
+  // Sahifa qaysi qidiruvga tegishli ekani bilan birga saqlanadi: qidiruv
+  // o'zgarsa sahifa darhol 1 bo'ladi. Ilgari effekt orqali tiklanardi va
+  // undan oldin {eski sahifa, yangi qidiruv} bilan ortiqcha so'rov ketardi.
+  const [pageState, setPageState] = useState({ search: "", page: 1 });
   const [query, setQuery] = useState("");
   const [selectedBook, setSelectedBook] = useState(null);
 
   const search = useDebouncedValue(query.trim(), SEARCH_DELAY);
+  const page = pageState.search === search ? pageState.page : 1;
+  const setPage = (next) =>
+    setPageState({ search, page: typeof next === "function" ? next(page) : next });
   const canSearch = search.length >= SEARCH_MIN;
   const isTyping = query.trim() !== search && query.trim().length >= SEARCH_MIN;
 
@@ -79,17 +85,12 @@ export default function BookOrderModal({ open, onClose }) {
   const totalPages = canSearch ? result?.meta?.totalPages ?? 1 : 1;
   const busy = isTyping || isFetching;
 
-  // Yangi qidiruv — birinchi sahifadan
-  useEffect(() => {
-    setPage(1);
-  }, [search]);
-
   // Modal har ochilganda toza holatdan boshlanadi
   useEffect(() => {
     if (!open) return;
     setForm(emptyForm);
     setErrors({});
-    setPage(1);
+    setPageState({ search: "", page: 1 });
     setQuery("");
     setSelectedBook(null);
   }, [open]);

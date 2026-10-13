@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pencil, Trash2, Search, BookOpen } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import toast from "react-hot-toast";
 
 import Modal from "../Admin/components/Modal";
@@ -15,6 +15,8 @@ import {
 } from "../../store/services/genres";
 import AdminPageHeader from "./components/AdminPageHeader";
 import AdminEmptyState from "./components/AdminEmptyState";
+import { SearchInput } from "./components/ListControls";
+import { AdminErrorState, AdminTable, RowActions, TableSkeleton } from "./components/AdminUI";
 import apiError from "../../lib/apiError";
 
 export default function Genres() {
@@ -22,9 +24,9 @@ export default function Genres() {
 
   const [search, setSearch] = useState("");
 
-  const limit = 8;
+  const limit = 20;
 
-  const { data, isLoading, isFetching, error } = useGetGenresQuery({
+  const { data, isLoading, isFetching, error, refetch } = useGetGenresQuery({
     page,
     limit,
     search,
@@ -170,222 +172,47 @@ export default function Genres() {
   actionLabel="Janr qo'shish"
   onAction={openCreate}
 />
-      {/* SEARCH */}
+      <SearchInput value={search} onChange={setSearch} placeholder="Janr qidirish..." />
 
-      <div
-        className="
-        flex
-        items-center
-        rounded-xl
-        border
-        border-slate-200
-        bg-white
-        px-3
-        "
-      >
-        <Search size={17} className="text-slate-400" />
-
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Janr qidirish..."
-          className="
-          h-11
-          w-full
-          px-3
-          text-sm
-          outline-none
-          "
+      {/* Jadval: janr — uch tildagi nom, boshqa hech narsa. Ilgari h-56
+          kartochkalar edi va har qayta yuklanishda (isFetching) kontent
+          skeletonga almashib, sahifa sakrardi. */}
+      {isLoading ? (
+        <TableSkeleton rows={6} cols={4} />
+      ) : error ? (
+        <AdminErrorState title="Janrlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
+      ) : genres.length === 0 ? (
+        <AdminEmptyState title={search ? "Qidiruv bo‘yicha janr topilmadi" : "Janrlar topilmadi"} icon={BookOpen} />
+      ) : (
+        <AdminTable
+          rows={genres}
+          isFetching={isFetching}
+          onRowClick={openEdit}
+          columns={[
+            {
+              key: "latin",
+              header: "Lotin",
+              cell: (g) => (
+                <div className="min-w-0">
+                  <p className="font-medium text-slate-900">{g.name_latin || "—"}</p>
+                  {/* Mobil: qolgan tillar shu yerda */}
+                  <p className="truncate text-xs text-slate-400 md:hidden">
+                    {[g.name_cyril, g.name_ru].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+              ),
+            },
+            { key: "cyril", header: "Kirill", hideBelow: "md", cell: (g) => g.name_cyril || <span className="text-slate-300">—</span> },
+            { key: "ru", header: "Rus", hideBelow: "md", cell: (g) => g.name_ru || <span className="text-slate-300">—</span> },
+            {
+              key: "actions",
+              header: <span className="sr-only">Amallar</span>,
+              align: "right",
+              cell: (g) => <RowActions onEdit={() => openEdit(g)} onDelete={() => openDelete(g)} />,
+            },
+          ]}
         />
-      </div>
-
-      {/* CARDS */}
-
-      <div
-        className="
-        grid
-        gap-5
-        sm:grid-cols-2
-        xl:grid-cols-3
-        "
-      >
-        {isLoading || isFetching ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="
-              h-56
-              rounded-2xl
-              bg-slate-100
-              animate-pulse
-              "
-            />
-          ))
-        ) : error ? (
-          <div
-            className="
-            col-span-full
-            rounded-xl
-            bg-red-50
-            px-6
-            py-10
-            text-center
-            text-sm
-            text-red-600
-            "
-          >
-            Janrlarni yuklashda xatolik yuz berdi.
-          </div>
-        ) : genres.length === 0 ? (
-          <AdminEmptyState
-            title="Janrlar topilmadi"
-            icon={BookOpen}
-            className="col-span-full"
-          />
-        ) : (
-          genres.map((genre) => (
-            <div
-              key={genre.id}
-              className="
-              rounded-2xl
-              border
-              border-slate-200
-              bg-white
-              p-5
-              shadow-sm
-              transition
-              hover:-translate-y-1
-              hover:shadow-md
-              "
-            >
-              <div
-                className="
-                flex
-                items-start
-                justify-between
-                "
-              >
-                <div
-                  className="
-                  flex
-                  h-11
-                  w-11
-                  items-center
-                  justify-center
-                  rounded-xl
-                  bg-slate-100
-                  text-slate-700
-                  "
-                >
-                  <BookOpen size={20} />
-                </div>
-
-                <div
-                  className="
-                  flex
-                  gap-2
-                  "
-                >
-                  <button
-                    onClick={() => openEdit(genre)}
-                    className="
-                    flex
-                    h-9
-                    w-9
-                    items-center
-                    justify-center
-                    rounded-lg
-                    text-slate-500
-                    hover:bg-slate-100
-                    "
-                  >
-                    <Pencil size={16} />
-                  </button>
-
-                  <button
-                    onClick={() => openDelete(genre)}
-                    className="
-                    flex
-                    h-9
-                    w-9
-                    items-center
-                    justify-center
-                    rounded-lg
-                    text-red-500
-                    hover:bg-red-50
-                    "
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-              <div className="mt-5">
-                <h3
-                  className="
-                  text-lg
-                  font-semibold
-                  text-slate-900
-                  "
-                >
-                  {genre.name_latin}
-                </h3>
-
-                <div
-                  className="
-                  mt-4
-                  space-y-2
-                  text-sm
-                  "
-                >
-                  <div
-                    className="
-                    flex
-                    justify-between
-                    rounded-lg
-                    bg-slate-50
-                    px-3
-                    py-2
-                    "
-                  >
-                    <span className="text-slate-500">Kirill</span>
-
-                    <span
-                      className="
-                      font-medium
-                      text-slate-700
-                      "
-                    >
-                      {genre.name_cyril}
-                    </span>
-                  </div>
-
-                  <div
-                    className="
-                    flex
-                    justify-between
-                    rounded-lg
-                    bg-slate-50
-                    px-3
-                    py-2
-                    "
-                  >
-                    <span className="text-slate-500">Rus</span>
-
-                    <span
-                      className="
-                      font-medium
-                      text-slate-700
-                      "
-                    >
-                      {genre.name_ru}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+      )}
 
       {/* PAGINATION */}
 
@@ -394,6 +221,8 @@ export default function Genres() {
           page={page}
           totalPages={meta.totalPages}
           onChange={setPage}
+          total={meta.total}
+          disabled={isFetching}
         />
       )}
 

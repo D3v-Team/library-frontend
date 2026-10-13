@@ -41,7 +41,7 @@ export const documentsApi = createApi({
       } = {}) => ({
         url: "/documents",
         method: "GET",
-        params: { page, limit, search, sortBy, sortOrder, category },
+        params: { page, limit, search: search || undefined, sortBy, sortOrder, category },
       }),
       providesTags: (result) =>
         result?.data
@@ -131,36 +131,35 @@ export const documentsApi = createApi({
         method: "PATCH",
         data: { is_public },
       }),
-      // Optimistic update — the switch flips instantly instead of
-      // waiting on the round trip, then rolls back on failure. Patches
-      // both the public and admin list caches since either may be
-      // mounted at the time.
-      async onQueryStarted({ id, is_public }, { dispatch, queryFulfilled }) {
-        const patches = [
-          dispatch(
-            documentsApi.util.updateQueryData("getDocuments", undefined, (draft) => {
-              const item = draft?.data?.find((d) => d.id === id);
-              if (item) item.is_public = is_public;
-            }),
-          ),
-          dispatch(
-            documentsApi.util.updateQueryData(
-              "getAdminDocuments",
-              undefined,
-              (draft) => {
-                const item = draft?.data?.find((d) => d.id === id);
-                if (item) item.is_public = is_public;
-              },
-            ),
-          ),
-        ];
+      // Optimistik: kalit darhol almashadi. Ommaviy va admin ro'yxatlari
+      // haqiqiy argumentlar bilan keshlangan ({page, limit, category...}) —
+      // `undefined` bilan patch hech narsaga tushmasdi, shuning uchun har
+      // keshlangan nusxa yangilanadi.
+      async onQueryStarted({ id, is_public }, { dispatch, getState, queryFulfilled }) {
+        const patches = [];
+        for (const name of ["getDocuments", "getAdminDocuments"]) {
+          for (const args of documentsApi.util.selectCachedArgsForQuery(getState(), name)) {
+            patches.push(
+              dispatch(
+                documentsApi.util.updateQueryData(name, args, (draft) => {
+                  const item = draft?.data?.find((d) => d.id === id);
+                  if (item) item.is_public = is_public;
+                }),
+              ),
+            );
+          }
+        }
         try {
           await queryFulfilled;
         } catch {
           patches.forEach((patch) => patch.undo());
         }
       },
-      invalidatesTags: (result, error, { id }) => [{ type: "Documents", id }],
+      // LIST ham: ommaviy ro'yxat faqat ochiq hujjatlarni ko'rsatadi
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Documents", id },
+        { type: "Documents", id: "LIST" },
+      ],
     }),
   }),
 });
@@ -168,7 +167,6 @@ export const documentsApi = createApi({
 export const {
   useGetDocumentsQuery,
   useGetAdminDocumentsQuery,
-  useGetAdminDocumentByIdQuery,
   useCreateDocumentMutation,
   useUpdateDocumentMutation,
   useDeleteDocumentMutation,

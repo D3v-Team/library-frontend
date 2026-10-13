@@ -23,7 +23,16 @@ export default function EventsCalendar() {
   const { t } = useTranslation();
   const { pick, formatMonth } = useLocalized();
 
-  const { data, isLoading, error } = useGetEventsQuery({ page: 1, limit: 24 });
+  // Faqat KELAYOTGANLAR, eng yaqini birinchi. Ilgari oxirgi yaratilgan 24
+  // ta olinardi — "Yaqin tadbirlar" ga o'tganlari ham tushardi.
+  // Oy lentasi shu eng yaqin 24 tadan tuziladi (oylar ketma-ket).
+  const { data, isLoading, error } = useGetEventsQuery({
+    page: 1,
+    limit: 24,
+    upcoming: true,
+    sortBy: "event_date",
+    sortOrder: "asc",
+  });
   const [month, setMonth] = useState(null);
 
   /* `data?.data ?? []` har renderda YANGI massiv qaytaradi, ya'ni

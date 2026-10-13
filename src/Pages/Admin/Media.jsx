@@ -1,14 +1,14 @@
 // src/pages/admin/Media/index.jsx
 import { useState, useCallback } from "react";
 import {
-  FolderOpen,
-  Image,
-  Pencil,
-  Trash2,
-  Upload,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+  AdminErrorState,
+  CardGridSkeleton,
+  LangDots,
+  RowActions,
+  StatusToggle,
+} from "./components/AdminUI";
+import MediaItemsManager from "./components/MediaItemsManager";
+import { FolderOpen, Image, Upload } from "lucide-react";
 import toast from "react-hot-toast";
 
 import AdminPageHeader from "../Admin/components/AdminPageHeader.jsx";
@@ -41,8 +41,7 @@ const MEDIA_TYPES = [
   { value: "PRESENTATION", label: "Taqdimot" },
 ];
 
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const TYPE_LABEL = Object.fromEntries(MEDIA_TYPES.map((t) => [t.value, t.label]));
 
 const emptyForm = {
   title_latin: "",
@@ -153,7 +152,11 @@ export default function Media() {
   const [uploadError, setUploadError] = useState("");
 
   // ================= API HOOKS =================
-  const { data, isLoading, error, refetch } = useGetMediaAlbumsQuery({
+  // Elementlarni boshqarish oynasi ochilgan albom
+  const [itemsAlbum, setItemsAlbum] = useState(null);
+  const [pendingId, setPendingId] = useState(null);
+
+  const { data, isLoading, isFetching, error, refetch } = useGetMediaAlbumsQuery({
     page,
     search,
     type,
@@ -166,7 +169,7 @@ export default function Media() {
     useUpdateMediaAlbumMutation();
   const [deleteMediaAlbum, { isLoading: isDeleting }] =
     useDeleteMediaAlbumMutation();
-  const [toggleMediaPublic, { isLoading: isToggling }] =
+  const [toggleMediaPublic] =
     useToggleMediaPublicMutation();
   // ===== TO'G'RI: useAddMediaItemMutation =====
   const [addMediaItem, { isLoading: isAddingItem }] = useAddMediaItemMutation();
@@ -229,6 +232,8 @@ export default function Media() {
           const initialForm = getInitialForm(editItem);
           const changedFields = {};
           Object.keys(form).forEach((key) => {
+            // UpdateMediaAlbumDto da `type` yo'q — albom turi faqat yaratishda
+            if (key === "type") return;
             if (form[key] !== initialForm[key]) {
               changedFields[key] = form[key];
             }
@@ -249,13 +254,13 @@ export default function Media() {
           toast.success("Media albomi yaratildi");
         }
 
+        // Ro'yxat kesh teglari orqali o'zi yangilanadi
         closeModal();
-        refetch();
       } catch (err) {
         toast.error(apiError(err, "Xatolik yuz berdi"));
       }
     },
-    [form, editItem, createMediaAlbum, updateMediaAlbum, closeModal, refetch],
+    [form, editItem, createMediaAlbum, updateMediaAlbum, closeModal],
   );
 
   const handleDelete = useCallback(async () => {
@@ -265,26 +270,27 @@ export default function Media() {
       await deleteMediaAlbum(deleteTarget.id).unwrap();
       toast.success("Media albomi o'chirildi");
       setDeleteTarget(null);
-      refetch();
     } catch (err) {
       toast.error(apiError(err, "O'chirishda xatolik yuz berdi"));
     }
-  }, [deleteTarget, deleteMediaAlbum, refetch]);
+  }, [deleteTarget, deleteMediaAlbum]);
 
   const handleTogglePublic = useCallback(
     async (item) => {
+      setPendingId(item.id);
       try {
         await toggleMediaPublic({
           id: item.id,
           is_public: !item.is_public,
         }).unwrap();
         toast.success("Holat yangilandi");
-        refetch();
       } catch (err) {
         toast.error(apiError(err, "Holatni o'zgartirishda xatolik"));
+      } finally {
+        setPendingId(null);
       }
     },
-    [toggleMediaPublic, refetch],
+    [toggleMediaPublic],
   );
 
   // ===== TUZATILGAN handleFileSelect =====
@@ -336,7 +342,6 @@ const handleUploadSubmit = useCallback(async () => {
       toast.success(`${successCount} ta rasm muvaffaqiyatli yuklandi`);
       resetUploadForm();
       setUploadTarget(null);
-      refetch();
       return;
     } catch (err) {
       toast.error(apiError(err, "Rasmlarni yuklashda xatolik yuz berdi"));
@@ -358,7 +363,6 @@ const handleUploadSubmit = useCallback(async () => {
       toast.success("Video muvaffaqiyatli yuklandi");
       resetUploadForm();
       setUploadTarget(null);
-      refetch();
       return;
     } catch (err) {
       toast.error(apiError(err, "Videoni yuklashda xatolik yuz berdi"));
@@ -381,14 +385,13 @@ const handleUploadSubmit = useCallback(async () => {
       toast.success("Taqdimot muvaffaqiyatli yuklandi");
       resetUploadForm();
       setUploadTarget(null);
-      refetch();
       return;
     } catch (err) {
       toast.error(apiError(err, "Taqdimotni yuklashda xatolik yuz berdi"));
       return;
     }
   }
-}, [uploadTarget, selectedFiles, videoUrl, presentationFile, presentationUrl, addMediaItem, resetUploadForm, refetch]);
+}, [uploadTarget, selectedFiles, videoUrl, presentationFile, presentationUrl, addMediaItem, resetUploadForm]);
 
   const closeUploadModal = useCallback(() => {
     resetUploadForm();
@@ -426,131 +429,92 @@ const handleUploadSubmit = useCallback(async () => {
         />
       </div>
 
-      {isLoading && (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div
-              key={index}
-              className="h-52 animate-pulse rounded-2xl bg-blue-700"
-            />
-          ))}
-        </div>
-      )}
-
-      {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center text-sm text-red-600">
-          Media ma'lumotlarini yuklashda xatolik yuz berdi.
-        </div>
-      )}
-
-      {!isLoading && !error && albums.length === 0 && (
+      {isLoading ? (
+        <CardGridSkeleton count={6} media="16/9" className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" />
+      ) : error ? (
+        <AdminErrorState title="Media ma’lumotlarini yuklashda xatolik yuz berdi" onRetry={refetch} />
+      ) : albums.length === 0 ? (
         <AdminEmptyState title="Media albomlar topilmadi" icon={FolderOpen} />
-      )}
-
-      {!isLoading && !error && albums.length > 0 && (
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      ) : (
+        <div className={`grid gap-5 transition-opacity md:grid-cols-2 xl:grid-cols-3 ${isFetching ? "opacity-60" : ""}`}>
           {albums.map((item) => {
             const imageUrl = getImageUrl(item.cover_image || item.cover_url);
 
             return (
-              <div
+              /* Teng balandlikdagi kartochka; bosilsa albom elementlari ochiladi */
+              <article
                 key={item.id}
-                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
               >
-                <div className="relative h-44 bg-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setItemsAlbum(item)}
+                  className="relative aspect-video shrink-0 overflow-hidden bg-slate-100 text-left"
+                  aria-label={`${item.title_latin || "Albom"} — elementlarni ko‘rish`}
+                >
                   {imageUrl ? (
                     <img
                       src={imageUrl}
-                      alt={item.title_latin}
-                      className="h-full w-full object-cover"
+                      alt=""
+                      loading="lazy"
+                      className={`absolute inset-0 h-full w-full object-cover ${item.is_public ? "" : "opacity-50 grayscale"}`}
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-slate-400">
+                    <span className="absolute inset-0 flex items-center justify-center text-slate-400">
                       <Image size={38} />
-                    </div>
+                    </span>
                   )}
+                  <span className="absolute left-2 top-2 rounded-md bg-slate-900/75 px-2 py-1 text-xs font-medium text-white">
+                    {TYPE_LABEL[item.type] ?? item.type}
+                  </span>
+                </button>
 
-                  <div className="absolute right-3 top-3">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        item.is_public
-                          ? "bg-green-50 text-green-700"
-                          : "bg-slate-100 text-slate-500"
-                      }`}
-                    >
-                      {item.is_public ? "Faol" : "Nofaol"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-5">
-                  <h3 className="line-clamp-1 text-base font-semibold text-slate-900">
-                    {item.title_latin}
+                <div className="flex flex-1 flex-col gap-2 p-4">
+                  <h3 className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug text-slate-900">
+                    {item.title_latin || "Sarlavhasiz"}
                   </h3>
-
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
-                      {item.type}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <LangDots record={item} field="title" />
                     <span className="text-xs text-slate-400">
-                      {item.created_at
-                        ? new Date(item.created_at).toLocaleDateString("uz-UZ")
-                        : "-"}
+                      {item.created_at ? new Date(item.created_at).toLocaleDateString("ru-RU") : "—"}
                     </span>
                   </div>
-
-                  <div className="mt-5 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(item)}
-                      className="flex h-9 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-                    >
-                      <Pencil size={15} />
-                      Tahrirlash
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleTogglePublic(item)}
-                      disabled={isToggling}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
-                      title={item.is_public ? "Yashirish" : "Ko'rsatish"}
-                    >
-                      {item.is_public ? (
-                        <EyeOff size={15} />
-                      ) : (
-                        <Eye size={15} />
-                      )}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(item)}
-                      className="flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 text-red-500 transition-colors hover:bg-red-50"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      resetUploadForm();
-                      setUploadTarget(item);
-                    }}
-                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border py-2.5 text-sm font-medium text-black transition-colors hover:bg-slate-50"
-                  >
-                    <Upload size={15} />
-                    Fayl qo'shish
-                  </button>
                 </div>
-              </div>
+
+                <div className="mt-auto flex items-center justify-between gap-2 border-t border-slate-100 px-4 py-3">
+                  <StatusToggle
+                    checked={item.is_public}
+                    onLabel="Ko‘rinadi"
+                    pending={pendingId === item.id}
+                    onChange={() => handleTogglePublic(item)}
+                  />
+                  <RowActions
+                    onView={() => setItemsAlbum(item)}
+                    viewLabel="Elementlar"
+                    onEdit={() => openEdit(item)}
+                    onDelete={() => setDeleteTarget(item)}
+                  />
+                </div>
+              </article>
             );
           })}
         </div>
       )}
 
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} total={data?.meta?.total} disabled={isFetching} />
+
+      <MediaItemsManager
+        album={itemsAlbum}
+        open={Boolean(itemsAlbum)}
+        onClose={() => setItemsAlbum(null)}
+        onAddItems={() => {
+          // Ikki modal ustma-ust ochilmasin: avval elementlar oynasi yopiladi
+          const album = itemsAlbum;
+          setItemsAlbum(null);
+          resetUploadForm();
+          setUploadTarget(album);
+        }}
+      />
 
       {/* CREATE/EDIT MODAL */}
       <Modal

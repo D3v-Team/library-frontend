@@ -1,16 +1,16 @@
 import { Archive, ArrowLeft, ArrowRight } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import cx from "../../lib/cx";
 import { useLocalized } from "../../lib/useLocalized";
 import { useGetAuthorByIdQuery } from "../../store/services/avtors.api";
-import { useGetBooksQuery } from "../../store/services/books.api";
+import { useGetCatalogBooksQuery } from "../../store/services/books.api";
 import { BASE_URL } from "../../store/api";
 import { Button, EmptyState, Reveal, Skeleton } from "../../ui";
 import { BookCard, PageMeta, PageShell, SectionHeader } from "../../patterns";
 import SEO from "../../seo/SEO";
-import { isExcelBook } from "../Books/bookHelpers";
+import { authorRegisterPath, isIndexAuthor } from "./authorHelpers";
 
 const imageUrl = (path) =>
   !path ? null : path.startsWith("http") ? path : `${BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
@@ -24,12 +24,16 @@ export default function AuthorDetail() {
   const { data, isLoading, error } = useGetAuthorByIdQuery(id);
   const author = data?.data ?? data;
 
-  const booksQuery = useGetBooksQuery({ page: 1, limit: 24, author_id: id }, { skip: !id });
+  // Katalog so'rovi: qo'lda kiritilgan kitoblar (Excel importidagilar
+  // oxirida, olinmaydi). Ilgari oxirgi qo'shilgan 24 ta olinib, Excel
+  // kitoblari chiqarib tashlanardi — muallifning 24+ Excel kitobi bo'lsa
+  // ro'yxat bo'sh qolardi. Kitoblar sahifasidagi `?author=` bilan umumiy kesh.
+  const booksQuery = useGetCatalogBooksQuery({ author_id: id }, { skip: !id });
   // Excel importidagi nashrlar muqovasiz va sahifasiz — gridga emas,
   // kartotekaga havola bo'lib chiqadi
-  const allBooks = booksQuery.data?.data ?? [];
-  const books = allBooks.filter((b) => !isExcelBook(b));
-  const hasRegister = allBooks.length > books.length;
+  const books = booksQuery.data?.data ?? [];
+  const grandTotal = booksQuery.data?.meta?.grandTotal ?? 0;
+  const hasRegister = grandTotal > books.length;
 
   if (isLoading) {
     return (
@@ -61,6 +65,12 @@ export default function AuthorDetail() {
     );
   }
 
+  // Excel importidagi muallifning sahifasi yo'q (faqat ism) — eski havola
+  // kartotekadagi uning kitoblariga olib boradi
+  if (isIndexAuthor(author)) {
+    return <Navigate to={authorRegisterPath(author.id)} replace />;
+  }
+
   const name = pick(author, "full_name");
   const first = Array.isArray(author.images) ? author.images[0] : null;
   const photo = imageUrl(first?.url || first?.image_url || first?.path);
@@ -77,7 +87,7 @@ export default function AuthorDetail() {
         title={name}
         meta={
           <>
-            <PageMeta label={t("authorDetail.books")} value={allBooks.length || "—"} />
+            <PageMeta label={t("authorDetail.books")} value={grandTotal || "—"} />
             {author.birth_date && (
               <PageMeta label={t("authorDetail.birth")} value={formatDate(author.birth_date)} />
             )}
@@ -127,7 +137,7 @@ export default function AuthorDetail() {
             eyebrow={t("books.badge")}
             title={t("authorDetail.booksTitle", { name })}
             action={
-              allBooks.length > 0 ? (
+              grandTotal > 0 ? (
                 <Button variant="secondary" to={`/books?author=${id}`}>
                   {t("bookDetail.allByAuthor")}
                 </Button>

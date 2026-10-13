@@ -87,7 +87,8 @@ export const contactMessageApi = createApi({
           id: "LIST",
         },
 
-        ...(result?.items ?? []).map((item) => ({
+        // Javob { data, meta } — `items` maydoni yo'q edi, teglar yaratilmasdi
+        ...(result?.data ?? result?.items ?? []).map((item) => ({
           type: "ContactMessages",
           id: item.id,
         })),

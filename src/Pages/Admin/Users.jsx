@@ -1,18 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-
-import {
-  Pencil,
-  Trash2,
-  Search,
-  Users,
-  Mail,
-  Phone,
-  X,
-  ShieldCheck,
-  UserCheck,
-  UserX,
-} from "lucide-react";
+import { Users } from "lucide-react";
 
 import {
   useGetUsersQuery,
@@ -23,6 +11,11 @@ import {
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import AdminEmptyState from "./components/AdminEmptyState";
+import Modal from "./components/Modal";
+import ConfirmDialog from "./components/ConfirmDialog";
+import Pagination from "./components/Pagination";
+import { SearchInput } from "./components/ListControls";
+import { AdminErrorState, AdminTable, RowActions, StatusToggle, TableSkeleton } from "./components/AdminUI";
 import apiError from "../../lib/apiError";
 import FormField from "./components/FormField";
 import {
@@ -54,16 +47,15 @@ export default function UsersPage() {
 
   const [form, setForm] = useState(emptyForm);
 
-  const { data, isLoading, error } = useGetUsersQuery({
+  // Kirish ruxsatini o'chirish (bloklash) — tasdiq bilan; ilgari bir
+  // bosishda darhol ketardi
+  const [blockTarget, setBlockTarget] = useState(null);
+  const [pendingId, setPendingId] = useState(null);
+
+  const { data, isLoading, isFetching, error, refetch } = useGetUsersQuery({
     page,
-
-    limit: 10,
-
+    limit: 20,
     search,
-
-    sortBy: "",
-
-    sortOrder: "desc",
   });
 
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
@@ -200,6 +192,7 @@ export default function UsersPage() {
   };
 
   const toggleStatus = async (item) => {
+    setPendingId(item.id);
     try {
       await updateUser({
         id: item.id,
@@ -212,7 +205,16 @@ export default function UsersPage() {
       toast.success("Status yangilandi");
     } catch (err) {
       toast.error(apiError(err, "Statusni o'zgartirishda xatolik"));
+    } finally {
+      setPendingId(null);
+      setBlockTarget(null);
     }
+  };
+
+  // Ruxsat berish — darhol; bloklash — avval tasdiq
+  const requestToggle = (item) => {
+    if (item.is_login) setBlockTarget(item);
+    else toggleStatus(item);
   };
 
   const handleDelete = async () => {
@@ -238,610 +240,187 @@ export default function UsersPage() {
         onAction={openCreate}
       />
 
-      {/* SEARCH */}
-
-      <div
-        className="
-          mb-6
-          flex
-          items-center
-          gap-3
-        "
-      >
-        <div
-          className="
-            relative
-            w-full
-            max-w-md
-          "
-        >
-          <Search
-            size={17}
-            className="
-              absolute
-              left-3
-              top-1/2
-              -translate-y-1/2
-              text-slate-400
-            "
-          />
-
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-
-              setPage(1);
-            }}
-            placeholder="Foydalanuvchi qidirish..."
-            className="
-              w-full
-              rounded-lg
-              border
-              border-slate-200
-              bg-white
-              py-2.5
-              pl-10
-              pr-3
-              text-sm
-              text-slate-800
-              outline-none
-              focus:border-slate-400
-            "
-          />
-        </div>
+      <div className="mb-5">
+        <SearchInput
+          value={search}
+          onChange={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
+          placeholder="Ism, telefon yoki pochta bo‘yicha..."
+        />
       </div>
 
-      {/* LOADING */}
+      {/* Jadval — o'nlab yozuv, matnli ma'lumot (ilgari balandligi 256 px li
+          kartochkalar, o'z modali va o'z paginatsiyasi bilan edi) */}
+      {isLoading ? (
+        <TableSkeleton rows={6} cols={5} />
+      ) : error ? (
+        <AdminErrorState title="Foydalanuvchilarni yuklashda xatolik yuz berdi" onRetry={refetch} />
+      ) : users.length === 0 ? (
+        <AdminEmptyState title={search ? "Qidiruv bo‘yicha topilmadi" : "Foydalanuvchilar yo‘q"} icon={Users} />
+      ) : (
+        <AdminTable
+          rows={users}
+          isFetching={isFetching}
+          onRowClick={openEdit}
+          columns={[
+            {
+              key: "name",
+              header: "F.I.SH",
+              cell: (u) => (
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-slate-900">{u.full_name || "—"}</p>
+                  {/* Mobil: aloqa shu yerda */}
+                  <p className="truncate text-xs text-slate-400 md:hidden">{u.phone_number}</p>
+                </div>
+              ),
+            },
+            {
+              key: "phone",
+              header: "Telefon",
+              hideBelow: "md",
+              className: "whitespace-nowrap tabular-nums",
+              cell: (u) => u.phone_number || <span className="text-slate-300">—</span>,
+            },
+            {
+              key: "email",
+              header: "Pochta",
+              hideBelow: "xl",
+              cell: (u) => u.email || <span className="text-slate-300">—</span>,
+            },
+            {
+              key: "role",
+              header: "Rol",
+              hideBelow: "sm",
+              cell: (u) => (
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  {u.role || "—"}
+                </span>
+              ),
+            },
+            {
+              key: "login",
+              header: "Kirish",
+              cell: (u) => (
+                <StatusToggle
+                  checked={u.is_login}
+                  onLabel="Ruxsat"
+                  offLabel="Bloklangan"
+                  pending={pendingId === u.id}
+                  onChange={() => requestToggle(u)}
+                />
+              ),
+            },
+            {
+              key: "actions",
+              header: <span className="sr-only">Amallar</span>,
+              align: "right",
+              cell: (u) => <RowActions onEdit={() => openEdit(u)} onDelete={() => setDeleteTarget(u)} />,
+            },
+          ]}
+        />
+      )}
 
-      {isLoading && (
-        <div
-          className="
-            grid
-            gap-5
-            md:grid-cols-2
-            xl:grid-cols-3
-          "
-        >
-          {Array.from({
-            length: 6,
-          }).map((_, index) => (
-            <div
-              key={index}
-              className="
-                  h-64
-                  animate-pulse
-                  rounded-2xl
-                  bg-slate-100
-                "
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} total={data?.meta?.total} disabled={isFetching} />
+
+      <Modal
+        open={modalOpen}
+        onClose={closeModal}
+        title={editing ? "Adminni tahrirlash" : "Yangi admin"}
+        size="sm"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FormField
+            label="F.I.SH"
+            required
+            error={errors.full_name}
+            value={form.full_name}
+            onChange={(e) => handleChange("full_name", e.target.value)}
+          />
+
+          <FormField
+            label="Telefon"
+            required
+            type="tel"
+            placeholder="+998901234567"
+            error={errors.phone_number}
+            value={form.phone_number}
+            onChange={(e) => handleChange("phone_number", e.target.value)}
+          />
+
+          <FormField
+            label="Elektron pochta"
+            required
+            type="email"
+            placeholder="nom@domen.uz"
+            error={errors.email}
+            value={form.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+          />
+
+          {/* Parol faqat yaratishda: tahrirlashda bo'sh qoldirilsa o'zgartirilmaydi */}
+          {!editing && (
+            <FormField
+              label="Parol"
+              required
+              type="password"
+              autoComplete="new-password"
+              error={errors.password}
+              value={form.password}
+              onChange={(e) => handleChange("password", e.target.value)}
             />
-          ))}
-        </div>
-      )}
+          )}
 
-      {/* ERROR */}
+          <label className="flex items-center gap-3 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={form.is_login}
+              onChange={(e) => handleChange("is_login", e.target.checked)}
+              className="h-4 w-4 rounded"
+            />
+            Admin panelga kirishga ruxsat
+          </label>
 
-      {error && (
-        <div
-          className="
-            rounded-2xl
-            border
-            border-red-200
-            bg-red-50
-            px-6
-            py-12
-            text-center
-            text-sm
-            text-red-600
-          "
-        >
-          Foydalanuvchilarni yuklashda xatolik.
-        </div>
-      )}
-
-      {/* EMPTY */}
-
-      {!isLoading && !error && users.length === 0 && (
-        <AdminEmptyState title="Foydalanuvchilar topilmadi" icon={Users} />
-      )}
-
-      {/* USER CARDS */}
-
-      {!isLoading && !error && users.length > 0 && (
-        <div
-          className="
-            grid
-            gap-5
-            md:grid-cols-2
-            xl:grid-cols-3
-          "
-        >
-          {users.map((item) => (
-            <div
-              key={item.id}
-              className="
-                rounded-2xl
-                border
-                border-slate-200
-                bg-white
-                p-5
-                shadow-sm
-              "
+          <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={isSaving}
+              className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
-              {/* HEADER */}
-
-              <div
-                className="
-                  flex
-                  items-start
-                  justify-between
-                "
-              >
-                <div>
-                  <h3
-                    className="
-                      text-base
-                      font-semibold
-                      text-slate-900
-                    "
-                  >
-                    {item.full_name}
-                  </h3>
-
-                  <div
-                    className="
-                      mt-1
-                      flex
-                      items-center
-                      gap-2
-                      text-xs
-                      text-slate-400
-                    "
-                  >
-                    <ShieldCheck size={14} />
-                    ADMIN
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => toggleStatus(item)}
-                  className={`
-                    flex
-                    items-center
-                    gap-1
-                    rounded-full
-                    px-3
-                    py-1
-                    text-xs
-                    font-medium
-
-                    ${
-                      item.is_login
-                        ? "bg-green-50 text-green-700"
-                        : "bg-red-50 text-red-600"
-                    }
-
-                  `}
-                >
-                  {item.is_login ? (
-                    <>
-                      <UserCheck size={13} />
-                      Faol
-                    </>
-                  ) : (
-                    <>
-                      <UserX size={13} />
-                      Nofaol
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* INFO */}
-
-              <div
-                className="
-                  mt-5
-                  space-y-3
-                "
-              >
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                    text-sm
-                    text-slate-600
-                  "
-                >
-                  <Phone size={16} className="text-slate-400" />
-
-                  {item.phone_number || "-"}
-                </div>
-
-                <div
-                  className="
-                    flex
-                    items-center
-                    gap-3
-                    text-sm
-                    text-slate-600
-                  "
-                >
-                  <Mail size={16} className="text-slate-400" />
-
-                  {item.email || "-"}
-                </div>
-              </div>
-
-              {/* ACTIONS */}
-
-              <div
-                className="
-                  mt-6
-                  flex
-                  gap-2
-                "
-              >
-                <button
-                  onClick={() => openEdit(item)}
-                  className="
-                    flex
-                    h-9
-                    flex-1
-                    items-center
-                    justify-center
-                    gap-2
-                    rounded-lg
-                    border
-                    border-slate-200
-                    text-sm
-                    text-slate-700
-                    hover:bg-slate-50
-                  "
-                >
-                  <Pencil size={15} />
-                  Tahrirlash
-                </button>
-
-                <button
-                  onClick={() => setDeleteTarget(item)}
-                  className="
-                    flex
-                    h-9
-                    w-10
-                    items-center
-                    justify-center
-                    rounded-lg
-                    border
-                    border-red-200
-                    text-red-500
-                    hover:bg-red-50
-                  "
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      {/* PAGINATION */}
-
-      <div
-        className="
-          mt-8
-          flex
-          items-center
-          justify-between
-        "
-      >
-        <p
-          className="
-            text-sm
-            text-slate-500
-          "
-        >
-          Sahifa {page} / {totalPages}
-        </p>
-
-        <div
-          className="
-            flex
-            gap-2
-          "
-        >
-          <button
-            disabled={page === 1}
-            onClick={() => setPage((prev) => prev - 1)}
-            className="
-              rounded-lg
-              border
-              border-slate-200
-              px-4
-              py-2
-              text-sm
-              text-slate-600
-              disabled:opacity-40
-            "
-          >
-            Oldingi
-          </button>
-
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage((prev) => prev + 1)}
-            className="
-              rounded-lg
-              border
-              border-slate-200
-              px-4
-              py-2
-              text-sm
-              text-slate-600
-              disabled:opacity-40
-            "
-          >
-            Keyingi
-          </button>
-        </div>
-      </div>
-
-      {/* CREATE / UPDATE MODAL */}
-
-      {modalOpen && (
-        <div
-          className="
-fixed
-inset-0
-z-50
-flex
-items-center
-justify-center
-bg-black/40
-px-4
-"
-        >
-          <div
-            className="
-w-full
-max-w-xl
-rounded-2xl
-bg-white
-p-6
-shadow-xl
-"
-          >
-            <div
-              className="
-mb-6
-flex
-items-center
-justify-between
-"
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
             >
-              <h2
-                className="
-text-lg
-font-semibold
-text-slate-900
-"
-              >
-                {editing ? "Adminni tahrirlash" : "Yangi admin"}
-              </h2>
-
-              <button
-                type="button"
-                onClick={closeModal}
-                className="
-text-slate-400
-hover:text-slate-700
-"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              className="
-space-y-4
-"
-            >
-              <FormField
-                label="F.I.SH"
-                required
-                error={errors.full_name}
-                value={form.full_name}
-                onChange={(e) => handleChange("full_name", e.target.value)}
-              />
-
-              <FormField
-                label="Telefon"
-                required
-                type="tel"
-                placeholder="+998901234567"
-                error={errors.phone_number}
-                value={form.phone_number}
-                onChange={(e) => handleChange("phone_number", e.target.value)}
-              />
-
-              <FormField
-                label="Elektron pochta"
-                required
-                type="email"
-                placeholder="nom@domen.uz"
-                error={errors.email}
-                value={form.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-              />
-
-              {/* Parol faqat yaratishda: tahrirlashda bo'sh qoldirilsa
-                  o'zgartirilmaydi */}
-              {!editing && (
-                <FormField
-                  label="Parol"
-                  required
-                  type="password"
-                  error={errors.password}
-                  value={form.password}
-                  onChange={(e) => handleChange("password", e.target.value)}
-                />
-              )}
-
-              <label
-                className="
-flex
-items-center
-gap-3
-text-sm
-text-slate-700
-"
-              >
-                <input
-                  type="checkbox"
-                  checked={form.is_login}
-                  onChange={(e) => handleChange("is_login", e.target.checked)}
-                />
-                Login qilishga ruxsat
-              </label>
-
-              <div
-                className="
-flex
-justify-end
-gap-3
-border-t
-border-slate-100
-pt-5
-"
-              >
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="
-rounded-lg
-border
-border-slate-200
-px-5
-py-2.5
-text-sm
-text-slate-600
-hover:bg-slate-50
-"
-                >
-                  Bekor qilish
-                </button>
-
-                <button
-                  disabled={isSaving}
-                  type="submit"
-                  className="
-rounded-lg
-border
-hover:bg-slate-50
-px-5
-py-2.5
-text-sm
-font-medium
-text-black
-disabled:opacity-50
-"
-                >
-                  {isSaving ? "Saqlanmoqda..." : "Saqlash"}
-                </button>
-              </div>
-            </form>
+              {isSaving ? "Saqlanmoqda..." : "Saqlash"}
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
 
-      {/* DELETE MODAL */}
+      <ConfirmDialog
+        open={Boolean(blockTarget)}
+        onClose={() => setBlockTarget(null)}
+        onConfirm={() => toggleStatus(blockTarget)}
+        isLoading={Boolean(blockTarget) && pendingId === blockTarget?.id}
+        title="Kirishni bloklash"
+        description={`"${blockTarget?.full_name || ""}" admin panelga kira olmaydi. Davom etasizmi?`}
+        confirmLabel="Ha, bloklash"
+        pendingLabel="Bloklanmoqda..."
+      />
 
-      {deleteTarget && (
-        <div
-          className="
-fixed
-inset-0
-z-50
-flex
-items-center
-justify-center
-bg-black/40
-px-4
-"
-        >
-          <div
-            className="
-w-full
-max-w-md
-rounded-2xl
-bg-white
-p-6
-"
-          >
-            <h3
-              className="
-text-lg
-font-semibold
-text-slate-900
-"
-            >
-              O‘chirish
-            </h3>
-
-            <p
-              className="
-mt-3
-text-sm
-text-slate-500
-"
-            >
-              {deleteTarget.full_name}
-              o‘chirilsinmi?
-            </p>
-
-            <div
-              className="
-mt-6
-flex
-justify-end
-gap-3
-"
-            >
-              <button
-                onClick={() => setDeleteTarget(null)}
-                className="
-rounded-lg
-border
-border-slate-200
-px-4
-py-2
-text-sm
-"
-              >
-                Bekor
-              </button>
-
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="
-rounded-lg
-bg-red-600
-px-4
-py-2
-text-sm
-text-white
-disabled:opacity-50
-"
-              >
-                {isDeleting ? "O‘chirilmoqda..." : "O‘chirish"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+        title="Foydalanuvchini o‘chirish"
+        description={`"${deleteTarget?.full_name || ""}" butunlay o‘chiriladi.`}
+      />
     </div>
   );
 }

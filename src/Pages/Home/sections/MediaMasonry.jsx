@@ -28,8 +28,9 @@ export default function MediaMasonry() {
   const { t } = useTranslation();
   const { pick } = useLocalized();
 
-  const { data, isLoading, error } = useGetMediaAlbumsQuery({ page: 1, limit: 5 });
+  const { data, isLoading, error } = useGetMediaAlbumsQuery({ page: 1, limit: 5, is_public: true });
 
+  // Himoya qatlami — asosiy filtr serverda
   const albums = (data?.data ?? data?.records ?? []).filter((a) => a.is_public !== false);
 
   return (

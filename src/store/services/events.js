@@ -47,9 +47,10 @@ export const eventsApi = createApi({
       query: ({
         page = 1,
         limit = 10,
-        search = "",
-        sortBy = "",
+        search,
+        sortBy,
         sortOrder = "desc",
+        upcoming,
       } = {}) => ({
         url: "/events",
 
@@ -58,9 +59,11 @@ export const eventsApi = createApi({
         params: {
           page,
           limit,
-          search,
-          sortBy,
+          search: search || undefined,
+          sortBy: sortBy || undefined,
           sortOrder,
+          // Swagger: GET /events?upcoming=true — faqat kelayotganlar
+          upcoming: upcoming ? true : undefined,
         },
       }),
 
@@ -83,6 +86,42 @@ export const eventsApi = createApi({
                 id: "LIST",
               },
             ],
+    }),
+
+    // Ixtiyoriy pozitsiyadan (`offset`) boshlanadigan `limit` ta tadbir.
+    // Backend sahifa raqami bilan ishlaydi, shuning uchun oyna 1–2 ta
+    // server sahifasidan yig'iladi. O'tgan tadbirlar uchun kerak: backend
+    // `upcoming=false` ni qanday talqin qilishi noma'lum (parametr qat'iy
+    // tekshirilmaydi — `upcoming=abc` ham 200), shuning uchun o'tganlar
+    // `event_date desc` ro'yxatida kelayotganlardan KEYIN turgan qism
+    // sifatida olinadi.
+    getEventsWindow: builder.query({
+      async queryFn({ offset = 0, limit = 12, ...params }, _api, _extra, baseQuery) {
+        const fetchPage = (page) =>
+          baseQuery({ url: "/events", method: "GET", params: { ...params, page, limit } });
+
+        const firstPage = Math.floor(offset / limit) + 1;
+        const skip = offset % limit;
+
+        const first = await fetchPage(firstPage);
+        if (first.error) return { error: first.error };
+
+        let items = (first.data?.data ?? []).slice(skip);
+        const total = first.data?.meta?.total ?? 0;
+
+        // Oyna keyingi sahifaga o'tib ketadi
+        if (skip > 0 && items.length < limit && first.data?.meta?.hasNextPage) {
+          const second = await fetchPage(firstPage + 1);
+          if (second.error) return { error: second.error };
+          items = items.concat((second.data?.data ?? []).slice(0, limit - items.length));
+        }
+
+        return { data: { data: items.slice(0, limit), meta: { total } } };
+      },
+      providesTags: (result) => [
+        ...(result?.data ?? []).map((item) => ({ type: "Events", id: item.id })),
+        { type: "Events", id: "LIST" },
+      ],
     }),
 
     getEventById: builder.query({
@@ -185,39 +224,6 @@ export const eventsApi = createApi({
         },
       ],
     }),
-   toggleEventPublic: builder.mutation({
-
-  query: ({ id, is_public }) => ({
-    url: `/events/${id}`,
-    method: "PATCH",
-    data: (() => {
-      const formData = new FormData();
-
-      formData.append(
-        "is_public",
-        is_public
-      );
-
-      return formData;
-    })(),
-  }),
-
-
-  invalidatesTags: (result, error, { id }) => [
-    {
-      type: "Events",
-      id,
-    },
-    {
-      type: "Events",
-      id: "LIST",
-    },
-  ],
-
-}),
-
-    // Admin uchun bitta tadbir (yashirin tadbirlar ham) — rasmlar
-    // boshqaruvi shu yerdan o'qiydi
     getAdminEventById: builder.query({
       query: (id) => ({
         url: `/events/admin/${id}`,
@@ -288,12 +294,12 @@ export const eventsApi = createApi({
 
 export const {
   useGetEventsQuery,
+  useGetEventsWindowQuery,
   useGetAdminEventsQuery,
   useGetEventByIdQuery,
   useCreateEventMutation,
   useUpdateEventMutation,
   useDeleteEventMutation,
-  useToggleEventPublicMutation,
   useGetAdminEventByIdQuery,
   useUploadEventImagesMutation,
   useSetMainEventImageMutation,

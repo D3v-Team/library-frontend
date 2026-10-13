@@ -102,7 +102,10 @@
     "shelfRegisterHint": "Ном, муаллиф ва нусха сони",
     "shelfEmpty": "Бу бўлимда натижа йўқ",
     "shelfFoundThere": "«{{shelf}}» бўлимида {{count}} та натижа топилди.",
-    "shelfGo": "Кўриш"
+    "shelfGo": "Кўриш",
+    "authorSearch": "Муаллифни қидиринг...",
+    "authorNotFound": "Муаллиф топилмади",
+    "loadingMore": "Юкланмоқда…"
   },
   "bookDetail": {
     "back": "Китоблар рўйхатига қайтиш",
@@ -320,7 +323,15 @@
     "metaCategories": "категория",
     "all": "Барчаси",
     "emptyHint": "Ҳужжатлар юкланганда шу ерда пайдо бўлади.",
-    "emptyCategory": "Бу категорияда ҳужжат йўқ."
+    "emptyCategory": "Бу категорияда ҳужжат йўқ.",
+    "cat": {
+      "LAW": "Қонунлар",
+      "DECISION": "Қарорлар",
+      "ORDER": "Буйруқлар",
+      "REPORT": "Ҳисоботлар"
+    },
+    "open": "Кўриш",
+    "pagination": "Ҳужжатлар саҳифалари"
   },
   "management": {
     "badge": "РАҲБАРИЯТ",
@@ -381,7 +392,29 @@
     "metaLetters": "ҳарф",
     "alphabet": "Алифбо бўйича",
     "all": "Барчаси",
-    "heading": "Муаллифлар"
+    "heading": "Муаллифлар",
+    "search": "Муаллиф исмини ёзинг...",
+    "searchLabel": "Муаллиф исми бўйича қидириш",
+    "sort": "Саралаш",
+    "sortAz": "А–Я",
+    "sortZa": "Я–А",
+    "sortNew": "Янги қўшилган",
+    "results": "{{count}} та муаллиф",
+    "emptySearch": "«{{term}}» бўйича муаллиф топилмади",
+    "emptySearchHint": "Исмни бошқача ёзиб кўринг ёки фақат фамилияни киритинг.",
+    "clear": "Тозалаш",
+    "pagination": "Муаллифлар саҳифалари",
+    "shelfLabel": "Муаллифлар бўлимлари",
+    "shelfProfiles": "Муаллифлар",
+    "shelfProfilesHint": "Таржимаи ҳол ва сурат билан",
+    "shelfIndex": "Муаллифлар кўрсаткичи",
+    "shelfIndexHint": "Фонд картотекасидаги исмлар",
+    "shelfEmpty": "Бу бўлимда муаллиф топилмади",
+    "shelfFoundThere": "«{{shelf}}» бўлимида {{count}} та муаллиф топилди.",
+    "shelfGo": "Кўриш",
+    "indexOpen": "{{name}} — картотекадаги китоблари",
+    "indexPagination": "Кўрсаткич саҳифалари",
+    "indexRange": "{{from}}–{{to}} / {{total}}"
   },
   "brand": {
     "short": "Чиноз кутубхонаси",

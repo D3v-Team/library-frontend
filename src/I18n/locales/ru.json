@@ -102,7 +102,10 @@
     "shelfRegisterHint": "Название, автор и число экземпляров",
     "shelfEmpty": "В этом разделе ничего не найдено",
     "shelfFoundThere": "В разделе «{{shelf}}» найдено: {{count}}.",
-    "shelfGo": "Перейти"
+    "shelfGo": "Перейти",
+    "authorSearch": "Найти автора...",
+    "authorNotFound": "Автор не найден",
+    "loadingMore": "Загрузка…"
   },
   "bookDetail": {
     "back": "Вернуться к списку книг",
@@ -320,7 +323,15 @@
     "metaCategories": "категорий",
     "all": "Все",
     "emptyHint": "Документы появятся здесь после загрузки.",
-    "emptyCategory": "В этой категории документов нет."
+    "emptyCategory": "В этой категории документов нет.",
+    "cat": {
+      "LAW": "Законы",
+      "DECISION": "Постановления",
+      "ORDER": "Приказы",
+      "REPORT": "Отчёты"
+    },
+    "open": "Открыть",
+    "pagination": "Страницы документов"
   },
   "management": {
     "badge": "РУКОВОДСТВО",
@@ -381,7 +392,29 @@
     "metaLetters": "букв",
     "alphabet": "По алфавиту",
     "all": "Все",
-    "heading": "Авторы"
+    "heading": "Авторы",
+    "search": "Введите имя автора...",
+    "searchLabel": "Поиск по имени автора",
+    "sort": "Сортировка",
+    "sortAz": "А–Я",
+    "sortZa": "Я–А",
+    "sortNew": "Недавно добавленные",
+    "results": "Авторов: {{count}}",
+    "emptySearch": "По запросу «{{term}}» авторы не найдены",
+    "emptySearchHint": "Попробуйте другое написание или введите только фамилию.",
+    "clear": "Очистить",
+    "pagination": "Страницы авторов",
+    "shelfLabel": "Разделы авторов",
+    "shelfProfiles": "Авторы",
+    "shelfProfilesHint": "С биографией и фото",
+    "shelfIndex": "Указатель авторов",
+    "shelfIndexHint": "Имена из картотеки фонда",
+    "shelfEmpty": "В этом разделе авторы не найдены",
+    "shelfFoundThere": "В разделе «{{shelf}}» найдено авторов: {{count}}.",
+    "shelfGo": "Перейти",
+    "indexOpen": "{{name}} — книги в картотеке",
+    "indexPagination": "Страницы указателя",
+    "indexRange": "{{from}}–{{to}} из {{total}}"
   },
   "brand": {
     "short": "Библиотека Чиназа",

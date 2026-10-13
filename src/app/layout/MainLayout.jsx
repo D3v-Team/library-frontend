@@ -49,7 +49,10 @@ export default function MainLayout() {
           lg:p-8
         "
         >
-          <Outlet />
+          {/* Juda keng ekranda kartochka va jadvallar cheksiz cho'zilmasin */}
+          <div className="mx-auto w-full max-w-[1600px]">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

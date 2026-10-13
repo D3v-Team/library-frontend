@@ -22,7 +22,10 @@ export default function QuietLinks() {
   const { t } = useTranslation();
   const { pick } = useLocalized();
 
-  const { data, isLoading, error } = useGetUsefulLinksQuery({ page: 1, limit: 12 });
+  // Saytda boshqa "barcha havolalar" sahifasi yo'q — shu blok yagona joy.
+  // Ilgari 12 tadan keyingilari hech qayerda ko'rinmasdi. Havolalar oz
+  // (admin qo'lda kiritadi), shuning uchun hammasi olinadi.
+  const { data, isLoading, error } = useGetUsefulLinksQuery({ page: 1, limit: 50 });
   const links = data?.data ?? [];
 
   if (!isLoading && !error && links.length === 0) return null;

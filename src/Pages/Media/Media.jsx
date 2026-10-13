@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Image as ImageIcon, Play, Presentation } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useGetMediaAlbumsQuery } from "../../store/services/media";
@@ -39,18 +39,28 @@ export default function Media() {
   const { t } = useTranslation();
   const { pick, formatDate } = useLocalized();
 
-  const [type, setType] = useState("");
-  const [page, setPage] = useState(1);
+  // Holat URL da — albomdan orqaga qaytilganda o'sha tur va sahifa qoladi
+  const [params, setParams] = useSearchParams();
+  const type = params.get("type") ?? "";
+  const page = Math.max(1, Number(params.get("page")) || 1);
+
+  const setPage = (next) => {
+    const value = typeof next === "function" ? next(page) : next;
+    const nextParams = new URLSearchParams(params);
+    if (value > 1) nextParams.set("page", String(value));
+    else nextParams.delete("page");
+    setParams(nextParams);
+  };
 
   const { data, isLoading, isFetching, error } = useGetMediaAlbumsQuery({
     page,
     limit: LIMIT,
     type: type || undefined,
+    is_public: true,
   });
 
-  // Endpoint `is_public` parametrini qabul qilmaydi (media.js dagi query
-  // ni qarang) — shuning uchun yopiq albomlar mijoz tomonida ajratiladi.
-  // Aks holda admin hali chop etmagan albom public saytda ko'rinardi.
+  // Asosiy filtr serverda (`is_public: true`); bu — himoya qatlami, agar
+  // backend parametrni e'tiborsiz qoldirsa ham yopiq albom chiqmasin.
   const albums = (data?.data ?? data?.records ?? []).filter(
     (a) => a.is_public !== false,
   );
@@ -58,8 +68,11 @@ export default function Media() {
   const totalPages = data?.meta?.totalPages ?? 1;
 
   const changeType = (next) => {
-    setType(next);
-    setPage(1);
+    const nextParams = new URLSearchParams(params);
+    if (next) nextParams.set("type", next);
+    else nextParams.delete("type");
+    nextParams.delete("page");
+    setParams(nextParams, { replace: true });
   };
 
   return (

@@ -19,13 +19,15 @@ export const pagesApi = createApi({
         url: "/pages",
         method: "GET",
       }),
-      providesTags: (result) =>
-        result?.data
-          ? [
-              ...result.data.map((p) => ({ type: "Pages", id: p.id })),
-              { type: "Pages", id: "LIST" },
-            ]
-          : [{ type: "Pages", id: "LIST" }],
+      // Backend oddiy massiv qaytaradi (`{ data }` emas) — ilgari har
+      // sahifaning tegi umuman yaratilmasdi
+      providesTags: (result) => {
+        const list = Array.isArray(result) ? result : result?.data ?? [];
+        return [
+          ...list.map((p) => ({ type: "Pages", id: p.id })),
+          { type: "Pages", id: "LIST" },
+        ];
+      },
     }),
 
     // =============================================
@@ -37,8 +39,14 @@ export const pagesApi = createApi({
         url: `/pages/${slug}`,
         method: "GET",
       }),
+      // Saytdagi CMS sahifa slug bilan o'qiladi, admin esa id bilan
+      // tahrirlaydi. Ilgari faqat slug tegi bor edi, updatePage esa id ni
+      // invalidatsiya qilardi — tahrirdan keyin saytdagi sahifa eskicha
+      // qolardi. Endi ikkalasi ham, yangi sahifa yaratilsa LIST ham.
       providesTags: (result, error, slug) => [
         { type: "Pages", id: slug },
+        ...(result?.id ? [{ type: "Pages", id: result.id }] : []),
+        { type: "Pages", id: "LIST" },
       ],
     }),
 
@@ -80,7 +88,10 @@ export const pagesApi = createApi({
         url: `/pages/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: [{ type: "Pages", id: "LIST" }],
+      invalidatesTags: (result, error, id) => [
+        { type: "Pages", id },
+        { type: "Pages", id: "LIST" },
+      ],
     }),
   }),
 });

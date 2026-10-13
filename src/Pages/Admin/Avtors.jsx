@@ -1,7 +1,7 @@
 // src/pages/admin/Avtors.jsx
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, User, Eye, Upload } from "lucide-react";
+import { Trash2, User, Eye, Upload } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import Modal from "./components/Modal";
@@ -10,6 +10,8 @@ import FormField from "./components/FormField";
 import Pagination from "./components/Pagination";
 import { SearchInput } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
+import { AdminErrorState, AdminTable, LangDots, RowActions, TableSkeleton } from "./components/AdminUI";
+import { isIndexAuthor } from "../Authors/authorHelpers";
 import { required, minLength, isValidDate, validateForm } from "./utils/validators";
 import { BASE_URL } from "../../store/api";
 
@@ -45,6 +47,18 @@ const emptyForm = {
   death_date: "",
 };
 
+// CreateAuthorDto / UpdateAuthorDto maydonlari — faqat shular yuboriladi
+const AUTHOR_FIELDS = Object.keys(emptyForm);
+
+const toAuthorForm = (author) =>
+  Object.fromEntries(
+    AUTHOR_FIELDS.map((f) => {
+      const v = author?.[f] ?? "";
+      // Sana maydonlari <input type="date"> uchun YYYY-MM-DD
+      return [f, f.endsWith("_date") && v ? String(v).slice(0, 10) : v];
+    }),
+  );
+
 // ===== FORM VALIDATION SCHEMA – 3 TIL MAJBURIY =====
 const formSchema = [
   { field: "full_name_latin", validators: [(v) => required(v, "Ism (lotin) to‘ldirilmagan"), (v) => minLength(v, 2, "Ism (lotin) kamida 2 belgi bo‘lishi kerak")] },
@@ -56,7 +70,8 @@ const formSchema = [
   { field: "nationality_latin", validators: [] },
   { field: "nationality_cyril", validators: [] },
   { field: "nationality_ru", validators: [] },
-  { field: "birth_date", validators: [(v) => required(v, "Tug'ilgan sana kiriting"), isValidDate] },
+  // Tug'ilgan sana majburiyligi faqat YARATISHDA (handleSubmit ga qarang)
+  { field: "birth_date", validators: [isValidDate] },
   { field: "death_date", validators: [isValidDate] },
 ];
 
@@ -82,9 +97,10 @@ export default function Avtors() {
 
   const [deleteTarget, setDeleteTarget] = useState(null);
 
+  // Jadval — 25 tadan (ilgari 12 ta katta kartochka: 2 000+ muallif = 175 sahifa)
   const { data, isLoading, isFetching, error, refetch } = useGetAuthorsQuery({
     page,
-    limit: 12,
+    limit: 25,
     search,
   });
 
@@ -93,7 +109,7 @@ export default function Avtors() {
   const [deleteAuthor, { isLoading: isDeleting }] = useDeleteAuthorMutation();
 
   // Image hooks
-  const { data: imagesData, refetch: refetchImages } = useGetAuthorImagesQuery(
+  const { data: imagesData } = useGetAuthorImagesQuery(
     editingAuthor?.id,
     { skip: !editingAuthor }
   );
@@ -103,6 +119,7 @@ export default function Avtors() {
 
   const authors = data?.data ?? [];
   const totalPages = data?.meta?.totalPages ?? 1;
+  const total = data?.meta?.total;
   const isSaving = isCreating || isUpdating;
 
   const openCreate = () => {
@@ -116,7 +133,8 @@ export default function Avtors() {
 
   const openEdit = (author) => {
     setEditingAuthor(author);
-    setForm({ ...emptyForm, ...author });
+    // Faqat DTO maydonlari; Excel mualliflaridagi null lar bo'sh qatorga
+    setForm(toAuthorForm(author));
     setErrors({});
     setActiveLang("latin");
     setNewImageFiles([]);
@@ -153,7 +171,6 @@ export default function Avtors() {
       await uploadImages({ authorId, files: newImageFiles }).unwrap();
       toast.success(`${newImageFiles.length} ta rasm yuklandi`);
       setNewImageFiles([]);
-      // refetchImages();
     } catch (err) {
       // Xatolikni o‘zbekcha ko‘rsatish
       const msg = apiError(err, "Rasm yuklashda xatolik yuz berdi");
@@ -169,7 +186,6 @@ export default function Avtors() {
     try {
       await deleteImage({ authorId: editingAuthor.id, imageId }).unwrap();
       toast.success("Rasm o'chirildi");
-      refetchImages();
     } catch (err) {
       toast.error(apiError(err, "Rasmni o'chirishda xatolik"));
     }
@@ -179,8 +195,6 @@ export default function Avtors() {
     try {
       await setMainImage({ authorId: editingAuthor.id, imageId }).unwrap();
       toast.success("Asosiy rasm belgilandi");
-      refetchImages();
-      refetch();
     } catch (err) {
       toast.error(apiError(err, "Amalni bajarib bo'lmadi"));
     }
@@ -191,8 +205,13 @@ export default function Avtors() {
     e.preventDefault();
     if (isSaving) return;
 
-    // 1. Validatsiya
+    // 1. Validatsiya. Tug'ilgan sana faqat yangi muallifda majburiy:
+    // Excel importidan kelgan ~2 000 muallifda u yo'q — tahrirlashda talab
+    // qilinsa, ularni tahrirlab bo'lmasdi (to'qima sana kiritmasdan).
     const validationErrors = validateForm(form, formSchema);
+    if (!editingAuthor && !form.birth_date) {
+      validationErrors.birth_date = "Tug'ilgan sana kiriting";
+    }
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       toast.error("Formada xatolar bor, tekshirib chiqing.");
@@ -204,12 +223,21 @@ export default function Avtors() {
 
       if (editingAuthor) {
         // UPDATE
-        await updateAuthor({ id: editingAuthor.id, data: form }).unwrap();
+        // Faqat o'zgargan DTO maydonlari (ilgari id, images, created_at ham ketardi)
+        const initial = toAuthorForm(editingAuthor);
+        const changed = Object.fromEntries(
+          AUTHOR_FIELDS.filter((f) => form[f] !== initial[f]).map((f) => [f, form[f] === "" ? null : form[f]]),
+        );
+        if (Object.keys(changed).length > 0) {
+          await updateAuthor({ id: editingAuthor.id, data: changed }).unwrap();
+        }
         authorId = editingAuthor.id;
         toast.success("Muallif ma'lumotlari yangilandi");
       } else {
         // CREATE
-        const created = await createAuthor(form).unwrap();
+        const created = await createAuthor(
+          Object.fromEntries(AUTHOR_FIELDS.filter((f) => form[f] !== "").map((f) => [f, form[f]])),
+        ).unwrap();
         // Backend javob tuzilishiga qarab id ni olish
         authorId = created.id || created?.data?.id || created?.id;
         if (!authorId) {
@@ -224,9 +252,8 @@ export default function Avtors() {
         await uploadAuthorImages(authorId);
       }
 
-      // 3. Modani yopish va ro‘yxatni yangilash
+      // 3. Modalni yopish — ro'yxat kesh teglari orqali o'zi yangilanadi
       closeModal();
-      refetch();
     } catch (err) {
       // Xatolikni o‘zbekcha ko‘rsatish
       const message = apiError(err, "Saqlashda xatolik yuz berdi");
@@ -240,7 +267,6 @@ export default function Avtors() {
       await deleteAuthor(deleteTarget.id).unwrap();
       toast.success("Muallif o'chirildi");
       setDeleteTarget(null);
-      refetch();
     } catch (err) {
       toast.error(apiError(err, "O'chirishda xatolik yuz berdi"));
     }
@@ -267,92 +293,90 @@ export default function Avtors() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-40 animate-pulse rounded-2xl border border-slate-200 bg-blue-700"
-            />
-          ))}
-        </div>
+        <TableSkeleton rows={10} cols={5} thumb />
       ) : error ? (
-        <div className="rounded-xl border border-dashed border-red-200 bg-red-50 px-6 py-12 text-center text-sm text-red-600">
-          Mualliflarni yuklashda xatolik yuz berdi. Sahifani yangilab ko'ring.
-        </div>
+        <AdminErrorState title="Mualliflarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : authors.length === 0 ? (
-        <AdminEmptyState title="Mualliflar topilmadi" icon={User} />
+        <AdminEmptyState title={search ? "Qidiruv bo‘yicha muallif topilmadi" : "Mualliflar topilmadi"} icon={User} />
       ) : (
-        <div
-          className={`grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 transition-opacity ${
-            isFetching ? "opacity-60" : "opacity-100"
-          }`}
-        >
-          {authors.map((author) => {
-            const mainImage = getImageUrl(author.images?.find(img => img.is_main)?.url);
-            return (
-              <div
-                key={author.id}
-                className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="flex items-start gap-3">
-                  {mainImage ? (
-                    <img
-                      src={mainImage}
-                      alt=""
-                      className="h-14 w-14 shrink-0 rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-300">
-                      <User size={22} />
+        <AdminTable
+          rows={authors}
+          isFetching={isFetching}
+          onRowClick={openEdit}
+          columns={[
+            {
+              key: "name",
+              header: "Muallif",
+              cell: (author) => {
+                const mainImage = getImageUrl(author.images?.find((img) => img.is_main)?.url);
+                return (
+                  <div className="flex min-w-0 items-center gap-3">
+                    {mainImage ? (
+                      <img src={mainImage} alt="" loading="lazy" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                    ) : (
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                        <User size={16} />
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-900">
+                        {author.full_name_latin || "Ism kiritilmagan"}
+                      </p>
+                      <div className="mt-0.5 flex items-center gap-2">
+                        <LangDots record={author} field="full_name" />
+                        {/* Mobil: millat shu yerda */}
+                        {author.nationality_latin && (
+                          <span className="truncate text-xs text-slate-400 md:hidden">{author.nationality_latin}</span>
+                        )}
+                      </div>
                     </div>
-                  )}
-
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-base font-semibold text-slate-900">
-                      {author.full_name_latin || "Ism kiritilmagan"}
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      {author.nationality_latin || "Millati ko'rsatilmagan"}
-                    </p>
                   </div>
-                </div>
-
-                <p className="mt-3 line-clamp-3 flex-1 text-sm text-slate-500">
-                  {author.biography_latin || "Tavsif kiritilmagan"}
-                </p>
-
-                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                  <span className="text-xs text-slate-400">
-                    {author.birth_date || "—"}
-                    {author.death_date ? ` – ${author.death_date}` : ""}
+                );
+              },
+            },
+            {
+              key: "nationality",
+              header: "Millati",
+              hideBelow: "md",
+              cell: (a) => a.nationality_latin || <span className="text-slate-300">—</span>,
+            },
+            {
+              key: "years",
+              header: "Yillar",
+              hideBelow: "md",
+              className: "whitespace-nowrap tabular-nums text-slate-500",
+              cell: (a) =>
+                a.birth_date
+                  ? `${String(a.birth_date).slice(0, 4)}${a.death_date ? ` – ${String(a.death_date).slice(0, 4)}` : ""}`
+                  : <span className="text-slate-300">—</span>,
+            },
+            {
+              key: "kind",
+              header: "Turi",
+              hideBelow: "lg",
+              cell: (a) =>
+                isIndexAuthor(a) ? (
+                  <span
+                    className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500"
+                    title="Excel importidan — faqat ism. Saytda «Mualliflar ko‘rsatkichi» da turadi"
+                  >
+                    Excel · faqat ism
                   </span>
-
-                  <div className="flex gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => openEdit(author)}
-                      aria-label="Tahrirlash"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTarget(author)}
-                      aria-label="O'chirish"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-red-500 transition-colors hover:bg-red-50"
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                ) : (
+                  <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700">Profil</span>
+                ),
+            },
+            {
+              key: "actions",
+              header: <span className="sr-only">Amallar</span>,
+              align: "right",
+              cell: (a) => <RowActions onEdit={() => openEdit(a)} onDelete={() => setDeleteTarget(a)} />,
+            },
+          ]}
+        />
       )}
 
-      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} total={total} disabled={isFetching} />
 
       {/* Create / Edit Modal */}
       <Modal
