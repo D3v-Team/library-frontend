@@ -40,6 +40,7 @@ export const NAV_GROUPS = [
       { label: "header.books", path: "/books?shelf=kartoteka" },
       { label: "nav.newBooks", path: "/books?shelf=katalog&sort=new" },
       { label: "header.authors", path: "/authors" },
+      { label: "header.guides", path: "/guides" },
     ],
   },
   {
@@ -47,6 +48,7 @@ export const NAV_GROUPS = [
     label: "nav.newsAndEvents",
     items: [
       { label: "header.news", path: "/news" },
+      { label: "header.announcements", path: "/announcements" },
       { label: "header.events", path: "/events" },
       { label: "nav.media", path: "/media" },
     ],

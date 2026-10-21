@@ -57,16 +57,25 @@ function isAuthRequest(url) {
  * ham qabul qilamiz.
  */
 function extractTokens(payload) {
-  const box =
-    payload?.tokens ??
-    payload?.data?.tokens ??
-    payload?.data ??
-    payload ??
-    {};
+  // Tokenlar javobning qaysi qatlamida ekani noma'lum — barcha ehtimoliy
+  // joylarni ketma-ket tekshiramiz. MUHIM: access va refresh ALOHIDA
+  // qidiriladi. Ilgari bitta "box" tanlanardi: agar access tashqi
+  // qatlamda, refresh esa ichkarida bo'lsa, refresh umuman topilmasdi.
+  const boxes = [payload, payload?.tokens, payload?.data, payload?.data?.tokens].filter(Boolean);
+
+  const pick = (...keys) => {
+    for (const box of boxes) {
+      for (const key of keys) {
+        const value = box[key];
+        if (typeof value === "string" && value) return value;
+      }
+    }
+    return null;
+  };
 
   return {
-    accessToken: box.access_token ?? box.accessToken ?? null,
-    refreshToken: box.refresh_token ?? box.refreshToken ?? null,
+    accessToken: pick("access_token", "accessToken", "token"),
+    refreshToken: pick("refresh_token", "refreshToken"),
   };
 }
 
@@ -128,6 +137,9 @@ $api.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Javobdagi 401 ni to'g'ri talqin qilish uchun: so'rov QAYSI token
+      // bilan ketganini eslab qolamiz (pastdagi response interceptor'ga qarang)
+      config.__sentWithToken = token;
     }
 
     return config;
@@ -160,15 +172,30 @@ $api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    /* POYGA HIMOYASI.
+       Admin sahifasi bir vaqtda bir necha so'rov yuboradi va hammasi eski
+       token bilan ketadi. Birinchisi 401 olib, tokenni yangilaydi. Qolgan
+       javoblar esa KEYINROQ qaytadi — ular ham 401, lekin token allaqachon
+       yangi. Ilgari ularning har biri yana refresh chaqirardi; backend
+       refresh tokenni almashtirib yuborgani uchun (rotation) eskisi bilan
+       kelgan ikkinchi so'rov 403 olardi va admin tizimdan chiqib ketardi.
+       Endi: cookie'dagi token o'zgargan bo'lsa — refreshsiz qayta yuboramiz. */
+    const currentToken = getAccessToken();
+
+    if (currentToken && config.__sentWithToken && currentToken !== config.__sentWithToken) {
+      config._isRetry = true;
+      config.headers.Authorization = `Bearer ${currentToken}`;
+      return $api(config);
+    }
+
     config._isRetry = true;
 
     try {
       const accessToken = await refreshAccessToken();
 
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${accessToken}`,
-      };
+      // To'g'ridan-to'g'ri o'zgartiramiz: axios 1.x da `headers` oddiy
+      // obyekt emas (AxiosHeaders), spread uni buzishi mumkin
+      config.headers.Authorization = `Bearer ${accessToken}`;
 
       // Yangi token bilan asl so'rovni qaytadan yuboramiz — chaqiruvchi
       // (RTK Query yoki komponent) buni sezmaydi ham.

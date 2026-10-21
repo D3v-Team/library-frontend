@@ -12,7 +12,7 @@ import { SearchInput } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
 import { AdminErrorState, AdminTable, LangDots, RowActions, TableSkeleton } from "./components/AdminUI";
 import { isIndexAuthor } from "../Authors/authorHelpers";
-import { required, minLength, isValidDate, validateForm } from "./utils/validators";
+import { required, minLength, isValidDate, validateForm, validateImageFile } from "./utils/validators";
 import { BASE_URL } from "../../store/api";
 
 import {
@@ -153,9 +153,15 @@ export default function Avtors() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  // Faqat JPG/PNG/WEBP, 5 MB gacha — SVG/HTML va boshqa fayllar o'tmaydi
   const handleImageSelect = (e) => {
-    const files = Array.from(e.target.files);
-    setNewImageFiles((prev) => [...prev, ...files]);
+    const files = Array.from(e.target.files ?? []).filter((file) => {
+      const error = validateImageFile(file, 5);
+      if (error) toast.error(`${file.name}: ${error}`);
+      return !error;
+    });
+    e.target.value = "";
+    if (files.length) setNewImageFiles((prev) => [...prev, ...files]);
   };
 
   const removeImageFile = (index) => {
@@ -466,7 +472,7 @@ export default function Avtors() {
                 <input
                   type="file"
                   multiple
-                  accept="image/*"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                   onChange={handleImageSelect}
                   className="hidden"
                 />

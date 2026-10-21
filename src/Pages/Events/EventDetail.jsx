@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useLocalized } from "../../lib/useLocalized";
-import { useGetEventByIdQuery, useGetEventsQuery } from "../../store/services/events";
+import { HOME_EVENTS_ARGS, useGetEventByIdQuery, useGetEventsQuery } from "../../store/services/events";
 import { BASE_URL } from "../../store/api";
 import { Button, EmptyState, Skeleton } from "../../ui";
 import { MountedImage, PageShell, Prose, SectionHeader } from "../../patterns";
@@ -19,16 +19,9 @@ export default function EventDetail() {
   const { pick, formatDate, formatMonth } = useLocalized();
 
   const { data, isLoading, error } = useGetEventByIdQuery(id);
-  // "Boshqa tadbirlar" — eng yaqin KELAYOTGANLAR (ilgari yaratilgan sanasi
-  // bo'yicha olinib, o'tganlari ham chiqardi). Bosh sahifadagi taqvim bilan
-  // bir xil argument — umumiy kesh.
-  const others = useGetEventsQuery({
-    page: 1,
-    limit: 24,
-    upcoming: true,
-    sortBy: "event_date",
-    sortOrder: "asc",
-  });
+  // "Boshqa tadbirlar" — o'tgan/kelayotgan filtrisiz. Bosh sahifadagi
+  // taqvim bilan bir xil argument — umumiy kesh.
+  const others = useGetEventsQuery(HOME_EVENTS_ARGS);
 
   const event = data?.data ?? data;
   const rest = (others.data?.data ?? []).filter((e) => e.id !== id).slice(0, 4);

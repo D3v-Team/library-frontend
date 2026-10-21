@@ -49,7 +49,8 @@ export default function Dashboard() {
   const sections = ADMIN_MENU.filter((item) => item.path !== "/admin");
 
   const newRequests = useGetOnlineRequestsQuery({ page: 1, limit: 1, status: "NEW" });
-  const unreadMessages = useGetContactMessagesQuery({ page: 1, limit: 1, is_read: false });
+  // Barcha xabarlar: `is_read` filtri backendda ishlamaydi
+  const messages = useGetContactMessagesQuery({ page: 1, limit: 1 });
   const books = useGetBooksQuery({ page: 1, limit: 1 });
   const authors = useGetAuthorsQuery({ page: 1, limit: 1 });
 
@@ -62,7 +63,7 @@ export default function Dashboard() {
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard to="/admin/request" icon={Inbox} label="Yangi so‘rovlar" query={newRequests} accent />
-        <StatCard to="/admin/message" icon={MessageCircle} label="O‘qilmagan xabarlar" query={unreadMessages} accent />
+        <StatCard to="/admin/message" icon={MessageCircle} label="Xabarlar" query={messages} />
         <StatCard to="/admin/books" icon={BookOpen} label="Fonddagi kitoblar" query={books} />
         <StatCard to="/admin/avtors" icon={Users} label="Mualliflar" query={authors} />
       </div>

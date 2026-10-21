@@ -81,7 +81,6 @@ const LANGS = [
 export default function Events() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [upcoming, setUpcoming] = useState();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ ...emptyForm });
@@ -96,7 +95,6 @@ export default function Events() {
     page,
     limit: 10,
     search,
-    upcoming,
     is_public: "",
   });
 

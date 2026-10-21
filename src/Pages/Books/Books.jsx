@@ -90,7 +90,7 @@ export default function Books() {
     registerSize: REGISTER_LIMIT,
   });
 
-  const { data: genresData } = useGetGenresQuery({ page: 1, limit: 100 });
+  const { data: genresData } = useGetGenresQuery({ page: 1, limit: 50 });
 
   const active = shelf === "catalog" ? catalog : register;
   const other = shelf === "catalog" ? register : catalog;

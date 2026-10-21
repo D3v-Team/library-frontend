@@ -141,7 +141,7 @@ export default function Books() {
 
   const { data: genresData } = useGetGenresQuery({
     page: 1,
-    limit: 100,
+    limit: 50,
   });
 
   const [createBook, { isLoading: isCreating }] = useCreateBookMutation();

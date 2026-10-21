@@ -32,16 +32,18 @@ export default function ContactBlock() {
   return (
     <section className="mx-auto w-full max-w-container px-gut py-16 sm:py-20">
       <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
-        <SectionHeader
-          eyebrow={t("contact.badge")}
-          title={t("contact.heading")}
-          lede={t("home.contact.lede")}
-          action={
-            <Button variant="secondary" to="/contact" iconEnd={<ArrowRight size={16} />}>
-              {t("contact.more")}
-            </Button>
-          }
-        />
+        {/* Tugma `action` orqali emas: u lid bilan yonma-yon turib, matnni
+            ustunning pastiga itarardi. Bu yerda matn tepada, tugma ostida. */}
+        <div className="flex flex-col items-start gap-7">
+          <SectionHeader
+            eyebrow={t("contact.badge")}
+            title={t("contact.heading")}
+            lede={t("home.contact.lede")}
+          />
+          <Button variant="secondary" to="/contact" iconEnd={<ArrowRight size={16} />}>
+            {t("contact.more")}
+          </Button>
+        </div>
 
         <dl className="flex flex-col border-t border-line">
           {isLoading

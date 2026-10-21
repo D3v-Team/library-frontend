@@ -6,3 +6,18 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Brauzer xavfsizlik sarlavhalari.
+#   nosniff        — fayl turini "taxmin qilib" skript sifatida ishga tushirmaydi
+#   frame-ancestors / X-Frame-Options — saytni begona sahifa ichiga joylab
+#                    bo'lmaydi (clickjacking: admin tugmalarini aldab bostirish)
+#   Referrer-Policy — admin sahifa manzillari tashqi saytlarga to'liq ketmaydi
+#   Permissions-Policy — kamera/mikrofon/geolokatsiya umuman kerak emas
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Content-Security-Policy = "frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

@@ -92,7 +92,7 @@ export default function Banners() {
   // ya'ni tartib sahifalar orasida noto'g'ri edi.
   const { data, isLoading, isFetching, error, refetch } = useGetAllBannersQuery({
     page: 1,
-    limit: 100,
+    limit: 50,
   });
 
   const [createBanner, { isLoading: isCreating }] = useCreateBannerMutation();

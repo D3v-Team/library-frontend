@@ -41,6 +41,7 @@ import {
   isValidUrl,
   required,
   validateForm,
+  validateImageFile,
 } from "./utils/validators";
 import apiError from "../../lib/apiError";
 
@@ -773,10 +774,19 @@ export default function ContactInfo() {
 
             <input
               type="file"
-              accept="image/*"
-              onChange={(e) =>
-                changeSocialField("icon_image", e.target.files[0])
-              }
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              onChange={(e) => {
+                // Faqat JPG/PNG/WEBP, 2 MB gacha — SVG (ichida skript
+                // bo'lishi mumkin) va boshqa fayllar o'tmaydi
+                const file = e.target.files?.[0];
+                const error = validateImageFile(file, 2);
+                if (error) {
+                  toast.error(error);
+                  e.target.value = "";
+                  return;
+                }
+                changeSocialField("icon_image", file);
+              }}
               className="
               block
               w-full

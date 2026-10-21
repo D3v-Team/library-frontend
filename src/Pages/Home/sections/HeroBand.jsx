@@ -7,6 +7,7 @@ import useReducedMotion from "../../../lib/useReducedMotion";
 import { useLocalized } from "../../../lib/useLocalized";
 import { useGetBannersQuery } from "../../../store/services/banners.api";
 import { BASE_URL } from "../../../store/api";
+import { safeHref } from "../../../utils/url";
 import { ArchFrame, Button, GirihSurface, Rule } from "../../../ui";
 import GirihStar from "../../../design/motifs/GirihStar";
 import StatRibbon from "./StatRibbon";
@@ -89,8 +90,9 @@ export default function HeroBand() {
               {t("home.hero.cta")}
             </Button>
 
-            {slide?.link_url && (
-              <Button variant="onInk" size="lg" href={slide.link_url}>
+            {/* Admin kiritgan havola — `javascript:` kabi sxemalar o'tmaydi */}
+            {safeHref(slide?.link_url) && (
+              <Button variant="onInk" size="lg" href={safeHref(slide.link_url)}>
                 {t("hero.details")}
               </Button>
             )}

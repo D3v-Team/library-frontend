@@ -53,7 +53,7 @@ export const ROUTES = [
     roles: null,
   },
 
-  // --- News ---
+  // --- Yangiliklar (backend: /news) ---
   {
     path: "/news",
     component: lazy(() => import("../../Pages/News/News.jsx")),
@@ -62,6 +62,18 @@ export const ROUTES = [
   {
     path: "/news/:id",
     component: lazy(() => import("../../Pages/News/NewsDetail.jsx")),
+    roles: null,
+  },
+
+  // --- E'lonlar (backend: /announcements) ---
+  {
+    path: "/announcements",
+    component: lazy(() => import("../../Pages/Announcements/Announcements.jsx")),
+    roles: null,
+  },
+  {
+    path: "/announcements/:id",
+    component: lazy(() => import("../../Pages/Announcements/AnnouncementDetail.jsx")),
     roles: null,
   },
 
@@ -94,6 +106,13 @@ export const ROUTES = [
 
  
 
+
+  // --- Qo'llanmalar (backend: /guides) ---
+  {
+    path: "/guides",
+    component: lazy(() => import("../../Pages/Guides/Guides.jsx")),
+    roles: null,
+  },
 
   // --- Documents ---
   {
@@ -239,6 +258,11 @@ export const ADMIN_ROUTES = [
   {
     path: "/admin/banners",
     component: lazy(() => import("../../Pages/Admin/Banners.jsx")),
+    roles: ADMIN_ROLES,
+  },
+  {
+    path: "/admin/guides",
+    component: lazy(() => import("../../Pages/Admin/Guides.jsx")),
     roles: ADMIN_ROLES,
   },
   {

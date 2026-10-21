@@ -8,7 +8,7 @@
 //   import SEO from "../../seo/SEO";
 //   import { SEO_CONFIG } from "../../seo/seoConfig";
 //
-//   <SEO {...SEO_CONFIG.news} />
+//   <SEO {...SEO_CONFIG.announcements} />
 //
 // Dinamik sahifalarda esa API'dan kelgan title/description/image bilan:
 //   <SEO

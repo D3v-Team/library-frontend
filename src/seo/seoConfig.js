@@ -49,16 +49,36 @@ export const SEO_CONFIG = {
 
 
   news: {
-    title: "Yangiliklar va e'lonlar",
+    title: "Yangiliklar",
     description:
-      "Kutubxona faoliyati, so'nggi yangiliklar va muhim e'lonlar bilan tanishing. Chinoz axborot-kutubxona markazining rasmiy yangiliklar sahifasi.",
+      "Chinoz axborot-kutubxona markazi hayotidagi so'nggi yangiliklar: tadbirlar, uchrashuvlar, yangi kitoblar va loyihalar.",
     keywords: [
       "kutubxona yangiliklari",
-      "e'lonlar",
       "Chinoz kutubxonasi yangiliklari",
       "axborot markazi yangiliklari",
     ],
     path: "/news",
+  },
+
+  guides: {
+    title: "Qo'llanmalar",
+    description:
+      "Chinoz axborot-kutubxona markazi qo'llanmalari: PDF formatda ko'rish va yuklab olish.",
+    keywords: ["kutubxona qo'llanmalari", "qo'llanma PDF", "Chinoz kutubxonasi"],
+    path: "/guides",
+  },
+
+  announcements: {
+    title: "E'lonlar",
+    description:
+      "Kutubxona faoliyati va muhim e'lonlar bilan tanishing. Chinoz axborot-kutubxona markazining rasmiy e'lonlar sahifasi.",
+    keywords: [
+      "kutubxona e'lonlari",
+      "e'lonlar",
+      "Chinoz kutubxonasi e'lonlari",
+      "axborot markazi e'lonlari",
+    ],
+    path: "/announcements",
   },
 
 

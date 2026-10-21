@@ -33,6 +33,12 @@ function toFormData(fields) {
   return formData;
 }
 
+/**
+ * Bosh sahifadagi tadbirlar va tadbir sahifasidagi "Boshqa tadbirlar" —
+ * bir xil argument, ya'ni bitta so'rov va umumiy kesh.
+ */
+export const HOME_EVENTS_ARGS = { page: 1, limit: 24, sortBy: "event_date", sortOrder: "desc" };
+
 export const eventsApi = createApi({
   reducerPath: "eventsApi",
 
@@ -50,7 +56,6 @@ export const eventsApi = createApi({
         search,
         sortBy,
         sortOrder = "desc",
-        upcoming,
       } = {}) => ({
         url: "/events",
 
@@ -62,8 +67,7 @@ export const eventsApi = createApi({
           search: search || undefined,
           sortBy: sortBy || undefined,
           sortOrder,
-          // Swagger: GET /events?upcoming=true — faqat kelayotganlar
-          upcoming: upcoming ? true : undefined,
+          // O'tgan/kelayotgan bo'yicha filtr YO'Q — barcha tadbirlar
         },
       }),
 
@@ -86,42 +90,6 @@ export const eventsApi = createApi({
                 id: "LIST",
               },
             ],
-    }),
-
-    // Ixtiyoriy pozitsiyadan (`offset`) boshlanadigan `limit` ta tadbir.
-    // Backend sahifa raqami bilan ishlaydi, shuning uchun oyna 1–2 ta
-    // server sahifasidan yig'iladi. O'tgan tadbirlar uchun kerak: backend
-    // `upcoming=false` ni qanday talqin qilishi noma'lum (parametr qat'iy
-    // tekshirilmaydi — `upcoming=abc` ham 200), shuning uchun o'tganlar
-    // `event_date desc` ro'yxatida kelayotganlardan KEYIN turgan qism
-    // sifatida olinadi.
-    getEventsWindow: builder.query({
-      async queryFn({ offset = 0, limit = 12, ...params }, _api, _extra, baseQuery) {
-        const fetchPage = (page) =>
-          baseQuery({ url: "/events", method: "GET", params: { ...params, page, limit } });
-
-        const firstPage = Math.floor(offset / limit) + 1;
-        const skip = offset % limit;
-
-        const first = await fetchPage(firstPage);
-        if (first.error) return { error: first.error };
-
-        let items = (first.data?.data ?? []).slice(skip);
-        const total = first.data?.meta?.total ?? 0;
-
-        // Oyna keyingi sahifaga o'tib ketadi
-        if (skip > 0 && items.length < limit && first.data?.meta?.hasNextPage) {
-          const second = await fetchPage(firstPage + 1);
-          if (second.error) return { error: second.error };
-          items = items.concat((second.data?.data ?? []).slice(0, limit - items.length));
-        }
-
-        return { data: { data: items.slice(0, limit), meta: { total } } };
-      },
-      providesTags: (result) => [
-        ...(result?.data ?? []).map((item) => ({ type: "Events", id: item.id })),
-        { type: "Events", id: "LIST" },
-      ],
     }),
 
     getEventById: builder.query({
@@ -150,8 +118,6 @@ export const eventsApi = createApi({
     search = "",
     sortBy,
     sortOrder = "desc",
-    upcoming,
-  
   } = {}) => ({
     url: "/events/admin",
     method: "GET",
@@ -161,8 +127,6 @@ export const eventsApi = createApi({
       search,
       sortBy,
       sortOrder,
-      upcoming,
-
     },
   }),
 
@@ -294,7 +258,6 @@ export const eventsApi = createApi({
 
 export const {
   useGetEventsQuery,
-  useGetEventsWindowQuery,
   useGetAdminEventsQuery,
   useGetEventByIdQuery,
   useCreateEventMutation,

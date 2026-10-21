@@ -10,14 +10,16 @@
     "bookOrder": "Kitobga buyurtma",
     "onlineMessage": "Online murojaat",
     "virtualReference": "Virtual ma'lumotnoma",
-    "news": "E'lonlar",
+    "news": "Yangiliklar",
     "events": "Tadbirlar",
     "contact": "Aloqa",
     "openMenu": "Menyuni ochish",
     "closeMenu": "Menyuni yopish",
     "faq": "Ko'p so'raladigan savollar",
     "privacy": "Maxfiylik siyosati",
-    "authors": "Mualliflar"
+    "authors": "Mualliflar",
+    "announcements": "E'lonlar",
+    "guides": "Qo'llanmalar"
   },
   "hero": {
     "eyebrow": "CHINOZ AXBOROT-KUTUBXONA MARKAZI",
@@ -26,9 +28,9 @@
     "next": "Keyingi slayd"
   },
   "announcements": {
-    "title": "YANGILIKLAR VA E'LONLAR",
+    "title": "E'LONLAR",
     "heading": "E'lonlar",
-    "description": "Kutubxona faoliyati, yangiliklari va muhim e'lonlar.",
+    "description": "Kutubxona faoliyati va muhim e'lonlar.",
     "home": "Bosh sahifa",
     "category": "E'lon",
     "details": "Batafsil",
@@ -36,11 +38,16 @@
     "empty": "Hozircha e'lonlar mavjud emas.",
     "error": "E'lonlarni yuklashda xatolik yuz berdi.",
     "back": "E'lonlarga qaytish",
-    "loading": "Yangilik yuklanmoqda",
+    "loading": "E'lon yuklanmoqda",
     "notFound": "E'lon topilmadi",
-    "notFoundDesc": "Ushbu yangilik mavjud emas yoki o‘chirib yuborilgan.",
+    "notFoundDesc": "Ushbu e'lon mavjud emas yoki o‘chirib yuborilgan.",
     "updated": "Yangilangan sana",
-    "all": "Barcha e'lonlar"
+    "all": "Barcha e'lonlar",
+    "metaTotal": "yozuv",
+    "published": "e'lon qilingan",
+    "more": "Yana",
+    "notFoundHint": "Havola eskirgan yoki yozuv o'chirilgan bo'lishi mumkin.",
+    "moreTitle": "Boshqa e'lonlar"
   },
   "newBooks": {
     "badge": "KUTUBXONA FONDI",
@@ -160,11 +167,6 @@
     "notFoundDesc": "Ushbu tadbir mavjud emas yoki o‘chirib yuborilgan.",
     "all": "Barcha tadbirlar",
     "metaTotal": "tadbir",
-    "metaUpcoming": "yaqin",
-    "upcoming": "Kelayotgan",
-    "past": "O'tgan",
-    "emptyUpcoming": "Yaqin tadbirlar yo'q",
-    "emptyPast": "O'tgan tadbirlar yo'q",
     "emptyHint": "Tadbirlar e'lon qilinganda shu yerda paydo bo'ladi.",
     "date": "Sana",
     "location": "Joy",
@@ -492,7 +494,7 @@
       "all": "Barcha yangiliklar"
     },
     "events": {
-      "title": "Yaqin tadbirlar",
+      "title": "Tadbirlar",
       "lede": "Kutubxonada o'tkaziladigan madaniy-ma'rifiy tadbirlar.",
       "all": "Barcha tadbirlar",
       "allMonths": "Barchasi"
@@ -511,11 +513,24 @@
     }
   },
   "news": {
-    "metaTotal": "yozuv",
+    "metaTotal": "post",
     "published": "e'lon qilingan",
     "more": "Yana",
     "moreTitle": "Boshqa yangiliklar",
-    "notFoundHint": "Havola eskirgan yoki yozuv o'chirilgan bo'lishi mumkin."
+    "notFoundHint": "Havola eskirgan yoki yozuv o'chirilgan bo'lishi mumkin.",
+    "title": "YANGILIKLAR",
+    "heading": "Yangiliklar",
+    "description": "Kutubxonaning har kungi faoliyatidan fotolavhalar va yangiliklar.",
+    "category": "Yangilik",
+    "empty": "Hozircha yangiliklar yo'q.",
+    "error": "Yangiliklarni yuklashda xatolik yuz berdi.",
+    "loading": "Yangilik yuklanmoqda",
+    "notFound": "Yangilik topilmadi",
+    "back": "Yangiliklarga qaytish",
+    "today": "Bugun",
+    "yesterday": "Kecha",
+    "postsCount": "{{count}} ta post",
+    "photos": "{{count}} ta foto"
   },
   "cms": {
     "empty": "Sahifa matni kiritilmagan",
@@ -536,5 +551,15 @@
     "title": "Kirish taqiqlangan",
     "hint": "Agar bu xato bo'lsa, kutubxona administratoriga murojaat qiling.",
     "login": "Kirish"
+  },
+  "guides": {
+    "badge": "QO'LLANMALAR",
+    "heading": "Qo'llanmalar",
+    "description": "Kutubxona qo'llanmalari — PDF formatda ko'ring yoki yuklab oling.",
+    "metaTotal": "qo'llanma",
+    "empty": "Hozircha qo'llanmalar yo'q.",
+    "emptyHint": "Qo'llanmalar qo'shilganda shu yerda paydo bo'ladi.",
+    "error": "Qo'llanmalarni yuklashda xatolik yuz berdi.",
+    "download": "Yuklab olish"
   }
 }

@@ -89,7 +89,7 @@ export default function Links() {
   // tartibda; qidiruv va paginatsiya kerak emas
   const { data, isLoading, isFetching, error, refetch } = useGetAllUsefulLinksQuery({
     page: 1,
-    limit: 100,
+    limit: 50,
   });
   
 

@@ -11,13 +11,6 @@ import { SearchInput } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
 import { AdminErrorState, RowActions, TableSkeleton } from "./components/AdminUI";
 
-// is_read filtri (Swagger: GET /contact/messages?is_read=true|false)
-const READ_FILTERS = [
-  { key: "", label: "Hammasi" },
-  { key: "unread", label: "O‘qilmagan" },
-  { key: "read", label: "O‘qilgan" },
-];
-
 import {
   useGetContactMessagesQuery,
   useGetContactMessageByIdQuery,
@@ -32,15 +25,14 @@ export default function ContactMessages() {
 
   const [search, setSearch] = useState("");
 
-  const [readFilter, setReadFilter] = useState("");
-
   // ================= LIST =================
 
+  // Barcha xabarlar. `is_read` filtri YUBORILMAYDI — backend uni qo'llab
+  // quvvatlamaydi (so'rov xato qaytaradi), Swaggerda esa ko'rsatilgan.
   const { data, isLoading, error, isFetching, refetch } = useGetContactMessagesQuery({
     page,
     limit: 20,
     search,
-    is_read: readFilter === "" ? undefined : readFilter === "read",
   });
 
   const [deleteContactMessage, { isLoading: isDeleting }] =
@@ -72,10 +64,6 @@ export default function ContactMessages() {
   };
 
   const closeDetail = () => {
-    // Backend xabarni ochilganda (GET /contact/messages/{id}) o'qilgan deb
-    // belgilashi mumkin — o'qilmagan xabar yopilganda ro'yxatni bir marta
-    // yangilaymiz, belgi to'g'ri ko'rinsin. Alohida "o'qildi" endpointi yo'q.
-    if (selectedMessage && !selectedMessage.is_read) refetch();
     setSelectedMessage(null);
   };
 
@@ -114,35 +102,14 @@ export default function ContactMessages() {
           mb-6
         "
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <SearchInput
-            value={search}
-            onChange={(value) => {
-              setSearch(value);
-              setPage(1);
-            }}
-            placeholder="Xabar qidirish..."
-          />
-
-          <div role="group" aria-label="O‘qilganlik bo‘yicha" className="flex rounded-lg bg-slate-100 p-1">
-            {READ_FILTERS.map((f) => (
-              <button
-                key={f.key || "all"}
-                type="button"
-                aria-pressed={readFilter === f.key}
-                onClick={() => {
-                  setReadFilter(f.key);
-                  setPage(1);
-                }}
-                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                  readFilter === f.key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <SearchInput
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
+          placeholder="Xabar qidirish..."
+        />
       </div>
 
       {isLoading ? (
@@ -151,7 +118,7 @@ export default function ContactMessages() {
         <AdminErrorState title="Xabarlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : messages.length === 0 ? (
         <AdminEmptyState
-          title={search || readFilter ? "Filtr bo‘yicha xabar topilmadi" : "Hozircha xabar yo‘q"}
+          title={search ? "Qidiruv bo‘yicha xabar topilmadi" : "Hozircha xabar yo‘q"}
           icon={MessageCircle}
         />
       ) : (
@@ -162,10 +129,8 @@ export default function ContactMessages() {
             isFetching ? "opacity-60" : ""
           }`}
         >
-          {messages.map((item) => {
-            const unread = item.is_read === false;
-            return (
-              <li key={item.id}>
+          {messages.map((item) => (
+            <li key={item.id}>
                 <div
                   role="button"
                   tabIndex={0}
@@ -178,34 +143,26 @@ export default function ContactMessages() {
                   }}
                   className="flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none"
                 >
-                  <span
-                    aria-label={unread ? "O‘qilmagan" : "O‘qilgan"}
-                    className={`h-2 w-2 shrink-0 rounded-full ${unread ? "bg-green-600" : "bg-transparent"}`}
-                  />
-
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-3">
-                      <p className={`truncate text-sm ${unread ? "font-semibold text-slate-900" : "text-slate-700"}`}>
+                      <p className="truncate text-sm font-medium text-slate-900">
                         {item.full_name || "Ismsiz"}
                       </p>
                       <span className="hidden shrink-0 truncate text-xs text-slate-400 sm:inline">
                         {item.phone || item.email || ""}
                       </span>
                     </div>
-                    <p className={`truncate text-sm ${unread ? "text-slate-700" : "text-slate-500"}`}>
-                      {item.message || "—"}
-                    </p>
+                    <p className="truncate text-sm text-slate-500">{item.message || "—"}</p>
                   </div>
 
-                  <span className={`shrink-0 text-xs tabular-nums ${unread ? "font-semibold text-slate-700" : "text-slate-400"}`}>
+                  <span className="shrink-0 text-xs text-slate-400 tabular-nums">
                     {formatDate(item.created_at)}
                   </span>
 
                   <RowActions onDelete={() => setDeleteTarget(item)} />
                 </div>
-              </li>
-            );
-          })}
+            </li>
+          ))}
         </ul>
       )}
 

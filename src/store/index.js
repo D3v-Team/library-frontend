@@ -20,6 +20,7 @@ import { onlineRequestsApi } from "./services/requests";
 import { pagesApi } from "./services/pages"; 
 import { statisticsApi } from "./services/statistics.api";
 import { newsApi } from "./services/news.api";
+import { guidesApi } from "./services/guides.api";
 
 import authReducer from "./slices/auth.slice";
 
@@ -45,6 +46,7 @@ export const store = configureStore({
     [pagesApi.reducerPath]: pagesApi.reducer, // <- QO'SHILDI
     [statisticsApi.reducerPath]: statisticsApi.reducer,
     [newsApi.reducerPath]: newsApi.reducer,
+    [guidesApi.reducerPath]: guidesApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -67,6 +69,7 @@ export const store = configureStore({
       pagesApi.middleware, 
       statisticsApi.middleware,
       newsApi.middleware,
+      guidesApi.middleware,
     ),
 });
 

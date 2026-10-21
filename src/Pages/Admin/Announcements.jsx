@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import {
   CalendarDays,
   ImageIcon,
+  Images,
   Megaphone,
 } from "lucide-react";
 
@@ -13,16 +14,20 @@ import Modal from "./components/Modal";
 import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
 import ImageUploadField from "./components/ImageUploadField";
+import { ImageGalleryManager, MultiImagePicker } from "./components/MultiImageField";
 import Pagination from "./components/Pagination";
 import { SearchInput } from "./components/ListControls";
 import AdminEmptyState from "./components/AdminEmptyState";
 
 import {
-  useGetAnnouncementsQuery,
+  useGetAdminAnnouncementsQuery,
   useCreateAnnouncementMutation,
   useUpdateAnnouncementMutation,
   useDeleteAnnouncementMutation,
   useToggleAnnouncementPublishMutation,
+  useUploadAnnouncementImagesMutation,
+  useSetMainAnnouncementImageMutation,
+  useDeleteAnnouncementImageMutation,
 } from "../../store/services/announcements.api";
 
 import { BASE_URL } from "../../store/api";
@@ -52,14 +57,16 @@ export default function Announcements() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ ...emptyForm });
   const [file, setFile] = useState(null);
+  const [images, setImages] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [activeLang, setActiveLang] = useState("latin");
   const [errors, setErrors] = useState({});
   const [pendingId, setPendingId] = useState(null);
 
-  const { data, isLoading, isFetching, error, refetch } = useGetAnnouncementsQuery({
+  // GET /announcements/admin — chop etilgan va yashirin, hammasi
+  const { data, isLoading, isFetching, error, refetch } = useGetAdminAnnouncementsQuery({
     page,
-    limit: 10,
+    limit: 12,
     search,
   });
 
@@ -71,7 +78,42 @@ export default function Announcements() {
     useDeleteAnnouncementMutation();
   const [togglePublish] = useToggleAnnouncementPublishMutation();
 
+  const [uploadImages] = useUploadAnnouncementImagesMutation();
+  const [setMainImage] = useSetMainAnnouncementImageMutation();
+  const [deleteImage] = useDeleteAnnouncementImageMutation();
+
   const items = data?.data ?? [];
+  // Tahrirlanayotgan e'lon ro'yxatdan jonli o'qiladi: rasm yuklash /
+  // o'chirishdan keyin ro'yxat qayta yuklanadi va galereya yangilanadi
+  const editingLive = (editing && items.find((i) => i.id === editing.id)) || editing;
+
+  const handleUploadImages = async (files) => {
+    try {
+      await uploadImages({ id: editing.id, files }).unwrap();
+    } catch (err) {
+      toast.error(apiError(err, "Rasmlarni yuklashda xatolik"));
+      throw err;
+    }
+  };
+
+  const handleSetMainImage = async (imageId) => {
+    try {
+      await setMainImage({ id: editing.id, imageId }).unwrap();
+      toast.success("Muqova o‘zgartirildi");
+    } catch (err) {
+      toast.error(apiError(err, "Muqovani o‘zgartirib bo‘lmadi"));
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    try {
+      await deleteImage({ id: editing.id, imageId }).unwrap();
+      toast.success("Rasm o‘chirildi");
+    } catch (err) {
+      toast.error(apiError(err, "Rasmni o‘chirishda xatolik"));
+    }
+  };
+
   const totalPages = data?.meta?.totalPages ?? 1;
   const isSaving = isCreating || isUpdating;
 
@@ -79,6 +121,7 @@ export default function Announcements() {
     setEditing(null);
     setForm({ ...emptyForm });
     setFile(null);
+    setImages([]);
     setActiveLang("latin");
     setErrors({});
     setModalOpen(true);
@@ -88,6 +131,7 @@ export default function Announcements() {
     setEditing(item);
     setForm({ ...emptyForm, ...item });
     setFile(null);
+    setImages([]);
     setActiveLang("latin");
     setErrors({});
     setModalOpen(true);
@@ -119,8 +163,8 @@ export default function Announcements() {
       const changed = {};
       const initial = editing;
 
-      // Barcha maydonlarni tekshiramiz
-      Object.keys(form).forEach((key) => {
+      // Faqat DTO maydonlari (formada e'lonning boshqa maydonlari ham bor)
+      Object.keys(emptyForm).forEach((key) => {
         if (key === 'cover_image') {
           // Rasm alohida tekshiriladi
           if (file !== null && file !== undefined) {
@@ -162,6 +206,7 @@ export default function Announcements() {
       payload = {
         ...form,
         cover_image: file ?? undefined,
+        images: images.length ? images : undefined,
         is_public: Boolean(form.is_public),
       };
     }
@@ -228,13 +273,6 @@ export default function Announcements() {
         onAction={openCreate}
       />
 
-      {/* Backend cheklovi: GET /announcements faqat chop etilganlarni beradi */}
-      <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        Yashirilgan e&apos;lonlar sahifa yangilangandan keyin ro&apos;yxatda ko&apos;rinmaydi —
-        backendda admin uchun barcha e&apos;lonlar ro&apos;yxati hali yo&apos;q. E&apos;lonni yashirishdan
-        oldin shuni hisobga oling.
-      </div>
-
       <div className="mb-5">
         <SearchInput
           value={search}
@@ -280,6 +318,12 @@ export default function Announcements() {
                     <div className="flex h-full items-center justify-center text-slate-400">
                       <ImageIcon />
                     </div>
+                  )}
+                  {item.images?.length > 0 && (
+                    <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[11px] font-medium text-white">
+                      <Images size={12} />
+                      {item.images.length}
+                    </span>
                   )}
                 </div>
 
@@ -367,10 +411,22 @@ export default function Announcements() {
           <ImageUploadField
             label="Muqova rasmi"
             value={file}
-            existingUrl={editing?.cover_image}
+            existingUrl={editingLive?.cover_image}
             onChange={setFile}
             maxSizeMb={5}
           />
+
+          {editing ? (
+            <ImageGalleryManager
+              label="E'lon rasmlari"
+              images={editingLive?.images ?? []}
+              onUpload={handleUploadImages}
+              onSetMain={handleSetMainImage}
+              onDelete={handleDeleteImage}
+            />
+          ) : (
+            <MultiImagePicker label="E'lon rasmlari" value={images} onChange={setImages} />
+          )}
 
           <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
             <input
@@ -379,7 +435,7 @@ export default function Announcements() {
               onChange={(e) => changeField("is_public", e.target.checked)}
               className="h-4 w-4 rounded"
             />
-            Saytda ko'rsatish
+            Saytda ko‘rsatish
           </label>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">

@@ -23,6 +23,7 @@ import {
   Book,
   Package,
   BarChart3,
+  BookMarked,
 } from 'lucide-react';
 
 export const ADMIN_MENU = [
@@ -63,6 +64,11 @@ export const ADMIN_MENU = [
     label: 'Kitoblar',
     path: '/admin/books',
     icon: BookOpen,
+  },
+  {
+    label: 'Qo\'llanmalar',
+    path: '/admin/guides',
+    icon: BookMarked,
   },
   {
     label: 'Janrlar',

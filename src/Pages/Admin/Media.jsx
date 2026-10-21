@@ -567,7 +567,6 @@ const handleUploadSubmit = useCallback(async () => {
             label="Cover rasm"
             value={form.cover_image}
             onChange={(file) => changeField("cover_image", file)}
-            accept="image/*"
           />
 
           <label className="flex items-center gap-3 text-sm text-slate-700">

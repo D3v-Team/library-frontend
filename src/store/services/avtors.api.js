@@ -82,7 +82,7 @@ export const authorsApi = createApi({
           const res = await baseQuery({
             url: "/authors",
             method: "GET",
-            params: { page, limit: 100, search, sortBy: "birth_date", sortOrder: "asc" },
+            params: { page, limit: 50, search, sortBy: "birth_date", sortOrder: "asc" },
           });
           if (res.error) return { error: res.error };
 

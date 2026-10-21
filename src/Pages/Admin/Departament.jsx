@@ -277,13 +277,14 @@ export default function Departament() {
         />
       </div>
 
-      {/* Xodimlar ro'yxati — kartochkalar, chunki asosiy ma'lumot SURAT.
-          Ilgari kartochkada surat ham, tartib raqami ham yo'q edi. */}
+      {/* Xodimlar — ixcham profil kartochkalari: dumaloq surat (bo'lmasa
+          bosh harf) + ism, lavozim. Ilgari 4:5 surat qutisi edi va surat
+          yo'q xodimda kartochka katta bo'sh maydon bo'lib qolardi. */}
       {isLoading ? (
         <CardGridSkeleton
           count={8}
-          media="4/5"
-          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+          media="none"
+          className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
         />
       ) : error ? (
         <AdminErrorState title="Xodimlarni yuklashda xatolik yuz berdi" onRetry={refetch} />
@@ -291,54 +292,58 @@ export default function Departament() {
         <AdminEmptyState title={search ? "Qidiruv bo‘yicha xodim topilmadi" : "Xodimlar qo‘shilmagan"} icon={Users} />
       ) : (
         <div
-          className={`grid gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 ${
+          className={`grid gap-5 transition-opacity sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${
             isFetching ? "opacity-60" : ""
           }`}
         >
           {departments.map((item) => {
             const photo = photoUrl(item.member_photo);
-            const surname = String(item.full_name_latin || "?").trim().charAt(0).toUpperCase();
+            const initial = String(item.full_name_latin || "?").trim().charAt(0).toUpperCase();
             return (
               <article
                 key={item.id}
                 className="flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
               >
-                <div className="relative aspect-[4/5] shrink-0 overflow-hidden bg-slate-100">
-                  {photo ? (
-                    <img
-                      src={photo}
-                      alt={item.full_name_latin || ""}
-                      loading="lazy"
-                      className={`absolute inset-0 h-full w-full object-cover ${item.is_active ? "" : "opacity-50 grayscale"}`}
-                    />
-                  ) : (
-                    <span className="absolute inset-0 flex items-center justify-center text-5xl font-semibold text-slate-300">
-                      {surname}
-                    </span>
-                  )}
-                  <span
-                    className="absolute left-3 top-3 rounded-md bg-slate-900/80 px-2 py-1 text-xs font-semibold text-white"
-                    title="Saytdagi tartib raqami"
-                  >
-                    #{item.position_order ?? "—"}
-                  </span>
-                </div>
-
-                <div className="flex flex-1 flex-col gap-1.5 p-4">
-                  <h3 className="line-clamp-2 min-h-[2.75rem] font-semibold leading-snug text-slate-900">
-                    {item.full_name_latin || "Ism kiritilmagan"}
-                  </h3>
-                  <p className="line-clamp-2 min-h-[2.5rem] text-sm leading-5 text-slate-500">
-                    {item.position_latin || <span className="italic text-slate-400">Lavozim ko‘rsatilmagan</span>}
-                  </p>
-                  <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-                    <LangDots record={item} field="full_name" />
-                    {item.phone && (
-                      <span className="inline-flex items-center gap-1 text-xs text-slate-400">
-                        <Phone size={12} />
-                        {item.phone}
+                <div className="flex flex-1 items-start gap-4 p-4">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200">
+                    {photo ? (
+                      <img
+                        src={photo}
+                        alt={item.full_name_latin || ""}
+                        loading="lazy"
+                        className={`absolute inset-0 h-full w-full object-cover ${item.is_active ? "" : "opacity-50 grayscale"}`}
+                      />
+                    ) : (
+                      <span className="absolute inset-0 flex items-center justify-center text-xl font-semibold text-slate-400">
+                        {initial}
                       </span>
                     )}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="line-clamp-2 min-w-0 break-words font-semibold leading-snug text-slate-900">
+                        {item.full_name_latin || "Ism kiritilmagan"}
+                      </h3>
+                      <span
+                        className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-slate-600"
+                        title="Saytdagi tartib raqami"
+                      >
+                        #{item.position_order ?? "—"}
+                      </span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-500">
+                      {item.position_latin || <span className="italic text-slate-400">Lavozim ko‘rsatilmagan</span>}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <LangDots record={item} field="full_name" />
+                      {item.phone && (
+                        <span className="inline-flex items-center gap-1 text-xs text-slate-400">
+                          <Phone size={12} />
+                          {item.phone}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { CalendarDays, ImageIcon, Newspaper } from "lucide-react";
+import { CalendarDays, ImageIcon, Images, Newspaper } from "lucide-react";
 
 import AdminPageHeader from "./components/AdminPageHeader";
 import AdminEmptyState from "./components/AdminEmptyState";
@@ -8,6 +8,7 @@ import Modal from "./components/Modal";
 import ConfirmDialog from "./components/ConfirmDialog";
 import FormField from "./components/FormField";
 import ImageUploadField from "./components/ImageUploadField";
+import { ImageGalleryManager, MultiImagePicker } from "./components/MultiImageField";
 import Pagination from "./components/Pagination";
 import { SearchInput } from "./components/ListControls";
 import {
@@ -20,9 +21,13 @@ import {
 
 import {
   useCreateNewsMutation,
+  useDeleteNewsImageMutation,
   useDeleteNewsMutation,
+  useGetAdminNewsByIdQuery,
   useGetAdminNewsQuery,
+  useSetMainNewsImageMutation,
   useUpdateNewsMutation,
+  useUploadNewsImagesMutation,
 } from "../../store/services/news.api";
 import { BASE_URL } from "../../store/api";
 import apiError from "../../lib/apiError";
@@ -30,9 +35,17 @@ import apiError from "../../lib/apiError";
 /**
  * Yangiliklar — admin boshqaruvi (backenddagi /news moduli).
  *
- * E'lonlar bilan bir xil tuzilma: sarlavha va matn uch tilda, muqova,
- * chop etish holati. Ro'yxat GET /news/admin — yashirinlari ham ko'rinadi.
+ * Sarlavha va matn uch tilda, muqova, 10 tagacha rasm, chop etish
+ * holati. Saytda /news sahifasi va bosh sahifadagi blokda chiqadi.
+ *
+ * Ro'yxat GET /news/admin — Swagger da `is_public` MAJBURIY, shuning
+ * uchun ikki bo'lim: saytda ko'rinadigan va yashirin.
  */
+const VISIBILITY = [
+  { value: true, label: "Saytda ko‘rinadi" },
+  { value: false, label: "Yashirin" },
+];
+
 const LANGS = [
   { key: "latin", label: "Lotin" },
   { key: "cyril", label: "Kirill" },
@@ -58,6 +71,8 @@ const plain = (html) => String(html ?? "").replace(/<[^>]*>/g, " ").replace(/\s+
 export default function News() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+  const [images, setImages] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -66,10 +81,53 @@ export default function News() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [pendingId, setPendingId] = useState(null);
 
-  const { data, isLoading, isFetching, error, refetch } = useGetAdminNewsQuery({ page, limit: 12, search });
+  const { data, isLoading, isFetching, error, refetch } = useGetAdminNewsQuery({
+    page,
+    limit: 12,
+    search,
+    is_public: isPublic,
+  });
   const [createNews, { isLoading: isCreating }] = useCreateNewsMutation();
   const [updateNews, { isLoading: isUpdating }] = useUpdateNewsMutation();
   const [deleteNews, { isLoading: isDeleting }] = useDeleteNewsMutation();
+
+  // Tahrirlashda rasmlar serverdan jonli o'qiladi; `currentData` —
+  // boshqa yangilikka o'tganda oldingisining rasmlari ko'rinmasin
+  const { currentData: editingData, isFetching: isEditingFetching } = useGetAdminNewsByIdQuery(
+    editing?.id,
+    { skip: !editing?.id },
+  );
+  const editingNews = editingData?.data ?? editingData ?? editing;
+  const [uploadNewsImages] = useUploadNewsImagesMutation();
+  const [setMainNewsImage] = useSetMainNewsImageMutation();
+  const [deleteNewsImage] = useDeleteNewsImageMutation();
+
+  const handleUploadImages = async (files) => {
+    try {
+      await uploadNewsImages({ id: editing.id, files }).unwrap();
+    } catch (err) {
+      toast.error(apiError(err, "Rasmlarni yuklashda xatolik"));
+      throw err;
+    }
+  };
+
+  const handleSetMainImage = async (imageId) => {
+    try {
+      await setMainNewsImage({ id: editing.id, imageId }).unwrap();
+      toast.success("Muqova o‘zgartirildi");
+    } catch (err) {
+      toast.error(apiError(err, "Muqovani o‘zgartirib bo‘lmadi"));
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    try {
+      await deleteNewsImage({ id: editing.id, imageId }).unwrap();
+      toast.success("Rasm o‘chirildi");
+    } catch (err) {
+      toast.error(apiError(err, "Rasmni o‘chirishda xatolik"));
+    }
+  };
 
   const items = data?.data ?? [];
   const totalPages = data?.meta?.totalPages ?? 1;
@@ -79,6 +137,7 @@ export default function News() {
     setEditing(null);
     setForm(emptyForm);
     setFile(null);
+    setImages([]);
     setActiveLang("latin");
     setModalOpen(true);
   };
@@ -90,6 +149,7 @@ export default function News() {
       is_public: item.is_public ?? true,
     });
     setFile(null);
+    setImages([]);
     setActiveLang("latin");
     setModalOpen(true);
   };
@@ -132,7 +192,11 @@ export default function News() {
         await updateNews({ id: editing.id, ...changed }).unwrap();
         toast.success("Yangilik yangilandi");
       } else {
-        await createNews({ ...form, cover_image: file ?? undefined }).unwrap();
+        await createNews({
+          ...form,
+          cover_image: file ?? undefined,
+          images: images.length ? images : undefined,
+        }).unwrap();
         toast.success("Yangilik qo‘shildi");
       }
       closeModal();
@@ -172,7 +236,24 @@ export default function News() {
         onAction={openCreate}
       />
 
-      <div className="mb-5">
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="flex gap-1 rounded-lg bg-slate-100 p-1">
+          {VISIBILITY.map((v) => (
+            <button
+              key={String(v.value)}
+              type="button"
+              onClick={() => {
+                setIsPublic(v.value);
+                setPage(1);
+              }}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                isPublic === v.value ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
         <SearchInput
           value={search}
           onChange={(v) => {
@@ -188,11 +269,18 @@ export default function News() {
       ) : error ? (
         <AdminErrorState title="Yangiliklarni yuklashda xatolik yuz berdi" onRetry={refetch} />
       ) : items.length === 0 ? (
-        <AdminEmptyState title={search ? "Qidiruv bo‘yicha topilmadi" : "Yangiliklar hali qo‘shilmagan"} icon={Newspaper} />
+        <AdminEmptyState title={
+            search
+              ? "Qidiruv bo‘yicha topilmadi"
+              : isPublic
+                ? "Saytda ko‘rinadigan yangiliklar yo‘q"
+                : "Yashirin yangiliklar yo‘q"
+          } icon={Newspaper} />
       ) : (
         <div className={`grid gap-5 transition-opacity md:grid-cols-2 xl:grid-cols-3 ${isFetching ? "opacity-60" : ""}`}>
           {items.map((item) => {
-            const cover = imageUrl(item.cover_image);
+            const main = item.images?.find((img) => img.is_main) ?? item.images?.[0];
+            const cover = imageUrl(item.cover_image || main?.url);
             const preview = plain(item.content_latin);
             return (
               <article
@@ -210,6 +298,12 @@ export default function News() {
                   ) : (
                     <span className="absolute inset-0 flex items-center justify-center text-slate-400">
                       <ImageIcon />
+                    </span>
+                  )}
+                  {item.images?.length > 0 && (
+                    <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[11px] font-medium text-white">
+                      <Images size={12} />
+                      {item.images.length}
                     </span>
                   )}
                 </div>
@@ -286,10 +380,23 @@ export default function News() {
           <ImageUploadField
             label="Muqova rasmi"
             value={file}
-            existingUrl={editing?.cover_image}
+            existingUrl={editingNews?.cover_image}
             onChange={setFile}
             maxSizeMb={5}
           />
+
+          {editing ? (
+            <ImageGalleryManager
+              label="Yangilik rasmlari"
+              images={editingNews?.images ?? []}
+              isLoading={isEditingFetching && !editingData}
+              onUpload={handleUploadImages}
+              onSetMain={handleSetMainImage}
+              onDelete={handleDeleteImage}
+            />
+          ) : (
+            <MultiImagePicker label="Yangilik rasmlari" value={images} onChange={setImages} />
+          )}
 
           <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
             <input

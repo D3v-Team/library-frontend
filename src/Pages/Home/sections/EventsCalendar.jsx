@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import cx from "../../../lib/cx";
 import { useLocalized } from "../../../lib/useLocalized";
-import { useGetEventsQuery } from "../../../store/services/events";
+import { HOME_EVENTS_ARGS, useGetEventsQuery } from "../../../store/services/events";
 import { Button, EmptyState, Reveal, Skeleton } from "../../../ui";
 import { SectionHeader } from "../../../patterns";
 
@@ -23,16 +23,9 @@ export default function EventsCalendar() {
   const { t } = useTranslation();
   const { pick, formatMonth } = useLocalized();
 
-  // Faqat KELAYOTGANLAR, eng yaqini birinchi. Ilgari oxirgi yaratilgan 24
-  // ta olinardi — "Yaqin tadbirlar" ga o'tganlari ham tushardi.
-  // Oy lentasi shu eng yaqin 24 tadan tuziladi (oylar ketma-ket).
-  const { data, isLoading, error } = useGetEventsQuery({
-    page: 1,
-    limit: 24,
-    upcoming: true,
-    sortBy: "event_date",
-    sortOrder: "asc",
-  });
+  // Barcha tadbirlar — o'tgan/kelayotgan bo'yicha filtrlanmaydi.
+  // Oy lentasi shu 24 tadan tuziladi.
+  const { data, isLoading, error } = useGetEventsQuery(HOME_EVENTS_ARGS);
   const [month, setMonth] = useState(null);
 
   /* `data?.data ?? []` har renderda YANGI massiv qaytaradi, ya'ni

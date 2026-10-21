@@ -16,7 +16,7 @@ function toUploadFormData(fileOrFiles) {
 }
 
 /** Backend `limit` ni shu songa qirqadi (o'lchab tekshirilgan) */
-const BACKEND_MAX_LIMIT = 100;
+const BACKEND_MAX_LIMIT = 50;
 
 const byNewest = (a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? ""));
 

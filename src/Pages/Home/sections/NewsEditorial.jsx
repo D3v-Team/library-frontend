@@ -1,43 +1,38 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Images } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useLocalized } from "../../../lib/useLocalized";
-import { useGetAnnouncementsQuery } from "../../../store/services/announcements.api";
-import { BASE_URL } from "../../../store/api";
+import { HOME_NEWS_ARGS, useGetNewsQuery } from "../../../store/services/news.api";
 import { Button, EmptyState, Reveal, Skeleton } from "../../../ui";
 import { SectionHeader } from "../../../patterns";
+import { newsCover, newsDate, photoCount, plainText } from "../../News/newsHelpers";
 
 /**
- * 04 — E'lonlar va yangiliklar. Redaksion tuzilma.
+ * 03 — Yangiliklar: kutubxonaning har kungi faoliyatidan fotolavhalar
+ * (backend: GET /news).
  *
- * Audit topilmasi: eski blok e'lonlarni 3 sekundda AVTOMATIK
- * almashtiradigan karusel edi — matnni o'qiyotgan odam uni yo'qotardi.
- * Bundan tashqari hamma e'lon bir xil vaznda ko'rinardi.
- *
- * Endi haqiqiy ierarxiya: bitta yetakchi yangilik (rasm + lid) va
- * yonida ixcham qatorlar (sana + sarlavha). Avtomatik almashinuv yo'q.
+ * Bitta yetakchi post (katta foto + lid) va yonida ixcham qatorlar
+ * (kichik foto + sana + sarlavha). Avtomatik almashinuv yo'q — o'qiyotgan odam
+ * matnni yo'qotmaydi.
  */
-const imageUrl = (path) => {
-  if (!path) return null;
-  return path.startsWith("http") ? path : `${BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-};
-
 export default function NewsEditorial() {
   const { t } = useTranslation();
   const { pick, formatDate } = useLocalized();
 
-  const { data, isLoading, error } = useGetAnnouncementsQuery({ page: 1, limit: 5 });
+  const { data, isLoading, error } = useGetNewsQuery(HOME_NEWS_ARGS);
 
-  const items = (data?.data ?? []).filter((i) => i.is_public !== false);
+  const items = data?.data ?? [];
   const [lead, ...rest] = items;
+  const leadCover = lead ? newsCover(lead) : null;
+  const leadText = lead ? plainText(pick(lead, "content")) : "";
 
   return (
     <section className="mx-auto w-full max-w-container px-gut py-16 sm:py-20">
       <SectionHeader
-        eyebrow={t("announcements.title")}
-        title={t("announcements.heading")}
-        lede={t("announcements.description")}
+        eyebrow={t("news.title")}
+        title={t("news.heading")}
+        lede={t("news.description")}
         action={
           <Button variant="secondary" to="/news" iconEnd={<ArrowRight size={16} />}>
             {t("home.news.all")}
@@ -47,7 +42,7 @@ export default function NewsEditorial() {
 
       <div className="mt-10">
         {error ? (
-          <EmptyState title={t("announcements.error")} />
+          <EmptyState title={t("news.error")} />
         ) : isLoading ? (
           <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
             <div className="flex flex-col gap-4">
@@ -65,21 +60,16 @@ export default function NewsEditorial() {
             </div>
           </div>
         ) : items.length === 0 ? (
-          <EmptyState title={t("announcements.empty")} />
+          <EmptyState title={t("news.empty")} />
         ) : (
           <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
             {/* ---------- Yetakchi yangilik ---------- */}
             <article>
-              {/* `u-lift` ATAYLAB yo'q: zamini va paddingi bo'lmagan blokda
-                  ko'tarilish soyasi matn atrofida osilib qolar va kartochka
-                  konteyner chekkasiga yopishib ko'rinardi. O'rniga rasm
-                  yengil kattalashadi va sarlavha rangi o'zgaradi — javob
-                  bor, lekin layout qimirlamaydi. */}
               <Link to={`/news/${lead.id}`} className="group block">
                 <span className="relative block aspect-[16/9] overflow-hidden rounded-card bg-ink-deep">
-                  {imageUrl(lead.cover_image) ? (
+                  {leadCover ? (
                     <img
-                      src={imageUrl(lead.cover_image)}
+                      src={leadCover}
                       alt=""
                       loading="lazy"
                       className="h-full w-full object-cover transition-transform duration-4 ease-out-soft group-hover:scale-[1.03]"
@@ -87,20 +77,26 @@ export default function NewsEditorial() {
                   ) : (
                     <span aria-hidden="true" className="girih-tile absolute inset-0" />
                   )}
+
+                  {photoCount(lead) > 1 && (
+                    <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-field bg-ink-deep/75 px-2 py-1 font-mono text-[0.72rem] text-white tabular backdrop-blur-sm">
+                      <Images size={13} strokeWidth={1.8} aria-hidden="true" />
+                      {t("news.photos", { count: photoCount(lead) })}
+                    </span>
+                  )}
                 </span>
 
                 <p className="mt-5 font-mono text-[0.74rem] uppercase tracking-[0.09em] text-gold-dim tabular">
-                  {formatDate(lead.published_at)}
+                  {formatDate(newsDate(lead))}
                 </p>
 
                 <h3 className="mt-2 font-display text-h3 font-semibold leading-snug text-fg transition-colors duration-1 ease-out-soft group-hover:text-accent">
                   {pick(lead, "title")}
                 </h3>
 
-                {pick(lead, "content") && (
+                {leadText && (
                   <p className="mt-3 line-clamp-3 max-w-measure font-sans text-[0.9rem] leading-relaxed text-fg-muted">
-                    {/* CMS dan HTML kelishi mumkin — teglarni olib tashlaymiz */}
-                    {String(pick(lead, "content")).replace(/<[^>]*>/g, " ")}
+                    {leadText}
                   </p>
                 )}
               </Link>
@@ -109,21 +105,33 @@ export default function NewsEditorial() {
             {/* ---------- Ixcham qatorlar ---------- */}
             {rest.length > 0 && (
               <Reveal as="ul" className="flex flex-col border-t border-line-soft">
-                {rest.map((item) => (
-                  <li key={item.id} className="border-b border-line-soft">
-                    <Link
-                      to={`/news/${item.id}`}
-                      className="-mx-3 block rounded-field px-3 py-4 transition-colors duration-1 ease-out-soft hover:bg-paper-3"
-                    >
-                      <p className="font-mono text-[0.72rem] text-fg-faint tabular">
-                        {formatDate(item.published_at)}
-                      </p>
-                      <h3 className="mt-1 line-clamp-2 font-display text-[0.98rem] font-medium leading-snug text-fg">
-                        {pick(item, "title")}
-                      </h3>
-                    </Link>
-                  </li>
-                ))}
+                {rest.map((item) => {
+                  const thumb = newsCover(item);
+                  return (
+                    <li key={item.id} className="border-b border-line-soft">
+                      <Link
+                        to={`/news/${item.id}`}
+                        className="-mx-3 flex items-center gap-4 rounded-field px-3 py-3.5 transition-colors duration-1 ease-out-soft hover:bg-paper-3"
+                      >
+                        <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-field bg-ink-deep">
+                          {thumb ? (
+                            <img src={thumb} alt="" loading="lazy" className="h-full w-full object-cover" />
+                          ) : (
+                            <span aria-hidden="true" className="girih-tile absolute inset-0" />
+                          )}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block font-mono text-[0.72rem] text-fg-faint tabular">
+                            {formatDate(newsDate(item))}
+                          </span>
+                          <span className="mt-1 block line-clamp-2 font-display text-[0.98rem] font-medium leading-snug text-fg">
+                            {pick(item, "title")}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </Reveal>
             )}
           </div>

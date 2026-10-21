@@ -17,7 +17,9 @@ export function safeHref(url) {
   const trimmed = String(url).trim();
 
   // Nisbiy manzillar (/books, #section) — o'z saytimiz ichida, xavfsiz.
-  if (trimmed.startsWith("/") || trimmed.startsWith("#")) return trimmed;
+  // `//evil.uz` va `/\evil.uz` — protokolsiz TASHQI manzil, nisbiy emas.
+  if (trimmed.startsWith("#")) return trimmed;
+  if (trimmed.startsWith("/") && !/^\/[/\\]/.test(trimmed)) return trimmed;
 
   let parsed;
   try {

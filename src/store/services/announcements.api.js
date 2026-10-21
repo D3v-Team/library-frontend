@@ -14,11 +14,25 @@ function toFormData(fields) {
       return;
     }
 
+    // CreateAnnouncementDto.images — har rasm alohida "images" kaliti bilan
+    if (key === "images") {
+      (Array.isArray(value) ? value : [value])
+        .filter((file) => file instanceof File)
+        .forEach((file) => formData.append("images", file));
+      return;
+    }
+
     formData.append(key, value);
   });
 
   return formData;
 }
+
+// Rasm amallari yozuvni ham, ro'yxatdagi muqovani ham yangilaydi
+const imageTags = (result, error, { id }) => [
+  { type: "Announcements", id },
+  { type: "Announcements", id: "LIST" },
+];
 
 export const announcementsApi = createApi({
   reducerPath: "announcementsApi",
@@ -36,9 +50,7 @@ export const announcementsApi = createApi({
         sortBy,
         sortOrder,
       } = {}) => ({
-        // Backend faqat CHOP ETILGAN e'lonlarni qaytaradi; `is_public`
-        // filtri yo'q (yuborilsa jim e'tiborsiz qoladi — tekshirilgan).
-        // Admin uchun alohida ro'yxat (GET /announcements/admin) kerak.
+        // Ommaviy: faqat CHOP ETILGAN e'lonlar
         url: "/announcements",
         method: "GET",
         params: { page, limit, search, sortBy, sortOrder },
@@ -50,6 +62,20 @@ export const announcementsApi = createApi({
               { type: "Announcements", id: "LIST" },
             ]
           : [{ type: "Announcements", id: "LIST" }],
+    }),
+
+    // Admin: chop etilgan va yashirin — hammasi (`is_public` ixtiyoriy,
+    // yuborilmaydi)
+    getAdminAnnouncements: builder.query({
+      query: ({ page = 1, limit = 12, search } = {}) => ({
+        url: "/announcements/admin",
+        method: "GET",
+        params: { page, limit, search: search || undefined },
+      }),
+      providesTags: (result) => [
+        ...(result?.data ?? []).map((a) => ({ type: "Announcements", id: a.id })),
+        { type: "Announcements", id: "LIST" },
+      ],
     }),
 
     getAnnouncementById: builder.query({
@@ -97,16 +123,17 @@ export const announcementsApi = createApi({
       }),
       // Optimistik: kalit darhol almashadi. Ro'yxat haqiqiy argumentlar
       // bilan keshlangan — `undefined` bilan patch hech narsaga tushmasdi.
-      //
-      // Teg ATAYLAB invalidatsiya qilinmaydi: ro'yxat qayta yuklansa,
-      // backend yashirilgan e'lonni qaytarmaydi va admin uni shu zahoti
-      // qayta chop eta olmay qoladi. Patch tufayli u sahifada qoladi.
+      // Saytdagi ommaviy ro'yxat ham yangilansin — teg invalidatsiyasi.
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Announcements", id },
+        { type: "Announcements", id: "LIST" },
+      ],
       async onQueryStarted({ id, is_public }, { dispatch, getState, queryFulfilled }) {
         const patches = announcementsApi.util
-          .selectCachedArgsForQuery(getState(), "getAnnouncements")
+          .selectCachedArgsForQuery(getState(), "getAdminAnnouncements")
           .map((args) =>
             dispatch(
-              announcementsApi.util.updateQueryData("getAnnouncements", args, (draft) => {
+              announcementsApi.util.updateQueryData("getAdminAnnouncements", args, (draft) => {
                 const item = draft?.data?.find((a) => a.id === id);
                 if (item) item.is_public = is_public;
               }),
@@ -119,14 +146,45 @@ export const announcementsApi = createApi({
         }
       },
     }),
+
+    // --- Rasmlar (jami 10 tagacha) ---
+
+    uploadAnnouncementImages: builder.mutation({
+      query: ({ id, files }) => ({
+        url: `/announcements/${id}/images`,
+        method: "POST",
+        data: toFormData({ images: files }),
+      }),
+      invalidatesTags: imageTags,
+    }),
+
+    setMainAnnouncementImage: builder.mutation({
+      query: ({ id, imageId }) => ({
+        url: `/announcements/${id}/images/${imageId}/main`,
+        method: "PATCH",
+      }),
+      invalidatesTags: imageTags,
+    }),
+
+    deleteAnnouncementImage: builder.mutation({
+      query: ({ id, imageId }) => ({
+        url: `/announcements/${id}/images/${imageId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: imageTags,
+    }),
   }),
 });
 
 export const {
   useGetAnnouncementsQuery,
+  useGetAdminAnnouncementsQuery,
   useGetAnnouncementByIdQuery,
   useCreateAnnouncementMutation,
   useUpdateAnnouncementMutation,
   useDeleteAnnouncementMutation,
   useToggleAnnouncementPublishMutation,
+  useUploadAnnouncementImagesMutation,
+  useSetMainAnnouncementImageMutation,
+  useDeleteAnnouncementImageMutation,
 } = announcementsApi;

@@ -23,7 +23,7 @@ import { useLazySection } from "../../hooks/useLazySection";
  *   01 Peshtoq hero        signatura sirt + haqiqiy statistika
  *   02 Fond relsi          marquee o'rniga boshqariladigan rels
  *   02b Raqamlarda         admin kiritgan rasmiy statistika
- *   03 Yangiliklar         redaksion ierarxiya: yetakchi + qatorlar
+ *   03 Yangiliklar         redaksion ierarxiya: yetakchi + qatorlar (/news)
  *   04 Tadbirlar           taqvim ohangi, oy lentasi bilan
  *   05 Ma'rifat bloki      ikkinchi signatura sirt
  *   06 Media               masonry teaser, karusel emas

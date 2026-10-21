@@ -36,7 +36,7 @@ export default function Management() {
   const { t } = useTranslation();
   const { pick } = useLocalized();
 
-  const { data, isLoading, error } = useGetDepartmentsQuery({ page: 1, limit: 100 });
+  const { data, isLoading, error } = useGetDepartmentsQuery({ page: 1, limit: 50 });
   const people = (data?.data ?? []).filter((p) => p.is_active !== false);
 
   return (
