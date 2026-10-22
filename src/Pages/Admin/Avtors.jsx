@@ -61,16 +61,16 @@ const toAuthorForm = (author) =>
 
 // ===== FORM VALIDATION SCHEMA – 3 TIL MAJBURIY =====
 const formSchema = [
-  { field: "full_name_latin", validators: [(v) => required(v, "Ism (lotin) to‘ldirilmagan"), (v) => minLength(v, 2, "Ism (lotin) kamida 2 belgi bo‘lishi kerak")] },
-  { field: "full_name_cyril", validators: [(v) => required(v, "Ism (kirill) to‘ldirilmagan")] },
-  { field: "full_name_ru", validators: [(v) => required(v, "Ism (rus) to‘ldirilmagan")] },
+  { field: "full_name_latin", validators: [(v) => required(v, "Ism (lotin)"), (v) => minLength(v, 2, "Ism (lotin)")] },
+  { field: "full_name_cyril", validators: [(v) => required(v, "Ism (kirill)")] },
+  { field: "full_name_ru", validators: [(v) => required(v, "Ism (rus)")] },
   { field: "biography_latin", validators: [] }, // ixtiyoriy
   { field: "biography_cyril", validators: [] },
   { field: "biography_ru", validators: [] },
   { field: "nationality_latin", validators: [] },
   { field: "nationality_cyril", validators: [] },
   { field: "nationality_ru", validators: [] },
-  // Tug'ilgan sana majburiyligi faqat YARATISHDA (handleSubmit ga qarang)
+  // Sanalar ixtiyoriy — faqat format va tartib tekshiriladi (handleSubmit)
   { field: "birth_date", validators: [isValidDate] },
   { field: "death_date", validators: [isValidDate] },
 ];
@@ -211,12 +211,12 @@ export default function Avtors() {
     e.preventDefault();
     if (isSaving) return;
 
-    // 1. Validatsiya. Tug'ilgan sana faqat yangi muallifda majburiy:
-    // Excel importidan kelgan ~2 000 muallifda u yo'q — tahrirlashda talab
-    // qilinsa, ularni tahrirlab bo'lmasdi (to'qima sana kiritmasdan).
+    // 1. Validatsiya. Sanalar IXTIYORIY (Swagger: CreateAuthorDto da
+    // majburiy emas): ma'lum bo'lsa kiritiladi, noma'lum bo'lsa bo'sh
+    // qoladi va yuborilmaydi. Ikkalasi kiritilsa — tartibi tekshiriladi.
     const validationErrors = validateForm(form, formSchema);
-    if (!editingAuthor && !form.birth_date) {
-      validationErrors.birth_date = "Tug'ilgan sana kiriting";
+    if (form.birth_date && form.death_date && form.death_date < form.birth_date) {
+      validationErrors.death_date = "Vafot sanasi tug'ilgan sanadan oldin bo'lishi mumkin emas";
     }
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -447,7 +447,7 @@ export default function Avtors() {
             <FormField
               type="date"
               label="Tug'ilgan sana"
-              required
+              hint="Ixtiyoriy — noma'lum bo'lsa bo'sh qoldiring"
               value={form.birth_date}
               onChange={(e) => handleFieldChange("birth_date", e.target.value)}
               error={errors.birth_date}
@@ -455,6 +455,7 @@ export default function Avtors() {
             <FormField
               type="date"
               label="Vafot sanasi"
+              hint="Ixtiyoriy"
               value={form.death_date}
               onChange={(e) => handleFieldChange("death_date", e.target.value)}
               error={errors.death_date}

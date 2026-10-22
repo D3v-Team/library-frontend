@@ -1,6 +1,7 @@
 export default function FormField({
   label,
   error,
+  hint,
   required,
   as = "input",
   className = "",
@@ -27,7 +28,11 @@ export default function FormField({
         {...props}
       />
 
-      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
+      {error ? (
+        <p className="mt-1.5 text-xs text-red-600">{error}</p>
+      ) : (
+        hint && <p className="mt-1.5 text-xs text-slate-400">{hint}</p>
+      )}
     </div>
   );
 }

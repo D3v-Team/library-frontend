@@ -87,7 +87,7 @@ const formSchema = [
     validators: [
       (v) => required(v, "Sarlavha (lotin)"),
 
-      (v) => minLength(v, 3, "Sarlavha kamida 3 ta belgi"),
+      (v) => minLength(v, 3, "Sarlavha"),
     ],
   },
 

@@ -55,15 +55,15 @@ const BANNER_FIELDS = Object.keys(emptyForm).filter((f) => f !== "image_file");
 const formSchema = [
   {
     field: "title_latin",
-    validators: [(v) => required(v, "Sarlavha (lotin) to‘ldirilmagan")],
+    validators: [(v) => required(v, "Sarlavha (lotin)")],
   },
   {
     field: "title_cyril",
-    validators: [(v) => required(v, "Sarlavha (kirill) to‘ldirilmagan")],
+    validators: [(v) => required(v, "Sarlavha (kirill)")],
   },
   {
     field: "title_ru",
-    validators: [(v) => required(v, "Sarlavha (rus) to‘ldirilmagan")],
+    validators: [(v) => required(v, "Sarlavha (rus)")],
   },
   { field: "link_url", validators: [isValidUrl] },
   { field: "order", validators: [isValidNumber] },
